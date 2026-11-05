@@ -33,6 +33,7 @@
 | 📈 **Contrast chart** | Any parameter on the x-axis; signal, CNR, scan time or SAR on the y-axis, with the current value marked. 2D maps of two parameters |
 | 🧩 **k-space filling** | Acquired lines, parallel-imaging undersampling, partial Fourier, FSE echo order, EPI trajectory, radial schemes (expert mode) |
 | 🏷️ **Vendor name table** | Siemens, Canon, GE, Philips, Fujifilm, United Imaging (with confidence flags) |
+| 📱 **Smartphone layout** | Image and estimates stay pinned at the top; tabs at the bottom switch between anatomy, parameters, chart and details |
 | 🎨 **Themes** | Standard, Light, Dark (for reading rooms) and Warm (default), switchable at the top right |
 | 🎓 **Learning mode** | 15 common sequences with only the parameters that matter for learning, teaching points and presets |
 

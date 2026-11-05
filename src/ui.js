@@ -60,7 +60,7 @@ function learnCard(){ var box=$('#learncard'); var L=mode==='learn'?MS.LEARN_MAP
   var sw=el('p',{class:'sim-note',style:'margin-top:14px'}); var a=el('button',{type:'button',class:'quiet-link',style:'border:0;background:none;color:var(--rt-link);text-decoration:underline;padding:0;font-size:12px'},'エキスパート用で同じシーケンスを開く（すべてのパラメータ）'); a.onclick=function(){ mode='expert'; buildSeqList(); buildParams(); seqCard(); setHash('expert'); schedule(); }; sw.appendChild(document.createTextNode('もっと細かく調べたいとき：')); sw.appendChild(a); box.appendChild(sw); }
 function vname(s){ if(vendor==='sie') return s.sie; if(vendor==='can') return s.can; if(vendor==='gen') return s.gen; return s.sie===s.can? s.sie : s.sie+'／'+s.can; }
 var view='sim';
-function setView(v){ view=v; document.querySelectorAll('.view').forEach(function(m){ m.hidden=(m.id!=='v-'+v); }); buildSeqList(); window.scrollTo(0,0); if(v==='sim'&&res) show(res); }
+function setView(v){ view=v; document.querySelectorAll('.view').forEach(function(m){ m.hidden=(m.id!=='v-'+v); }); document.body.classList.toggle('simview',v==='sim'); buildSeqList(); window.scrollTo(0,0); if(v==='sim'&&res) show(res); }
 function closeMenu(){ $('#sidebar').classList.remove('open'); $('#shade').classList.remove('visible'); $('#menu').setAttribute('aria-expanded','false'); }
 /* ---------- パラメータ ---------- */
 function visibleParams(sq){ var p=st.p, keys=['fov','pfov','nx','ny','thk']; if(sq.dim==='3D') keys.push('npart','sos'); else keys.push('gap','nsl'); keys.push('pos','nex');
@@ -160,7 +160,7 @@ function render(o,canvas,win,opts){ var S=res.S, peV=res.geo.peV; canvas.width=S
     if(edge){ var q2=peV? Y*S+Math.min(S-1,X+1) : Math.min(S-1,X+1)*S+Y, q3=peV? Math.min(S-1,Y+1)*S+X : X*S+Math.min(S-1,Y+1); if(lab[q]!==lab[q2]||lab[q]!==lab[q3]){ r=255; g=210; b=60; } }
     D[p]=r; D[p+1]=g; D[p+2]=b; D[p+3]=255; }
   ctx.putImageData(img,0,0); }
-function cssSize(){ var g=res.geo, wide=Math.min(($('#stage').clientWidth||480)/(pinned&&$('#stage').clientWidth>700?2.05:1),900); var ar=g.fovpe/g.fov; var w,h; if(g.peV){ w=wide; h=wide*ar; } else { w=wide*ar; h=wide;  } var mh=Math.max(260,Math.min(900,Math.round(window.innerWidth>=1200?window.innerHeight-330:(window.innerWidth>900?window.innerHeight*0.45:window.innerHeight-200)))); if(h>mh){ var k=mh/h; h=mh; w=w*k; } return [w,h]; }
+function cssSize(){ var g=res.geo, wide=Math.min(($('#stage').clientWidth||480)/(pinned&&$('#stage').clientWidth>700?2.05:1),900); var ar=g.fovpe/g.fov; var w,h; if(g.peV){ w=wide; h=wide*ar; } else { w=wide*ar; h=wide;  } var mh=document.body.classList.contains('mob')? Math.max(160,Math.round(window.innerHeight*0.31)) : Math.max(260,Math.min(900,Math.round(window.innerWidth>=1200?window.innerHeight-330:(window.innerWidth>900?window.innerHeight*0.45:window.innerHeight-200)))); if(h>mh){ var k=mh/h; h=mh; w=w*k; } return [w,h]; }
 function panel(o,title,sub,win,isPin){ var wrap=el('div',{class:'cv'}); var c=el('canvas'); render(o,c,win,{k:!isPin&&$('#showK').checked}); var sz=cssSize(); c.style.width=sz[0]+'px'; c.style.height=sz[1]+'px'; wrap.appendChild(c);
   wrap.appendChild(el('div',{class:'lab',html:title})); wrap.appendChild(el('div',{class:'lab2',html:sub}));
   var pl=MS.PHANTOMS[st.phantom].plane; var L=pl==='sag'?['S','I','A','P']:(pl==='cor'?['S','I','R','L']:['A','P','R','L']); [['top:4px;left:50%',L[0]],['bottom:4px;left:50%',L[1]],['left:4px;top:50%',L[2]],['right:4px;top:50%',L[3]]].forEach(function(a){ var d=el('div',{class:'ori',style:a[0]},a[1]); wrap.appendChild(d); });
@@ -356,7 +356,7 @@ function tables(){ function cf(c){ if(c==='—'||!c) return ''; return '<span cl
 /* ---------- 初期化 ---------- */
 function init(){ tables(); try{ if(window.top!==window) $('#save').hidden=true; }catch(e){ $('#save').hidden=true; }
   $('#seqq').oninput=buildSeqList;
-  $('#reset').onclick=function(){ newState(st.phantom,st.seq,true); }; initGroupTools();
+  $('#reset').onclick=function(){ newState(st.phantom,st.seq,true); }; initGroupTools(); mobSetup();
   (function(){ var ts=$('#themesel'); if(!ts) return; ts.value=document.documentElement.getAttribute('data-theme')||'standard'; ts.onchange=function(){ var v=ts.value; if(v==='standard') document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme',v); try{ localStorage.setItem('mrisimTheme',v); }catch(e){} if(res&&view==='sim') show(res); }; })();
   ['#showK','#showLab','#color'].forEach(function(s){ $(s).onchange=function(){ if(res) show(res); }; });
   $('#auto').onclick=function(){ manualW=null; if(res) show(res); };
@@ -367,6 +367,23 @@ function init(){ tables(); try{ if(window.top!==window) $('#save').hidden=true; 
   var rz=null; window.addEventListener('resize',function(){ clearTimeout(rz); rz=setTimeout(function(){ if(res&&view==='sim') show(res); },150); });
   var h=(location.hash||'').replace('#',''); if(h==='learn') startLearn(MS.LEARN[0].seq); else if(h==='names'||h==='tissue'||h==='about'){ newState('head','fse_t2'); setView(h); } else newState('head','fse_t2'); }
 if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init); else init();
+
+/* ---------- スマートフォン用の画面（幅 760px 以下） ----------
+   画像と見積もりを上に固定し、下のタブで「部位／パラメータ／グラフ／詳細」を切り替える */
+var MQ=window.matchMedia?window.matchMedia('(max-width:760px)'):null, mtab='params', mobHome=null;
+function mobSetup(){ var on=!!(MQ&&MQ.matches); document.body.classList.toggle('simview',view==='sim'); var was=document.body.classList.contains('mob'); document.body.classList.toggle('mob',on);
+  var v=$('#v-sim'), out=document.querySelector('.pro-out'), lc=$('#learncard'), pp=document.querySelector('.pro-params');
+  if(on && !mobHome){ mobHome={out:[out.parentNode,out.nextSibling], lc:[lc.parentNode,lc.nextSibling]}; v.insertBefore(out,v.firstChild); pp.insertBefore(lc,pp.firstChild);
+    if(!$('#mtabs')) buildMtabs(); setMtab(mtab,true); }
+  else if(!on && mobHome){ mobHome.out[0].insertBefore(out,mobHome.out[1]); mobHome.lc[0].insertBefore(lc,mobHome.lc[1]); mobHome=null; document.body.removeAttribute('data-mtab'); }
+  if(was!==on && res && view==='sim') show(res); }
+function buildMtabs(){ var nav=el('nav',{id:'mtabs','aria-label':'表示の切り替え'});
+  [['setup','部位・病変'],['params','パラメータ'],['chart','グラフ'],['info','詳細']].forEach(function(t){ var b=el('button',{type:'button','data-t':t[0]},t[1]); b.onclick=function(){ setMtab(t[0]); }; nav.appendChild(b); });
+  document.body.appendChild(nav); }
+function setMtab(t,quiet){ mtab=t; document.body.setAttribute('data-mtab',t); document.querySelectorAll('#mtabs button').forEach(function(b){ b.setAttribute('aria-pressed',String(b.getAttribute('data-t')===t)); });
+  if(!quiet) window.scrollTo(0,0);
+  if(t==='chart' && res){ try{ drawChart(); }catch(e){} } }
+if(MQ){ if(MQ.addEventListener) MQ.addEventListener('change',mobSetup); else if(MQ.addListener) MQ.addListener(mobSetup); }
 
 /* ---------- パラメータ群の開閉 ---------- */
 function saveClosed(){ try{ localStorage.setItem('mrisimClosedGroups',JSON.stringify(closedG)); }catch(e){} }

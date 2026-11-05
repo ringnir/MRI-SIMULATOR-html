@@ -15,8 +15,10 @@
 "TE（第2エコー）": "TE (2nd echo)",
 "addSeq: 種類 ": "addSeq: kind ",
 "ウォーム": "Warm",
+"グラフ": "Chart",
 "シーケンス名の対応（メーカー別）": "Sequence names by vendor",
 "ダーク": "Dark",
+"パラメータ": "Parameters",
 "ベンダー比較表で確認（列の読み取りに曖昧さあり）／裏付けのとれていない名称は「—」としています。名称はソフトウェアのバージョン・地域で異なることがあります。お使いの装置のプロトコル名で確認してください。": "confirmed in a cross-vendor comparison chart (some ambiguity in reading the columns) / names that could not be verified are shown as “—”. Names can differ by software version and region; check the protocol names on your own scanner.",
 "メーカー別": "By vendor",
 "ライト": "Light",
@@ -25,6 +27,9 @@
 "第1エコー（PD強調）TE ": "Echo 1 (PD-weighted) TE ",
 "第2エコー（T2強調）TE ": "Echo 2 (T2-weighted) TE ",
 "組織値は文献値を丸めた代表値・推定値、仮想ファントムは解析的な図形で描いた模式図で、画像・撮像時間・SNR・SAR は教育用の近似です。医療機器ではありません。": "Tissue values are rounded literature values or estimates, the virtual phantoms are schematic drawings made of analytic shapes, and images, scan time, SNR and SAR are educational approximations. This is not a medical device.",
+"表示の切り替え": "Switch view",
 "診療・装置の設定には使わないでください。": "Do not use for clinical decisions or scanner settings.",
+"詳細": "Details",
+"部位・病変": "Anatomy",
 "配色": "Theme"
 }

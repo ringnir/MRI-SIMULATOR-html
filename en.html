@@ -533,6 +533,56 @@ body.sbdrag{cursor:col-resize;user-select:none}
 @media(max-width:900px){ .pro-grid{grid-template-columns:minmax(0,1fr)} .pro-side{position:static;order:-1;max-height:none;overflow:visible} }
 @media(max-width:760px){ .sim-controls,.pro-params .sim-controls{grid-template-columns:1fr} .metrics{grid-template-columns:repeat(2,minmax(0,1fr))} }
 @media print{ .pro-out,.pro-chart,.pro-side{position:static} .vtools,.thumbs{display:none} }
+/* ===== スマートフォン（body.mob：幅 760px 以下） ===== */
+body.mob .topbar{position:static;padding:8px 12px;font-size:13px;gap:8px}
+body.mob .topbar>div:first-child{min-width:0;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+body.mob .topbar>div:first-child b{font-size:12.5px}
+body.mob .topbar>div:last-child{flex:none;font-size:12px}
+body.mob .langsw{margin-right:0!important}
+body.mob .topbar>div:last-child>span:not(.langsw){display:none}
+body.mob .topbar .print-button{display:none}
+body.mob .content{padding:0 10px calc(70px + env(safe-area-inset-bottom))}
+body.mob #v-sim>.pro-out{position:sticky;top:0;z-index:30;margin:0 -10px 10px;padding:6px 8px 6px;background:var(--rt-bg);border-bottom:1px solid var(--rt-line);box-shadow:0 6px 14px -10px rgba(0,0,0,.35)}
+body.mob #v-sim>.pro-out .sim-output{padding:6px;margin:0;border-radius:8px}
+body.mob #v-sim>.pro-out .sim-image h3{font-size:12.5px;margin:0 0 4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+body.mob #v-sim>.pro-out .stage{display:flex;justify-content:center}
+body.mob #v-sim>.pro-out .vtools{gap:4px;margin-top:4px;font-size:12px;flex-wrap:nowrap;overflow-x:auto}
+body.mob #v-sim>.pro-out .vtools button{padding:2px 8px;font-size:12px;white-space:nowrap}
+body.mob #v-sim>.pro-out .vtools label{white-space:nowrap}
+body.mob #v-sim>.pro-out #save,body.mob #v-sim>.pro-out #pin{display:none}
+body.mob #v-sim>.pro-out .hover{display:none}
+body.mob #v-sim>.pro-out .thumbs{flex-wrap:nowrap;overflow-x:auto;margin-top:4px}
+body.mob #v-sim>.pro-out .thumbs canvas{max-height:40px}
+body.mob #v-sim>.pro-out .metrics{display:flex;gap:5px;overflow-x:auto;margin-top:5px;padding-bottom:2px;scrollbar-width:none}
+body.mob #v-sim>.pro-out .metrics::-webkit-scrollbar{display:none}
+body.mob #v-sim>.pro-out .metric{flex:none;padding:3px 8px;max-width:150px}
+body.mob #v-sim>.pro-out .metric b{font-size:13.5px}
+body.mob #v-sim>.pro-out .metric span{font-size:10.5px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+body.mob #v-sim>.pro-out .warns{max-height:3.2em;overflow:auto;font-size:11.5px;margin:4px 0 0}
+body.mob .chapter-header{padding:16px 16px 14px;margin:0 0 10px}
+body.mob .chapter-header h1{font-size:22px}
+body.mob .pro-grid{display:block}
+body.mob .pro-side{position:static;max-height:none;overflow:visible}
+body.mob .sim-card{padding:14px 14px 12px}
+body.mob .pro-params #learncard{margin-bottom:10px}
+/* タブで切り替える部分 */
+body.mob.simview[data-mtab] #v-sim>.chapter-header,body.mob.simview[data-mtab] #v-sim>.notice,body.mob.simview[data-mtab] #protop,body.mob.simview[data-mtab] .pro-params,body.mob.simview[data-mtab] .pro-chart,body.mob.simview[data-mtab] #sim-tissue,body.mob.simview[data-mtab] .footer{display:none}
+body.mob.simview[data-mtab=setup] #protop{display:block}
+body.mob.simview[data-mtab=params] .pro-params{display:block}
+body.mob.simview[data-mtab=chart] .pro-chart{display:block;margin-top:0}
+body.mob.simview[data-mtab=info] #v-sim>.chapter-header,body.mob.simview[data-mtab=info] #v-sim>.notice,body.mob.simview[data-mtab=info] #sim-tissue,body.mob.simview[data-mtab=info] .footer{display:block}
+body.mob.simview[data-mtab=setup] #protop.one #sim-setup,body.mob.simview[data-mtab=setup] #protop #sim-setup{display:block}
+body.mob #protop #learncard{display:none}
+#mtabs{display:none}
+body.mob.simview #mtabs{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:60;background:var(--rt-surface);border-top:1px solid var(--rt-line-strong);padding:4px 4px calc(4px + env(safe-area-inset-bottom));box-shadow:0 -4px 14px -8px rgba(0,0,0,.3)}
+#mtabs button{flex:1;border:0;background:none;padding:9px 2px;font:inherit;font-size:13px;font-weight:700;color:var(--rt-muted);border-radius:8px}
+#mtabs button[aria-pressed=true]{color:var(--rt-accent-dark);background:var(--rt-accent-soft)}
+body.mob .pgrp>button.grp{padding-top:14px;font-size:15.5px}
+body.mob input[type=range]{height:28px}
+body.mob .sim-control input[type=number]{font-size:16px}
+body.mob select{font-size:15px}
+@media print{ #mtabs{display:none!important} }
+
 </style>
 <style>:root{--rt-font:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}body,button,input,select,textarea{font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}</style>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27%3E%3Crect width=%2724%27 height=%2724%27 rx=%276%27 fill=%27%23007d82%27/%3E%3Cpath d=%27M5 12h3l2-5 3 10 2-5h4%27 fill=%27none%27 stroke=%27white%27 stroke-width=%272%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27/%3E%3C/svg%3E">
@@ -6812,7 +6862,7 @@ function learnCard(){ var box=$('#learncard'); var L=mode==='learn'?MS.LEARN_MAP
   var sw=el('p',{class:'sim-note',style:'margin-top:14px'}); var a=el('button',{type:'button',class:'quiet-link',style:'border:0;background:none;color:var(--rt-link);text-decoration:underline;padding:0;font-size:12px'},'Open the same sequence in Expert mode (all parameters)'); a.onclick=function(){ mode='expert'; buildSeqList(); buildParams(); seqCard(); setHash('expert'); schedule(); }; sw.appendChild(document.createTextNode('To explore in more detail:')); sw.appendChild(a); box.appendChild(sw); }
 function vname(s){ if(vendor==='sie') return s.sie; if(vendor==='can') return s.can; if(vendor==='gen') return s.gen; return s.sie===s.can? s.sie : s.sie+'/'+s.can; }
 var view='sim';
-function setView(v){ view=v; document.querySelectorAll('.view').forEach(function(m){ m.hidden=(m.id!=='v-'+v); }); buildSeqList(); window.scrollTo(0,0); if(v==='sim'&&res) show(res); }
+function setView(v){ view=v; document.querySelectorAll('.view').forEach(function(m){ m.hidden=(m.id!=='v-'+v); }); document.body.classList.toggle('simview',v==='sim'); buildSeqList(); window.scrollTo(0,0); if(v==='sim'&&res) show(res); }
 function closeMenu(){ $('#sidebar').classList.remove('open'); $('#shade').classList.remove('visible'); $('#menu').setAttribute('aria-expanded','false'); }
 /* ---------- パラメータ ---------- */
 function visibleParams(sq){ var p=st.p, keys=['fov','pfov','nx','ny','thk']; if(sq.dim==='3D') keys.push('npart','sos'); else keys.push('gap','nsl'); keys.push('pos','nex');
@@ -6912,7 +6962,7 @@ function render(o,canvas,win,opts){ var S=res.S, peV=res.geo.peV; canvas.width=S
     if(edge){ var q2=peV? Y*S+Math.min(S-1,X+1) : Math.min(S-1,X+1)*S+Y, q3=peV? Math.min(S-1,Y+1)*S+X : X*S+Math.min(S-1,Y+1); if(lab[q]!==lab[q2]||lab[q]!==lab[q3]){ r=255; g=210; b=60; } }
     D[p]=r; D[p+1]=g; D[p+2]=b; D[p+3]=255; }
   ctx.putImageData(img,0,0); }
-function cssSize(){ var g=res.geo, wide=Math.min(($('#stage').clientWidth||480)/(pinned&&$('#stage').clientWidth>700?2.05:1),900); var ar=g.fovpe/g.fov; var w,h; if(g.peV){ w=wide; h=wide*ar; } else { w=wide*ar; h=wide;  } var mh=Math.max(260,Math.min(900,Math.round(window.innerWidth>=1200?window.innerHeight-330:(window.innerWidth>900?window.innerHeight*0.45:window.innerHeight-200)))); if(h>mh){ var k=mh/h; h=mh; w=w*k; } return [w,h]; }
+function cssSize(){ var g=res.geo, wide=Math.min(($('#stage').clientWidth||480)/(pinned&&$('#stage').clientWidth>700?2.05:1),900); var ar=g.fovpe/g.fov; var w,h; if(g.peV){ w=wide; h=wide*ar; } else { w=wide*ar; h=wide;  } var mh=document.body.classList.contains('mob')? Math.max(160,Math.round(window.innerHeight*0.31)) : Math.max(260,Math.min(900,Math.round(window.innerWidth>=1200?window.innerHeight-330:(window.innerWidth>900?window.innerHeight*0.45:window.innerHeight-200)))); if(h>mh){ var k=mh/h; h=mh; w=w*k; } return [w,h]; }
 function panel(o,title,sub,win,isPin){ var wrap=el('div',{class:'cv'}); var c=el('canvas'); render(o,c,win,{k:!isPin&&$('#showK').checked}); var sz=cssSize(); c.style.width=sz[0]+'px'; c.style.height=sz[1]+'px'; wrap.appendChild(c);
   wrap.appendChild(el('div',{class:'lab',html:title})); wrap.appendChild(el('div',{class:'lab2',html:sub}));
   var pl=MS.PHANTOMS[st.phantom].plane; var L=pl==='sag'?['S','I','A','P']:(pl==='cor'?['S','I','R','L']:['A','P','R','L']); [['top:4px;left:50%',L[0]],['bottom:4px;left:50%',L[1]],['left:4px;top:50%',L[2]],['right:4px;top:50%',L[3]]].forEach(function(a){ var d=el('div',{class:'ori',style:a[0]},a[1]); wrap.appendChild(d); });
@@ -7108,7 +7158,7 @@ function tables(){ function cf(c){ if(c==='—'||!c) return ''; return '<span cl
 /* ---------- 初期化 ---------- */
 function init(){ tables(); try{ if(window.top!==window) $('#save').hidden=true; }catch(e){ $('#save').hidden=true; }
   $('#seqq').oninput=buildSeqList;
-  $('#reset').onclick=function(){ newState(st.phantom,st.seq,true); }; initGroupTools();
+  $('#reset').onclick=function(){ newState(st.phantom,st.seq,true); }; initGroupTools(); mobSetup();
   (function(){ var ts=$('#themesel'); if(!ts) return; ts.value=document.documentElement.getAttribute('data-theme')||'standard'; ts.onchange=function(){ var v=ts.value; if(v==='standard') document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme',v); try{ localStorage.setItem('mrisimTheme',v); }catch(e){} if(res&&view==='sim') show(res); }; })();
   ['#showK','#showLab','#color'].forEach(function(s){ $(s).onchange=function(){ if(res) show(res); }; });
   $('#auto').onclick=function(){ manualW=null; if(res) show(res); };
@@ -7119,6 +7169,23 @@ function init(){ tables(); try{ if(window.top!==window) $('#save').hidden=true; 
   var rz=null; window.addEventListener('resize',function(){ clearTimeout(rz); rz=setTimeout(function(){ if(res&&view==='sim') show(res); },150); });
   var h=(location.hash||'').replace('#',''); if(h==='learn') startLearn(MS.LEARN[0].seq); else if(h==='names'||h==='tissue'||h==='about'){ newState('head','fse_t2'); setView(h); } else newState('head','fse_t2'); }
 if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init); else init();
+
+/* ---------- スマートフォン用の画面（幅 760px 以下） ----------
+   画像と見積もりを上に固定し、下のタブで「部位／パラメータ／グラフ／詳細」を切り替える */
+var MQ=window.matchMedia?window.matchMedia('(max-width:760px)'):null, mtab='params', mobHome=null;
+function mobSetup(){ var on=!!(MQ&&MQ.matches); document.body.classList.toggle('simview',view==='sim'); var was=document.body.classList.contains('mob'); document.body.classList.toggle('mob',on);
+  var v=$('#v-sim'), out=document.querySelector('.pro-out'), lc=$('#learncard'), pp=document.querySelector('.pro-params');
+  if(on && !mobHome){ mobHome={out:[out.parentNode,out.nextSibling], lc:[lc.parentNode,lc.nextSibling]}; v.insertBefore(out,v.firstChild); pp.insertBefore(lc,pp.firstChild);
+    if(!$('#mtabs')) buildMtabs(); setMtab(mtab,true); }
+  else if(!on && mobHome){ mobHome.out[0].insertBefore(out,mobHome.out[1]); mobHome.lc[0].insertBefore(lc,mobHome.lc[1]); mobHome=null; document.body.removeAttribute('data-mtab'); }
+  if(was!==on && res && view==='sim') show(res); }
+function buildMtabs(){ var nav=el('nav',{id:'mtabs','aria-label':'Switch view'});
+  [['setup','Anatomy'],['params','Parameters'],['chart','Chart'],['info','Details']].forEach(function(t){ var b=el('button',{type:'button','data-t':t[0]},t[1]); b.onclick=function(){ setMtab(t[0]); }; nav.appendChild(b); });
+  document.body.appendChild(nav); }
+function setMtab(t,quiet){ mtab=t; document.body.setAttribute('data-mtab',t); document.querySelectorAll('#mtabs button').forEach(function(b){ b.setAttribute('aria-pressed',String(b.getAttribute('data-t')===t)); });
+  if(!quiet) window.scrollTo(0,0);
+  if(t==='chart' && res){ try{ drawChart(); }catch(e){} } }
+if(MQ){ if(MQ.addEventListener) MQ.addEventListener('change',mobSetup); else if(MQ.addListener) MQ.addListener(mobSetup); }
 
 /* ---------- パラメータ群の開閉 ---------- */
 function saveClosed(){ try{ localStorage.setItem('mrisimClosedGroups',JSON.stringify(closedG)); }catch(e){} }

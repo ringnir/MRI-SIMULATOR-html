@@ -65,5 +65,7 @@ MS.LEARN=[
   pre:[['1.5T',{te:40}],['3T 相当',{te:20}]]}
 ];
 MS.LEARN_MAP={}; MS.LEARN.forEach(function(L){ MS.LEARN_MAP[L.seq]=L; });
+/* 拡張用：勉強用の項目を足す（書き方は MS.LEARN の各項目と同じ） */
+MS.addLearn=function(L){ MS.LEARN=MS.LEARN.filter(function(x){ return x.seq!==L.seq; }); MS.LEARN.push(L); MS.LEARN_MAP[L.seq]=L; return L; };
 MS.LEARN_COMMON=['fov','ny','thk','nex'];
 })();

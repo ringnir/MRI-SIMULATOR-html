@@ -4,6 +4,8 @@ var MS=window.MS, $=function(s){return document.querySelector(s);}, el=function(
 var st=null, res=null, cur=0, manualW=null, pinned=null, vendor='both', snrRef=1, lastSeq=null;
 var closedG={}; try{ closedG=JSON.parse(localStorage.getItem('mrisimClosedGroups')||'{}')||{}; }catch(e){ closedG={}; }
 var defPcache={key:null,p:null};
+function vlist(){ var nm={sie:'Siemens',can:'Canon',ge:'GE',phi:'Philips',fuji:'Fujifilm',uih:'United Imaging'}; var order=['sie','can','ge','phi','fuji','uih']; return order.filter(function(k){ return k==='sie'||k==='can'||(MS.SEQS[0]&&MS.SEQS[0][k]!==undefined); }).map(function(k){ return [k,nm[k]]; }); }
+if(MS.PUBLIC){ ['ge','phi','fuji','uih'].forEach(function(k){ MS.SEQS.forEach(function(s){ if(s[k+'C']==='x'){ s[k]='—'; s[k+'C']='—'; } }); (MS.VOPT_NAMES||[]).forEach(function(r){ if(r[k]&&r[k][1]==='x') r[k]=null; }); }); }
 
 var LOG={tr:1,te:1,ti:1,ti2:1,bw:1,trs:1,pld:1,nx:1,ny:1,npart:1,etl:1,fov:1,thk:1,nex:1,venc:1,bbti:1,navg:1,nvol:1,ndir:1,esp:1};
 var ROMAN={brain:'頭部',chest:'胸部',abd:'上腹部',pelvis:'骨盤',msk:'骨軟部'};
@@ -42,10 +44,10 @@ function buildSeqList(){ var box=$('#navigation'), q=($('#seqq').value||'').toLo
   if(!q){ box.appendChild(el('div',{class:'nav-group'},'はじめに')); box.appendChild(nb('このツールの使い方','',view==='about',function(){ setView('about'); }));
     box.appendChild(el('div',{class:'nav-group'},'勉強用（よく使うシーケンス）'));
     MS.LEARN.forEach(function(L){ var s=MS.SEQ[L.seq]; box.appendChild(nb(s.n,'',view==='sim'&&mode==='learn'&&st&&st.seq===L.seq,function(){ setView('sim'); startLearn(L.seq); })); });
-    box.appendChild(el('div',{class:'nav-group'},'資料')); box.appendChild(nb('名称対応表','Canon／Siemens',view==='names',function(){ setView('names'); })); box.appendChild(nb('組織パラメータ','T1・T2・文献',view==='tissue',function(){ setView('tissue'); }));
+    box.appendChild(el('div',{class:'nav-group'},'資料')); box.appendChild(nb('名称対応表','メーカー別',view==='names',function(){ setView('names'); })); box.appendChild(nb('組織パラメータ','T1・T2・文献',view==='tissue',function(){ setView('tissue'); }));
     box.appendChild(el('div',{class:'nav-group',style:'color:#fff;font-weight:700;margin-top:26px'},'エキスパート用（全 '+MS.SEQS.length+' シーケンス）')); }
   var hit=0;
-  MS.CATS.forEach(function(c){ var items=MS.SEQS.filter(function(s){ return s.cat===c[0] && (!q || (s.n+s.gen+s.sie+s.can+s.d).toLowerCase().indexOf(q)>=0); }); if(!items.length) return; hit+=items.length;
+  MS.CATS.forEach(function(c){ var items=MS.SEQS.filter(function(s){ return s.cat===c[0] && (!q || (s.n+s.gen+s.sie+s.can+(s.ge||'')+(s.phi||'')+(s.fuji||'')+(s.uih||'')+s.d).toLowerCase().indexOf(q)>=0); }); if(!items.length) return; hit+=items.length;
     box.appendChild(el('div',{class:'nav-group'},c[1])); items.forEach(function(s){ box.appendChild(nb(s.n,'',view==='sim'&&mode==='expert'&&st&&st.seq===s.id,function(){ setView('sim'); mode='expert'; newState(st.phantom,s.id,true); setHash('expert'); })); }); });
   if(q && !hit) box.appendChild(el('div',{class:'nav-group'},'該当なし')); }
 function setHash(h){ try{ history.replaceState(null,'','#'+h); }catch(e){} }
@@ -141,7 +143,7 @@ var B0pref=1.5;
 function refInfo(){ var sq=MS.SEQ[st.seq]; var s2=MS.defaultState(st.phantom,st.seq); s2.B0=1.5; s2.coilG=MS.PHANTOMS[st.phantom].coilG; s2.coil=MS.PHANTOMS[st.phantom].coil; s2.p.dim3=sq.dim==='3D'; try{ snrRef=MS.derive(s2,sq).snr0; }catch(e){ snrRef=1; } }
 function seqCard(){ var sq=MS.SEQ[st.seq]; $('#sqname').textContent=sq.n; $('#sqcat').textContent=mode==='learn'?'勉強用':(MS.CATS.filter(function(c){return c[0]===sq.cat;})[0]||['',''])[1]; $('#v-sim .chapter-no').firstChild.nodeValue=mode==='learn'?'STUDY · ':'PARAMETER LAB PRO · '; document.title=sq.n+' — MRIパラメータシミュレーター Pro'; var v=$('#vend'); v.innerHTML='';
   function cf(c){ if(c==='—') return ''; return '<span class="cf '+c+'">'+({o:'公開資料',c:'比較表',x:'要確認'}[c]||'')+'</span>'; }
-  v.innerHTML='<b>一般名</b><span>'+sq.gen+'</span><b>Siemens</b><span>'+sq.sie+cf(sq.sieC)+'</span><b>Canon</b><span>'+sq.can+cf(sq.canC)+'</span>';
+  var h='<b>一般名</b><span>'+sq.gen+'</span>'; vlist().forEach(function(vd){ h+='<b>'+vd[1]+'</b><span>'+(sq[vd[0]]||'—')+cf(sq[vd[0]+'C'])+'</span>'; }); v.innerHTML=h;
   $('#sqdesc').textContent=sq.d; }
 /* ---------- 表示 ---------- */
 var LUT=(function(){ var stops=[[0,[48,18,59]],[0.15,[70,110,230]],[0.35,[30,190,220]],[0.5,[60,230,120]],[0.65,[180,240,50]],[0.8,[250,190,40]],[0.92,[240,90,20]],[1,[150,15,5]]]; var L=[]; for(var i=0;i<256;i++){ var t=i/255,a=0; while(a<stops.length-2&&t>stops[a+1][0]) a++; var s0=stops[a],s1=stops[a+1],f=(t-s0[0])/(s1[0]-s0[0]); L.push([0,1,2].map(function(c){return Math.round(s0[1][c]+(s1[1][c]-s0[1][c])*f);})); } return L; })();
@@ -230,7 +232,8 @@ var chart={mode:'curve',xk:null,yk:null,metric:'sig',A:null,B:null,follow:true,f
 var LOGAX={tr:1,trs:1,bw:1};
 var lastChanged=null, prevRes=null, mode='expert';
 var MET={sig:'信号（M0=100）',snr:'SNR（組織ごと）',diff:'コントラスト A−B（M0=100）',ratio:'信号比 A/B',cnr:'CNR（|A−B|／雑音）',cnrt:'CNR効率（CNR／√撮像時間）',time:'撮像時間（秒）',sar:'SAR（相対 %）'};
-var PAL=['#007d82','#c2410c','#2c55a5','#9f2f3b','#6d28d9','#15803d','#b45309','#0e7490','#be185d','#4d7c0f','#475569','#a16207','#1d4ed8','#7c2d12'];
+function chartColors(){ var cs=getComputedStyle(document.documentElement); function v(n,d){ var x=cs.getPropertyValue(n).trim(); return x||d; } var pal=v('--ch-pal',''); if(pal) PAL=pal.split(',').map(function(x){return x.trim();}); else PAL=PAL0; return {text:v('--ch-text','#52667d'),text2:v('--ch-text2','#34495f'),grid:v('--ch-grid','#e6edf3'),zero:v('--ch-zero','#9fb0c0'),frame:v('--ch-frame','#b9c8d8'),frame2:v('--ch-frame2','#d7e1eb'),cursor:v('--ch-cursor','#12283e'),dot:v('--ch-dot','#fff')}; }
+var PAL0=['#007d82','#c2410c','#2c55a5','#9f2f3b','#6d28d9','#15803d','#b45309','#0e7490','#be185d','#4d7c0f','#475569','#a16207','#1d4ed8','#7c2d12']; var PAL=PAL0.slice();
 var pworker=null; try{ pworker=new Worker(URL.createObjectURL(new Blob([wsrc],{type:'text/javascript'}))); pworker.onmessage=function(e){ chart.busy=false; if(!e.data.err && e.data.id===chart.id){ chart.data=e.data.r; drawChart(); } else if(e.data.err) console.error(e.data.err); if(chart.queued){ chart.queued=false; reqChart(); } }; }catch(e){ pworker=null; }
 function uniq(a){ var o=[]; a.forEach(function(x){ if(o.indexOf(x)<0) o.push(x); }); return o; }
 function chartKeys(){ var sq=MS.SEQ[st.seq], ks;
@@ -294,27 +297,27 @@ function interp(xs,vs,x,lg){ var n=xs.length; if(!(n>1)) return NaN; var f=funct
 function metricVal(pt,keys,m,ti){ var iA=keys.indexOf(chart.A), iB=keys.indexOf(chart.B); var a=pt.v[iA], b=pt.v[iB]; var sc=(pt.kind==='mag'||pt.kind==='signed')?100:1;
   switch(m){ case 'sig': return pt.v[ti]*sc; case 'snr': return pt.v[ti]*pt.snr; case 'sigA': return a*sc; case 'diff': return (a-b)*sc; case 'ratio': return b?a/b:NaN; case 'cnr': return Math.abs(a-b)*pt.snr; case 'cnrt': return Math.abs(a-b)*pt.snr/Math.sqrt(Math.max(pt.T,1e-3)); case 'time': return pt.T; case 'sar': return pt.sar; } return NaN; }
 function fmtN(v){ if(!isFinite(v)) return '—'; var a=Math.abs(v); return a>=1000?Math.round(v).toLocaleString():a>=100?v.toFixed(0):a>=10?v.toFixed(1):a>=1?v.toFixed(2):v.toFixed(3); }
-function drawChart(){ var cv=$('#chartcv'); if(!cv) return; var note=$('#chartnote'); var W=cv.clientWidth||460, big=window.innerWidth>=1200, H=chart.mode==='map'?(big?Math.max(360,Math.min(520,W*0.8)):330):(big?Math.max(300,Math.min(460,W*0.68)):290); var dpr=window.devicePixelRatio||1; cv.width=W*dpr; cv.height=H*dpr; cv.style.height=H+'px'; var g=cv.getContext('2d'); g.setTransform(dpr,0,0,dpr,0,0); g.clearRect(0,0,W,H);
+function drawChart(){ var cv=$('#chartcv'); if(!cv) return; var note=$('#chartnote'); var W=cv.clientWidth||460, big=window.innerWidth>=1200, H=chart.mode==='map'?(big?Math.max(360,Math.min(520,W*0.8)):330):(big?Math.max(300,Math.min(460,W*0.68)):290); var dpr=window.devicePixelRatio||1; cv.width=W*dpr; cv.height=H*dpr; cv.style.height=H+'px'; var CC=chartColors(); var g=cv.getContext('2d'); g.setTransform(dpr,0,0,dpr,0,0); g.clearRect(0,0,W,H);
   var D=chart.data, sp=chart.spec; g.font='11px '+getComputedStyle(document.body).fontFamily;
-  if(!D||!sp||!res){ g.fillStyle='#52667d'; g.fillText(res&&res.outs[cur]&&res.outs[cur].kind==='spectrum'?'スペクトルにはグラフを出しません。':'計算中…',12,24); return; }
+  if(!D||!sp||!res){ g.fillStyle=CC.text; g.fillText(res&&res.outs[cur]&&res.outs[cur].kind==='spectrum'?'スペクトルにはグラフを出しません。':'計算中…',12,24); return; }
   var keys=D.keys, m=chart.metric, L=50, R=chart.mode==='map'?58:24, T=14, B=36; var pw=W-L-R, ph=H-T-B;
   var dx=sp.xd, lx=dx.log&&sp.xs[0]>0; var x0=sp.xs[0], x1=sp.xs[sp.xs.length-1]; function X(v){ return L+(lx? Math.log(v/x0)/Math.log(x1/x0) : (v-x0)/(x1-x0))*pw; }
   function ticks(a,b,log){ var t=[]; if(log){ var e0=Math.floor(Math.log10(a)), e1=Math.ceil(Math.log10(b)); for(var e=e0;e<=e1;e++) [1,2,5].forEach(function(k){ var v=k*Math.pow(10,e); if(v>=a*0.999&&v<=b*1.001) t.push(v); }); return t; } var st_=Math.pow(10,Math.floor(Math.log10((b-a)/4||1))); var n=(b-a)/st_; if(n>8) st_*=2; if(n>16) st_*=2.5; for(var v=Math.ceil(a/st_)*st_;v<=b+1e-9;v+=st_) t.push(+v.toFixed(10)); return t; }
-  g.strokeStyle='#d7e1eb'; g.fillStyle='#52667d'; g.lineWidth=1;
+  g.strokeStyle=CC.frame2; g.fillStyle=CC.text; g.lineWidth=1;
   ticks(x0,x1,lx).forEach(function(v){ var x=X(v); g.beginPath(); g.moveTo(x,T); g.lineTo(x,T+ph); g.stroke(); g.textAlign='center'; g.fillText(fmtN(v),x,T+ph+14); });
-  g.textAlign='center'; g.fillStyle='#34495f'; g.fillText(dx.n+(dx.u?'（'+dx.u+'）':''),L+pw/2,H-4);
+  g.textAlign='center'; g.fillStyle=CC.text2; g.fillText(dx.n+(dx.u?'（'+dx.u+'）':''),L+pw/2,H-4);
   if(chart.mode==='curve'){
     var series=[]; if(m==='sig'||m==='snr'){ keys.forEach(function(k,i){ if(chart.hide[k]||chart.hide[k]===undefined&&k!==chart.A&&k!==chart.B) return; if(!present().some(function(p){return p.key===k;})) return; series.push({k:k,n:D.names[i],c:colorOf(k),v:D.pts.map(function(pt){ return metricVal(pt,keys,m,i); }),cur:metricVal(D.cur,keys,m,i)}); }); }
-    else series.push({k:'m',n:MET[m],c:'#007d82',v:D.pts.map(function(pt){ return metricVal(pt,keys,m); }),cur:metricVal(D.cur,keys,m)});
+    else series.push({k:'m',n:MET[m],c:PAL[0],v:D.pts.map(function(pt){ return metricVal(pt,keys,m); }),cur:metricVal(D.cur,keys,m)});
     var ymin=0,ymax=0; series.forEach(function(s){ s.v.forEach(function(v){ if(isFinite(v)){ if(v<ymin) ymin=v; if(v>ymax) ymax=v; } }); }); if(m==='ratio'){ ymin=Math.min(ymin,0); } if(ymax===ymin) ymax=ymin+1; ymax*=1.06; if(ymin<0) ymin*=1.06;
     function Y(v){ return T+ph-(v-ymin)/(ymax-ymin)*ph; }
-    ticks(ymin,ymax,false).forEach(function(v){ var y=Y(v); g.strokeStyle='#e6edf3'; g.beginPath(); g.moveTo(L,y); g.lineTo(L+pw,y); g.stroke(); g.fillStyle='#52667d'; g.textAlign='right'; g.fillText(fmtN(v),L-5,y+4); });
-    if(ymin<0){ g.strokeStyle='#9fb0c0'; g.beginPath(); g.moveTo(L,Y(0)); g.lineTo(L+pw,Y(0)); g.stroke(); }
-    g.strokeStyle='#b9c8d8'; g.strokeRect(L,T,pw,ph);
+    ticks(ymin,ymax,false).forEach(function(v){ var y=Y(v); g.strokeStyle=CC.grid; g.beginPath(); g.moveTo(L,y); g.lineTo(L+pw,y); g.stroke(); g.fillStyle=CC.text; g.textAlign='right'; g.fillText(fmtN(v),L-5,y+4); });
+    if(ymin<0){ g.strokeStyle=CC.zero; g.beginPath(); g.moveTo(L,Y(0)); g.lineTo(L+pw,Y(0)); g.stroke(); }
+    g.strokeStyle=CC.frame; g.strokeRect(L,T,pw,ph);
     series.forEach(function(s){ g.strokeStyle=s.c; g.lineWidth=2; g.beginPath(); var st0=false; s.v.forEach(function(v,i){ if(!isFinite(v)){ st0=false; return; } var x=X(sp.xs[i]), y=Y(v); if(!st0){ g.moveTo(x,y); st0=true; } else g.lineTo(x,y); }); g.stroke(); });
     /* 現在値の縦線 */
-    if(sp.vx>=Math.min(x0,x1)&&sp.vx<=Math.max(x0,x1)){ var xc=X(sp.vx); g.save(); g.setLineDash([5,4]); g.strokeStyle='#12283e'; g.lineWidth=1.4; g.beginPath(); g.moveTo(xc,T); g.lineTo(xc,T+ph); g.stroke(); g.restore(); g.fillStyle='#12283e'; g.textAlign=xc>L+pw-80?'right':'left'; g.font='bold 11px '+getComputedStyle(document.body).fontFamily; g.fillText(' 現在 '+fmtN(sp.vx)+(dx.u?' '+dx.u:'')+' ',xc,T+11);
-      series.forEach(function(s){ var cv_=interp(sp.xs,s.v,sp.vx,lx); s.cur=cv_; if(!isFinite(cv_)) return; g.fillStyle='#fff'; g.beginPath(); g.arc(xc,Y(cv_),5,0,7); g.fill(); g.fillStyle=s.c; g.beginPath(); g.arc(xc,Y(cv_),3.6,0,7); g.fill(); }); }
+    if(sp.vx>=Math.min(x0,x1)&&sp.vx<=Math.max(x0,x1)){ var xc=X(sp.vx); g.save(); g.setLineDash([5,4]); g.strokeStyle=CC.cursor; g.lineWidth=1.4; g.beginPath(); g.moveTo(xc,T); g.lineTo(xc,T+ph); g.stroke(); g.restore(); g.fillStyle=CC.cursor; g.textAlign=xc>L+pw-80?'right':'left'; g.font='bold 11px '+getComputedStyle(document.body).fontFamily; g.fillText(' 現在 '+fmtN(sp.vx)+(dx.u?' '+dx.u:'')+' ',xc,T+11);
+      series.forEach(function(s){ var cv_=interp(sp.xs,s.v,sp.vx,lx); s.cur=cv_; if(!isFinite(cv_)) return; g.fillStyle=CC.dot; g.beginPath(); g.arc(xc,Y(cv_),5,0,7); g.fill(); g.fillStyle=s.c; g.beginPath(); g.arc(xc,Y(cv_),3.6,0,7); g.fill(); }); }
     cv.onmousemove=function(e){ var rc=cv.getBoundingClientRect(), mx=e.clientX-rc.left; var best=0,bd=1e9; sp.xs.forEach(function(v,i){ var d=Math.abs(X(v)-mx); if(d<bd){bd=d;best=i;} });
       var s='<b>'+dx.n+' '+fmtN(sp.xs[best])+(dx.u?' '+dx.u:'')+'</b>：'+series.map(function(q){ return '<span style="color:'+q.c+'">■</span>'+q.n+' '+fmtN(q.v[best]); }).join('　'); note.innerHTML=s; };
     note.innerHTML=chartNote(series.length?series:null);
@@ -323,13 +326,13 @@ function drawChart(){ var cv=$('#chartcv'); if(!cv) return; var note=$('#chartno
     var nx=sp.xs.length, ny=sp.ys.length, vals=D.pts.map(function(pt){ return metricVal(pt,keys,m); }); var vmin=Infinity,vmax=-Infinity; vals.forEach(function(v){ if(isFinite(v)){ vmin=Math.min(vmin,v); vmax=Math.max(vmax,v); } }); if(m!=='diff') vmin=Math.min(vmin,0); if(vmax===vmin) vmax=vmin+1;
     var cw=pw/nx, chh=ph/ny;
     for(var j=0;j<ny;j++) for(var i=0;i<nx;i++){ var v=vals[j*nx+i]; var t=isFinite(v)?(v-vmin)/(vmax-vmin):0; var c=LUT[Math.max(0,Math.min(255,Math.round(t*255)))]; g.fillStyle='rgb('+c[0]+','+c[1]+','+c[2]+')'; g.fillRect(L+i*cw,T+ph-(j+1)*chh,cw+0.6,chh+0.6); }
-    ticks(y0,y1,ly).forEach(function(v){ var y=Y2(v); g.fillStyle='#52667d'; g.textAlign='right'; g.fillText(fmtN(v),L-5,y+4); });
-    g.save(); g.translate(11,T+ph/2); g.rotate(-Math.PI/2); g.textAlign='center'; g.fillStyle='#34495f'; g.fillText(dy.n+(dy.u?'（'+dy.u+'）':''),0,0); g.restore();
-    g.strokeStyle='#b9c8d8'; g.strokeRect(L,T,pw,ph);
+    ticks(y0,y1,ly).forEach(function(v){ var y=Y2(v); g.fillStyle=CC.text; g.textAlign='right'; g.fillText(fmtN(v),L-5,y+4); });
+    g.save(); g.translate(11,T+ph/2); g.rotate(-Math.PI/2); g.textAlign='center'; g.fillStyle=CC.text2; g.fillText(dy.n+(dy.u?'（'+dy.u+'）':''),0,0); g.restore();
+    g.strokeStyle=CC.frame; g.strokeRect(L,T,pw,ph);
     /* 現在値の十字 */
-    var xc2=X(Math.min(Math.max(sp.vx,Math.min(x0,x1)),Math.max(x0,x1))), yc2=Y2(Math.min(Math.max(sp.vy,Math.min(y0,y1)),Math.max(y0,y1))); g.strokeStyle='#fff'; g.lineWidth=2.5; g.beginPath(); g.moveTo(xc2,T); g.lineTo(xc2,T+ph); g.moveTo(L,yc2); g.lineTo(L+pw,yc2); g.stroke(); g.strokeStyle='#12283e'; g.lineWidth=1; g.setLineDash([4,3]); g.stroke(); g.setLineDash([]); g.fillStyle='#12283e'; g.beginPath(); g.arc(xc2,yc2,4.5,0,7); g.fill();
+    var xc2=X(Math.min(Math.max(sp.vx,Math.min(x0,x1)),Math.max(x0,x1))), yc2=Y2(Math.min(Math.max(sp.vy,Math.min(y0,y1)),Math.max(y0,y1))); g.strokeStyle=CC.dot; g.lineWidth=2.5; g.beginPath(); g.moveTo(xc2,T); g.lineTo(xc2,T+ph); g.moveTo(L,yc2); g.lineTo(L+pw,yc2); g.stroke(); g.strokeStyle=CC.cursor; g.lineWidth=1; g.setLineDash([4,3]); g.stroke(); g.setLineDash([]); g.fillStyle=CC.cursor; g.beginPath(); g.arc(xc2,yc2,4.5,0,7); g.fill();
     /* カラーバー */
-    var bx=L+pw+12; for(var k=0;k<ph;k++){ var c2=LUT[Math.round((1-k/ph)*255)]; g.fillStyle='rgb('+c2[0]+','+c2[1]+','+c2[2]+')'; g.fillRect(bx,T+k,12,1.2); } g.fillStyle='#52667d'; g.textAlign='left'; g.fillText(fmtN(vmax),bx+15,T+8); g.fillText(fmtN(vmin),bx+15,T+ph);
+    var bx=L+pw+12; for(var k=0;k<ph;k++){ var c2=LUT[Math.round((1-k/ph)*255)]; g.fillStyle='rgb('+c2[0]+','+c2[1]+','+c2[2]+')'; g.fillRect(bx,T+k,12,1.2); } g.fillStyle=CC.text; g.textAlign='left'; g.fillText(fmtN(vmax),bx+15,T+8); g.fillText(fmtN(vmin),bx+15,T+ph);
     cv.onmousemove=function(e){ var rc=cv.getBoundingClientRect(), mx=e.clientX-rc.left, my=e.clientY-rc.top; var i=Math.floor((mx-L)/cw), j=Math.floor((T+ph-my)/chh); if(i<0||j<0||i>=nx||j>=ny) return; note.innerHTML='<b>'+dx.n+' '+fmtN(sp.xs[i])+'、'+dy.n+' '+fmtN(sp.ys[j])+'</b>：'+(m==='sigA'?'組織Aの信号':MET[m])+' '+fmtN(vals[j*nx+i]); };
     note.innerHTML=chartNote(null,vals,vmin,vmax);
   } }
@@ -340,11 +343,11 @@ function chartNote(series){ var D=chart.data, m=chart.metric, keys=D.keys; var n
 
 /* ---------- 表 ---------- */
 function tables(){ function cf(c){ if(c==='—'||!c) return ''; return '<span class="cf '+c+'">'+({o:'公開資料',c:'比較表',x:'要確認',"—":''}[c]||'')+'</span>'; }
-  var h='<table class="data-table"><thead><tr><th>分類</th><th>日本語名</th><th>一般名</th><th>Siemens</th><th>Canon</th></tr></thead><tbody>';
-  MS.CATS.forEach(function(c){ MS.SEQS.filter(function(s){return s.cat===c[0];}).forEach(function(s){ h+='<tr><td>'+c[1]+'</td><td>'+s.n+'</td><td>'+s.gen+'</td><td>'+s.sie+cf(s.sieC)+'</td><td>'+s.can+cf(s.canC)+'</td></tr>'; }); });
+  var VL=vlist(), h='<table class="data-table"><thead><tr><th>分類</th><th>名称</th><th>一般名</th>'+VL.map(function(vd){ return '<th>'+vd[1]+'</th>'; }).join('')+'</tr></thead><tbody>';
+  MS.CATS.forEach(function(c){ MS.SEQS.filter(function(s){return s.cat===c[0];}).forEach(function(s){ h+='<tr><td>'+c[1]+'</td><td>'+s.n+'</td><td>'+s.gen+'</td>'+VL.map(function(vd){ return '<td>'+(s[vd[0]]||'—')+cf(s[vd[0]+'C'])+'</td>'; }).join('')+'</tr>'; }); });
   $('#nametbl').innerHTML=h+'</tbody></table>';
-  var h2='<table class="data-table"><thead><tr><th>機能</th><th>Siemens</th><th>Canon</th></tr></thead><tbody>'; MS.VENDOR_OPTS.forEach(function(r){ h2+='<tr><td>'+r[0]+'</td><td>'+r[1]+cf(r[2])+'</td><td>'+r[3]+cf(r[4])+'</td></tr>'; }); $('#opttbl').innerHTML=h2+'</tbody></table>';
-  $('#namesrc').innerHTML=MS.NAME_SRC.map(function(s){ return '<li>'+s[0]+'：<a href="'+s[1]+'" target="_blank" rel="noopener">'+s[1]+'</a></li>'; }).join('');
+  var h2='<table class="data-table"><thead><tr><th>機能</th>'+VL.map(function(vd){ return '<th>'+vd[1]+'</th>'; }).join('')+'</tr></thead><tbody>'; MS.VENDOR_OPTS.forEach(function(r,ri){ var ex=(MS.VOPT_NAMES||[])[ri]||{}; h2+='<tr><td>'+r[0]+'</td>'+VL.map(function(vd){ var k=vd[0]; if(k==='sie') return '<td>'+r[1]+cf(r[2])+'</td>'; if(k==='can') return '<td>'+r[3]+cf(r[4])+'</td>'; var a=ex[k]; return '<td>'+(a?a[0]+cf(a[1]):'—')+'</td>'; }).join('')+'</tr>'; }); $('#opttbl').innerHTML=h2+'</tbody></table>';
+  $('#namesrc').innerHTML=MS.NAME_SRC.concat(MS.VSRC||[]).map(function(s){ return '<li>'+s[0]+'：<a href="'+s[1]+'" target="_blank" rel="noopener">'+s[1]+'</a></li>'; }).join('');
   var t='<table class="data-table"><thead><tr><th>組織</th><th>T1 1.5T/3T (ms)</th><th>T2 (ms)</th><th>T2* (ms)</th><th>PD</th><th>ADC</th><th>脂肪分率</th><th>出典</th></tr></thead><tbody>';
   Object.keys(MS.TISSUES).forEach(function(k){ var x=MS.TISSUES[k]; if(!x.PD) return; t+='<tr><td>'+x.n+'</td><td>'+x.T1.join(' / ')+'</td><td>'+x.T2.join(' / ')+'</td><td>'+x.T2s.join(' / ')+'</td><td>'+x.PD+'</td><td>'+x.ADC+'</td><td>'+(x.ff?Math.round(x.ff*100)+'%':'')+'</td><td>'+x.src+'</td></tr>'; });
   $('#tisstbl').innerHTML=t+'</tbody></table>';
@@ -354,6 +357,7 @@ function tables(){ function cf(c){ if(c==='—'||!c) return ''; return '<span cl
 function init(){ tables(); try{ if(window.top!==window) $('#save').hidden=true; }catch(e){ $('#save').hidden=true; }
   $('#seqq').oninput=buildSeqList;
   $('#reset').onclick=function(){ newState(st.phantom,st.seq,true); }; initGroupTools();
+  (function(){ var ts=$('#themesel'); if(!ts) return; ts.value=document.documentElement.getAttribute('data-theme')||'standard'; ts.onchange=function(){ var v=ts.value; if(v==='standard') document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme',v); try{ localStorage.setItem('mrisimTheme',v); }catch(e){} if(res&&view==='sim') show(res); }; })();
   ['#showK','#showLab','#color'].forEach(function(s){ $(s).onchange=function(){ if(res) show(res); }; });
   $('#auto').onclick=function(){ manualW=null; if(res) show(res); };
   $('#pin').onclick=function(){ if(!res) return; if(pinned){ pinned=null; $('#pin').textContent='比較用に固定'; show(res); return; } var c=$('#stage canvas'); var cc=el('canvas'); cc.width=c.width; cc.height=c.height; cc.getContext('2d').drawImage(c,0,0); pinned={c:cc,t:MS.SEQ[st.seq].n+'（'+res.outs[cur].name+'）'}; $('#pin').textContent='固定を解除'; show(res); };
@@ -377,7 +381,7 @@ var kfOpen=true;
 function kfill(){ var box=$('#kfill'); if(!box) return; var sq=MS.SEQ[st.seq];
   if(mode!=='expert'||!res||!res.info||sq.k==='mrs'){ box.hidden=true; return; }
   box.hidden=false; box.innerHTML='';
-  var i=res.info, p=i.p||st.p, k=sq.k, d3=sq.dim==='3D';
+  var i=res.info, p=i.p||st.p, k=sq.timeAs||sq.k, d3=sq.dim==='3D';
   var R=i.R||1, Rz=i.Rz||1, CS=i.CS||1, pf=p.pf||1, pfz=p.pfz||1, ny=Math.max(8,Math.round(p.ny||128)), nz=Math.max(1,Math.round(p.npart||1));
   var epi=/^(dwi|dti|bold|dsc)$/.test(k)||!!sq.epi, fse=/^(fse|ir|dixon_tse|map_t2)$/.test(k), ss=/^(ssfse|mrcp2d)$/.test(k);
   var rad=null; if(k==='ute') rad='ute'; else if(st.seq==='starvibe') rad='spoke'; else if(i.radial) rad=(fse||ss||k==='fse3d')?'blade':'spoke';

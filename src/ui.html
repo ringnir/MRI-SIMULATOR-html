@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="description" content="全身の仮想ファントムで、基本〜特殊シーケンスのパラメータを変えたときの画像・撮像時間・SNR・SARの変化を確かめる教育用シミュレーター。Canon／Siemensの名称対応つき。">
 <title>MRIパラメータシミュレーター Pro — 全身・網羅版</title>
+<script>try{var __t=(location.search.match(/[?&]theme=([a-z]+)/)||[])[1]||localStorage.getItem("mrisimTheme")||"warm";if(__t&&__t!=="standard")document.documentElement.setAttribute("data-theme",__t);}catch(e){}</script>
 <style id="book-base">/*__BOOKCSS__*/</style>
 <style id="rt-ui">/*__RTUI__*/</style>
 <style id="rt-theme">/*__THEME__*/</style>
@@ -131,7 +132,7 @@ body.sbdrag{cursor:col-resize;user-select:none}
 <div class="layout">
 <aside class="sidebar" id="sidebar" aria-label="シーケンスの選択"><div class="brand"><div class="brand-mark">MR</div><div class="brand-name">パラメータシミュレーター Pro</div><div class="brand-meta">院内教育版 · 全身・網羅版 2026.11</div><input id="seqq" class="book-search" type="search" aria-label="シーケンスを検索" placeholder="シーケンス名で検索（HASTE・FASE…）"></div><nav id="navigation"></nav></aside><div id="sbgrip" role="separator" aria-orientation="vertical" aria-label="サイドバーの幅（ドラッグ・左右キーで調整、ダブルクリックで元に戻す）" title="ドラッグで幅を変更／ダブルクリックで元に戻す" tabindex="0"></div>
 <div id="shade" class="mobile-shade"></div>
-<main class="main" id="mainContent"><header class="topbar"><div><button type="button" class="menu-btn" id="menu" aria-label="目次を開く" aria-expanded="false">目次</button> <b>パラメータから画像を考える — 全身版</b></div><div><span>Canon · Siemens ／ 0.55・1.5・3 T</span> <button type="button" class="print-button" onclick="window.print()">印刷</button></div></header>
+<main class="main" id="mainContent"><header class="topbar"><div><button type="button" class="menu-btn" id="menu" aria-label="目次を開く" aria-expanded="false">目次</button> <b>パラメータから画像を考える — 全身版</b></div><div><span>Siemens · Canon · GE · Philips · Fujifilm · United Imaging ／ 0.55・1.5・3 T</span> <label class="themesw"><span>配色</span><select id="themesel" aria-label="配色"><option value="standard">標準</option><option value="clinical">ライト</option><option value="dark">ダーク</option><option value="warm">ウォーム</option></select></label><button type="button" class="print-button" onclick="window.print()">印刷</button></div></header>
 <div class="content" id="content">
  <div class="view" id="v-sim">
   <header class="chapter-header"><div class="chapter-no">PARAMETER LAB PRO · <span id="sqcat"></span></div><h1 id="sqname">—</h1>
@@ -160,14 +161,14 @@ body.sbdrag{cursor:col-resize;user-select:none}
       <div class="thumbs" id="thumbs"></div>
       <div class="hover" id="hover">画像上にカーソルを置くと、組織名・信号・T1/T2 を表示します。</div></div>
      <div class="metrics" id="metrics"></div><ul class="warns" id="warns"></ul></div>
-    </aside><aside class="pro-chart" aria-label="コントラストのグラフ"><div class="sim-output chartbox"><h3 style="font-size:14px;margin:0 0 8px">コントラストのグラフ</h3><div id="chartctl"></div><canvas id="chartcv" style="width:100%;display:block;background:#fff;border:1px solid #cad7df;border-radius:4px"></canvas><div class="hover" id="chartnote"></div></div><div id="kfill" hidden></div>
+    </aside><aside class="pro-chart" aria-label="コントラストのグラフ"><div class="sim-output chartbox"><h3 style="font-size:14px;margin:0 0 8px">コントラストのグラフ</h3><div id="chartctl"></div><canvas id="chartcv" style="width:100%;display:block;background:var(--ch-bg,#fff);border:1px solid var(--rt-line);border-radius:4px"></canvas><div class="hover" id="chartnote"></div></div><div id="kfill" hidden></div>
    </aside></div>
   </div>
   <section class="sim-card" id="sim-tissue"><h2>組織ごとの信号（現在の画像）</h2>
    <div class="data-table-wrap"><table class="data-table sim-table"><thead><tr><th>教育用組織</th><th>T1 / T2 / T2*（現在の磁場・造影後）</th><th>相対信号</th><th>推定SNR</th><th>前回比</th></tr></thead><tbody id="bars"></tbody></table></div>
    <p class="sim-note">各組織の画素の中央値。相対信号は最大を 100 とした値。推定SNRは中央値÷雑音の標準偏差で、表面コイルの感度補正や並列画像の g 因子の場所による差は含みません。前回比は、直前の条件の同じ画像との比較です。</p></section>
  </div>
- <div class="view" id="v-names" hidden><header class="chapter-header"><div class="chapter-no">REFERENCE</div><h1>シーケンス名の対応（Siemens／Canon）</h1><p>確認度：<span class="cf o">公開資料</span> メーカーの公開資料で名称を確認／<span class="cf c">比較表</span> ベンダー比較表で確認（列の読み取りに曖昧さあり）／<span class="cf x">要確認</span> 名称を確認できていない。名称はソフトウェアのバージョン・地域で異なることがあります。院内装置のプロトコル名で確認してください。</p></header>
+ <div class="view" id="v-names" hidden><header class="chapter-header"><div class="chapter-no">REFERENCE</div><h1>シーケンス名の対応（メーカー別）</h1><p>確認度：<span class="cf o">公開資料</span> メーカーの公開資料で名称を確認／<span class="cf c">比較表</span> ベンダー比較表で確認（列の読み取りに曖昧さあり）／<span class="cf x">要確認</span> 名称を確認できていない。名称はソフトウェアのバージョン・地域で異なることがあります。院内装置のプロトコル名で確認してください。</p></header>
   <section class="sim-card"><h2>シーケンス</h2><div class="data-table-wrap" id="nametbl"></div></section>
   <section class="sim-card"><h2>加速・オプション</h2><div class="data-table-wrap" id="opttbl"></div><h3>出典</h3><ul id="namesrc" style="font-size:14px"></ul></section></div>
  <div class="view" id="v-tissue" hidden><header class="chapter-header"><div class="chapter-no">REFERENCE</div><h1>組織パラメータ（教育用の代表値）</h1><p>T1・T2 は文献の報告値を丸めた代表値、または文献値をもとにした教育用の推定値（出典欄が est）です。個人差・測定法による差が大きく、診断や定量の基準値ではありません。</p></header>

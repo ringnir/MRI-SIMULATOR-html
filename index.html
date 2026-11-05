@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="description" content="全身の仮想ファントムで、基本〜特殊シーケンスのパラメータを変えたときの画像・撮像時間・SNR・SARの変化を確かめる教育用シミュレーター。Canon／Siemensの名称対応つき。">
 <title>MRIパラメータシミュレーター Pro — 全身・網羅版</title>
+<script>try{var __t=(location.search.match(/[?&]theme=([a-z]+)/)||[])[1]||localStorage.getItem("mrisimTheme")||"warm";if(__t&&__t!=="standard")document.documentElement.setAttribute("data-theme",__t);}catch(e){}</script>
 <style id="book-base">
 :root{--ink:#162b45;--muted:#52667d;--nav:#12283e;--teal:#007d82;--tealLight:#e7f5f4;--paper:#fff;--bg:#f3f6fa;--line:#d7e1eb;--blue:#345caa;--amber:#81540b;--serif:"Yu Mincho","游明朝",serif}
 *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;color:var(--ink);background:var(--bg);font-family:"Yu Gothic","Meiryo",system-ui,sans-serif;font-size:16px;line-height:1.85}button,a{-webkit-tap-highlight-color:transparent}button{font:inherit;cursor:pointer}a{color:var(--blue);text-underline-offset:3px}button:focus-visible,a:focus-visible,summary:focus-visible{outline:3px solid #2bbbc0;outline-offset:4px}button{color:inherit}h1,h2,h3,h4,p{margin-top:0}h1,h2,h3{line-height:1.45}p{margin-bottom:1em}ul{padding-left:1.4em;margin-top:.4em}strong{font-weight:700}.layout{display:grid;grid-template-columns:248px minmax(0,1fr);min-height:100vh}.sidebar{background:var(--nav);color:#d9e5ef;position:sticky;top:0;height:100vh;overflow:auto;padding:26px 16px 24px}.brand{padding:0 14px 22px;border-bottom:1px solid #365068}.brand-mark{font-size:29px;font-weight:800;letter-spacing:.12em;color:white;line-height:1.2}.brand-name{font-size:15px;margin-top:8px}.brand-meta{font-size:12px;color:#a5becf;margin-top:6px}.nav-group{font-size:12px;letter-spacing:.12em;color:#a5becf;margin:20px 14px 7px}.nav-btn{display:flex;align-items:center;gap:9px;text-align:left;border:0;background:none;color:#dfebf5;width:100%;padding:9px 14px;border-radius:6px;line-height:1.5;font-size:14px}.nav-btn:hover{background:#223e55}.nav-btn.active{background:#25485b;color:#fff;box-shadow:inset 3px 0 #53c8c5}.nav-btn small{margin-left:auto;color:#92e1dc;font-size:11px;white-space:nowrap}.main{min-width:0}.topbar{padding:14px 38px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:16px;font-size:14px}.topbar span{color:var(--muted)}.topbar b{font-weight:600}.menu-btn{display:none;border:1px solid var(--line);background:white;border-radius:5px;padding:6px 10px}.content{max-width:1190px;margin:0 auto;padding:36px 42px 60px}.chapter-no{color:var(--teal);font-size:13px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin:0 0 8px}.chapter-header{border-bottom:1px solid var(--line);padding-bottom:21px;margin-bottom:24px}.chapter-header h1{font-size:32px;margin-bottom:10px;font-family:var(--serif);font-weight:700}.chapter-header p{color:var(--muted);max-width:860px;margin:0}.reading-bar{display:flex;align-items:center;gap:16px;background:var(--bg);position:sticky;top:0;z-index:3;padding:12px 0 16px}.reading-label{font-size:14px;font-weight:700;white-space:nowrap}.tabs{display:flex;border:1px solid var(--line);border-radius:7px;background:white;overflow:hidden}.tab{border:0;background:white;padding:9px 24px;font-size:15px;line-height:1.5;min-width:105px}.tab+.tab{border-left:1px solid var(--line)}.tab.active{background:var(--ink);color:white}.tab-hint{font-size:13px;color:var(--muted);margin-left:auto}.summary-box{background:#e9f1f7;border-left:4px solid #3d6590;padding:21px 24px;margin:8px 0 28px}.summary-box h2{font-size:19px;margin-bottom:10px}.summary-box ul{margin-bottom:0}.summary-box li+li{margin-top:6px}.overview-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin:24px 0}.overview{background:white;border:1px solid var(--line);border-radius:7px;padding:22px}.overview h3{font-size:18px;margin-bottom:12px}.overview p{margin:0}.section-title{font-size:22px;margin:34px 0 16px;font-family:var(--serif)}.toc{display:flex;flex-wrap:wrap;gap:8px;margin:20px 0 28px}.toc a{border:1px solid var(--line);background:#fff;padding:6px 11px;border-radius:5px;font-size:13px;text-decoration:none;color:var(--muted);line-height:1.6}.toc a:hover{border-color:var(--teal);color:var(--teal)}.sequence{background:var(--paper);border:1px solid var(--line);border-radius:9px;margin:0 0 22px;padding:25px 28px;scroll-margin-top:86px}.sequence-header{display:flex;align-items:flex-start;gap:14px;margin-bottom:15px}.sequence-num{font-size:13px;color:var(--muted);font-weight:700;min-width:24px;padding-top:6px}.sequence h2{font-size:21px;margin:0 0 7px}.tags{display:flex;flex-wrap:wrap;gap:6px;line-height:1.4}.tag{font-size:12px;background:#edf2f7;color:#486278;padding:4px 8px;border-radius:4px}.tag.basic{background:var(--tealLight);color:#006b6e}.tag.advanced{background:#eef0fa;color:#4b5793}.lead{font-size:16px;color:#203d57;margin-bottom:0}.text-section{border-top:1px solid #e6edf3;margin-top:21px;padding-top:18px}.text-section h3{font-size:15px;color:var(--teal);margin-bottom:10px;letter-spacing:.07em}.text-section p:last-child{margin-bottom:0}.takeaways{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin-top:22px}.takeaway{padding:15px 18px;background:#f6f9fc;border-radius:5px;font-size:14px}.takeaway.pitfalls{background:#fff8ec}.takeaway h4{font-size:14px;margin:0 0 6px}.takeaway.pitfalls h4{color:var(--amber)}.takeaway ul{margin-bottom:0}.takeaway li+li{margin-top:5px}.vendor-details{border-top:1px solid #e6edf3;margin-top:21px;padding-top:13px;font-size:14px}.vendor-details summary{font-weight:700;cursor:pointer;color:#315877}.vendor-details[open] summary{margin-bottom:10px}.vendor-note{font-size:13px;color:var(--muted);margin-bottom:10px}.vendor-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.vendor-cell{background:#f4f7fb;border:1px solid #e0e8f0;padding:12px;border-radius:5px;overflow-wrap:anywhere}.vendor-cell h4{font-size:13px;margin-bottom:6px}.vendor-cell p{font-size:13px;line-height:1.7;margin:0}.evidence{white-space:pre-line;display:block;margin-top:7px;padding-top:7px;border-top:1px solid #dce4ed;color:#67778a;font-size:12px;line-height:1.7}.refs-inline{font-size:12px;color:var(--muted);margin-top:16px}.ref-link{border:0;background:none;color:var(--blue);padding:2px 5px;font-size:13px;text-decoration:underline;text-underline-offset:3px}.figure{margin:24px 0 8px;border:1px solid var(--line);background:#f7f9fc;border-radius:6px;overflow:hidden}.figure-image-button{border:0;background:#0c1420;display:block;width:100%;padding:15px}.figure img{display:block;max-width:100%;width:auto;max-height:540px;height:auto;margin:auto;object-fit:contain}.figure figcaption{padding:16px 20px;font-size:14px;line-height:1.75}.figure-title{font-weight:700;margin:0 0 8px}.figure-credit{font-size:12px;color:var(--muted);margin-top:9px;overflow-wrap:anywhere}.license{font-size:12px;display:inline-block;color:var(--teal);border:1px solid #a9cecc;background:white;border-radius:3px;padding:1px 5px;margin-right:6px}.extra-content{border-top:1px solid var(--line);margin-top:30px;padding-top:24px}.extra-content h2{font-family:var(--serif);font-size:23px}.extra-content h3{font-size:18px;margin-top:20px}.notice{background:#fff8ea;border:1px solid #eedcb8;border-radius:6px;padding:17px 20px;margin:18px 0;font-size:14px}.notice p:last-child{margin:0}.data-table-wrap{overflow:auto;margin:22px 0}.data-table{width:100%;border-collapse:collapse;background:white;font-size:14px;line-height:1.75}.data-table th,.data-table td{white-space:pre-line;padding:13px 14px;border:1px solid var(--line);text-align:left;vertical-align:top;min-width:140px}.data-table th{background:#eaf0f6;font-size:13px}.data-table td:first-child{font-weight:700}.ref-list{margin:24px 0;list-style:none;padding:0;counter-reset:refs}.ref-item{border-bottom:1px solid var(--line);padding:17px 0;overflow-wrap:anywhere;font-size:14px}.ref-title{font-weight:700}.ref-item p{margin:5px 0 0;color:var(--muted);font-size:13px}.ref-small{font-size:12px;color:var(--muted)}.footer{border-top:1px solid var(--line);color:var(--muted);font-size:12px;padding-top:24px;margin-top:36px}.footer p{margin-bottom:6px}.quiet-link{border:0;background:none;color:var(--teal);text-decoration:underline;padding:0;font-size:inherit}.dialog{border:1px solid var(--line);border-radius:10px;max-width:min(1040px,94vw);max-height:92vh;width:760px;padding:0;color:var(--ink)}.dialog::backdrop{background:rgba(13,30,48,.72)}.dialog-header{display:flex;justify-content:space-between;align-items:center;padding:14px 22px;border-bottom:1px solid var(--line);position:sticky;top:0;background:white;z-index:1}.dialog-close{border:1px solid var(--line);background:white;padding:4px 13px;border-radius:4px;font-size:14px}.dialog-body{padding:24px;overflow-wrap:anywhere}.dialog-body img{max-width:100%;height:auto}.dialog-body h2{font-size:21px}.dialog-body p{font-size:14px}.mobile-shade{display:none}.empty{padding:25px;background:white}.print-button{border:1px solid var(--line);background:white;border-radius:5px;padding:5px 11px;font-size:13px;color:var(--muted)}.read-level{display:inline-block;margin-right:7px;font-size:12px;font-weight:700;color:var(--teal)}
@@ -311,6 +312,110 @@ sup,sub{font-size:12px;line-height:0}
   .sequence,.routine-card,.sim-card,.glossary-card,.overview,.figure{box-shadow:none}
   .data-table-wrap{border:0;overflow:visible}
 }
+
+/* ===== 配色テーマ（html[data-theme=…]）。既定（属性なし）は RadTools のネイビー×ティール ===== */
+
+/* ---------- B：ライト・クリニカル（白基調・ブルー） ---------- */
+html[data-theme=clinical]{
+  --rt-navy:#0f172a; --rt-navy-2:#1e293b; --rt-navy-ink:#f1f5f9;
+  --rt-accent:#2563eb; --rt-accent-dark:#1d4ed8; --rt-accent-soft:#eaf1ff; --rt-accent-line:#bcd0fb;
+  --rt-bg:#f5f7fb; --rt-surface:#ffffff; --rt-surface-2:#f8fafc;
+  --rt-ink:#0f172a; --rt-ink-2:#334155; --rt-muted:#64748b; --rt-line:#e2e8f0; --rt-line-strong:#cbd5e1; --rt-link:#1d4ed8;
+  --ch-cursor:#0f172a;
+  --ch-pal:#2563eb,#e11d48,#059669,#d97706,#7c3aed,#0891b2,#db2777,#65a30d,#475569,#ea580c,#4f46e5,#0d9488,#b91c1c,#a16207;
+}
+html[data-theme=clinical] .sidebar{background:#ffffff;color:var(--rt-ink);border-right:1px solid var(--rt-line)}
+html[data-theme=clinical] .brand{border-bottom-color:var(--rt-line)}
+html[data-theme=clinical] .brand-mark{color:var(--rt-accent)}
+html[data-theme=clinical] .brand-name{color:var(--rt-ink)}
+html[data-theme=clinical] .brand-meta,html[data-theme=clinical] .nav-group{color:var(--rt-muted)}
+html[data-theme=clinical] .nav-btn{color:var(--rt-ink-2)}
+html[data-theme=clinical] .nav-btn:hover{background:#f1f5f9}
+html[data-theme=clinical] .nav-btn.active{background:var(--rt-accent-soft);color:var(--rt-accent-dark);box-shadow:inset 3px 0 var(--rt-accent)}
+html[data-theme=clinical] .nav-btn small{color:var(--rt-accent)}
+html[data-theme=clinical] .book-search{background:#f8fafc;color:var(--rt-ink);border-color:var(--rt-line-strong)}
+html[data-theme=clinical] .book-search::placeholder{color:var(--rt-muted)}
+html[data-theme=clinical] .chapter-header{background:#ffffff;color:var(--rt-ink);border:1px solid var(--rt-line);border-top:4px solid var(--rt-accent);box-shadow:0 1px 2px rgba(15,23,42,.05)}
+html[data-theme=clinical] .chapter-header h1{color:var(--rt-ink)}
+html[data-theme=clinical] .chapter-header p,html[data-theme=clinical] .chapter-header .vend span{color:var(--rt-ink-2)}
+html[data-theme=clinical] .chapter-no,html[data-theme=clinical] .chapter-header .vend b{color:var(--rt-accent)}
+html[data-theme=clinical] .chapter-header p.sim-beginner{background:var(--rt-accent-soft);border-color:var(--rt-accent-line)}
+html[data-theme=clinical] .chapter-header .cf.o{background:#e8f5ee;color:#166534;border-color:#a7d9bd}
+html[data-theme=clinical] .chapter-header .cf.c{background:#fff4e0;color:#92400e;border-color:#f1cf92}
+html[data-theme=clinical] .chapter-header .cf.x{background:#fdecee;color:#9f1239;border-color:#f3b8c2}
+
+/* ---------- C：ダーク（読影室向け） ---------- */
+html[data-theme=dark]{
+  color-scheme:dark;
+  --rt-navy:#0a0e14; --rt-navy-2:#121a26; --rt-navy-ink:#e6edf3;
+  --rt-accent:#2dd4bf; --rt-accent-dark:#5eead4; --rt-accent-soft:#0f2e2c; --rt-accent-line:#1f5c56;
+  --rt-bg:#0d1117; --rt-surface:#151b23; --rt-surface-2:#1b2230;
+  --rt-ink:#e6edf3; --rt-ink-2:#c9d4df; --rt-muted:#8d9aab; --rt-line:#28323f; --rt-line-strong:#3a4656; --rt-link:#7cb7ff;
+  --rt-warn:#f5c26b; --rt-warn-soft:#2b2312; --rt-warn-line:#5c4718;
+  --rt-danger:#ff8a96; --rt-danger-soft:#2e161a; --rt-danger-line:#5e2a32;
+  --rt-ok:#6ee7a8; --rt-ok-soft:#10271c; --rt-ok-line:#245a3e;
+  --rt-shadow:0 1px 2px rgba(0,0,0,.4),0 8px 22px -12px rgba(0,0,0,.7);
+  --ch-bg:#0f141b; --ch-text:#9fb0c2; --ch-text2:#c9d4df; --ch-grid:#1f2833; --ch-zero:#4b5b6e; --ch-frame:#3a4656; --ch-frame2:#28323f; --ch-cursor:#e6edf3; --ch-dot:#0f141b;
+  --ch-pal:#2dd4bf,#fb923c,#60a5fa,#f87171,#c084fc,#4ade80,#fbbf24,#22d3ee,#f472b6,#a3e635,#94a3b8,#facc15,#818cf8,#fca5a5;
+}
+html[data-theme=dark] body,html[data-theme=dark] .main{background:var(--rt-bg);color:var(--rt-ink)}
+html[data-theme=dark] .topbar{background:var(--rt-surface);border-bottom-color:var(--rt-line)}
+html[data-theme=dark] .sidebar{background:#0a0e14;border-right:1px solid var(--rt-line)}
+html[data-theme=dark] .nav-btn:hover{background:#18212d}
+html[data-theme=dark] .nav-btn.active{background:rgba(45,212,191,.14);box-shadow:inset 3px 0 var(--rt-accent)}
+html[data-theme=dark] .chapter-header{background:linear-gradient(135deg,#111a26,#0f2230);border-bottom-color:var(--rt-accent)}
+html[data-theme=dark] .chapter-header p.sim-beginner{background:#0f1720;color:var(--rt-ink-2);border-color:var(--rt-accent-line)}
+html[data-theme=dark] .notice{background:var(--rt-warn-soft);border-color:var(--rt-warn-line);color:var(--rt-ink-2)}
+html[data-theme=dark] .data-table{background:var(--rt-surface)}
+html[data-theme=dark] .data-table th{background:#1b2532;color:var(--rt-ink)}
+html[data-theme=dark] .data-table th,html[data-theme=dark] .data-table td{border-color:var(--rt-line)}
+html[data-theme=dark] .data-table tbody tr:hover td{background:#16232c}
+html[data-theme=dark] input,html[data-theme=dark] select,html[data-theme=dark] textarea{background:var(--rt-surface-2);color:var(--rt-ink);border-color:var(--rt-line-strong)}
+html[data-theme=dark] .print-button,html[data-theme=dark] .menu-btn{background:var(--rt-surface-2);color:var(--rt-ink-2);border-color:var(--rt-line-strong)}
+html[data-theme=dark] .cv{border-color:var(--rt-line)}
+html[data-theme=dark] .footer{border-top-color:var(--rt-line)}
+
+/* ---------- D：ウォーム（生成り×テラコッタ） ---------- */
+html[data-theme=warm]{
+  --rt-navy:#2a2420; --rt-navy-2:#3b302a; --rt-navy-ink:#f5ede4;
+  --rt-accent:#b4532a; --rt-accent-dark:#8f3f1e; --rt-accent-soft:#f8eadf; --rt-accent-line:#e8c3ad;
+  --rt-bg:#f6f1ea; --rt-surface:#fffdf9; --rt-surface-2:#fbf6ef;
+  --rt-ink:#2b2420; --rt-ink-2:#4a3f37; --rt-muted:#7a6b5f; --rt-line:#e7ddd0; --rt-line-strong:#d6c7b5; --rt-link:#8f3f1e;
+  --ch-text:#7a6b5f; --ch-text2:#4a3f37; --ch-grid:#efe6da; --ch-frame:#d6c7b5; --ch-frame2:#e7ddd0; --ch-cursor:#2a2420; --ch-bg:#fffdf9; --ch-dot:#fffdf9;
+  --ch-pal:#b4532a,#2f6f6a,#4b5fa8,#a23b52,#7a5aa6,#5e8a2f,#c2861a,#1f7a8c,#b0487e,#6b7f2a,#6b5e55,#9a6b12,#3a5bb0,#7c2d12;
+}
+html[data-theme=warm] .sidebar{background:#2a2420}
+html[data-theme=warm] .brand{border-bottom-color:#4a3d35}
+html[data-theme=warm] .brand-meta,html[data-theme=warm] .nav-group{color:#c9b8a8}
+html[data-theme=warm] .nav-btn{color:#efe4d8}
+html[data-theme=warm] .nav-btn:hover{background:#3b302a}
+html[data-theme=warm] .nav-btn.active{background:rgba(236,147,103,.16);box-shadow:inset 3px 0 #ec9367}
+html[data-theme=warm] .nav-btn small{color:#f0b48f}
+html[data-theme=warm] .book-search{background:#3b302a;border-color:#5a4a40;color:#f5ede4}
+html[data-theme=warm] .book-search::placeholder{color:#c9b8a8}
+html[data-theme=warm] .chapter-header{background:linear-gradient(135deg,#2a2420,#4a3328)}
+html[data-theme=warm] .chapter-no,html[data-theme=warm] .chapter-header .vend b{color:#f3b58f}
+html[data-theme=warm] .chapter-header p{color:#eadfd3}
+html[data-theme=warm] .topbar{background:#fffdf9}
+html[data-theme=warm] .data-table th{background:#f3ebe0}
+html[data-theme=warm] .notice{background:#fbf1e2;border-color:#ecd3ad}
+
+/* テーマ切替 */
+.themesw{display:inline-flex;gap:4px;align-items:center;margin-right:10px}
+.themesw select{font-size:12.5px;padding:2px 6px;border-radius:6px;border:1px solid var(--rt-line-strong);background:var(--rt-surface);color:var(--rt-ink-2)}
+@media(max-width:760px){ .themesw{display:none} }
+@media print{ .themesw{display:none} }
+
+/* 共通の補正（各テーマ） */
+html[data-theme] .sim-output{background:var(--rt-surface-2);border-color:var(--rt-line)}
+html[data-theme] .sim-card{background:var(--rt-surface);border-color:var(--rt-line)}
+html[data-theme] .chapter-header p.sim-beginner{color:var(--rt-ink-2)}
+html[data-theme=dark] .chapter-header p.sim-beginner{background:#0f1720;color:var(--rt-ink-2)}
+html[data-theme=dark] .chipbtn,html[data-theme=dark] .vtools button,html[data-theme=dark] .gtools button{background:var(--rt-surface-2);color:var(--rt-ink-2);border-color:var(--rt-line-strong)}
+html[data-theme=dark] .chipbtn[aria-pressed=true]{background:var(--rt-accent);color:#04201d;border-color:var(--rt-accent)}
+html[data-theme=dark] .kfill{background:var(--rt-surface-2)}
+html[data-theme=dark] .pgrp>button.grp,html[data-theme=dark] .sim-card h2,html[data-theme=dark] .sim-card h3{color:var(--rt-ink)}
+html[data-theme=dark] .pgrp>button.grp:hover{color:var(--rt-accent-dark)}
 </style>
 <style id="pro">
 /* ---- Pro 固有（RadTools トークンに揃える） ---- */
@@ -437,7 +542,7 @@ body.sbdrag{cursor:col-resize;user-select:none}
 <div class="layout">
 <aside class="sidebar" id="sidebar" aria-label="シーケンスの選択"><div class="brand"><div class="brand-mark">MR</div><div class="brand-name">パラメータシミュレーター Pro</div><div class="brand-meta">教育用 · 全身・網羅版 2026.11</div><input id="seqq" class="book-search" type="search" aria-label="シーケンスを検索" placeholder="シーケンス名で検索（HASTE・FASE…）"></div><nav id="navigation"></nav></aside><div id="sbgrip" role="separator" aria-orientation="vertical" aria-label="サイドバーの幅（ドラッグ・左右キーで調整、ダブルクリックで元に戻す）" title="ドラッグで幅を変更／ダブルクリックで元に戻す" tabindex="0"></div>
 <div id="shade" class="mobile-shade"></div>
-<main class="main" id="mainContent"><header class="topbar"><div><button type="button" class="menu-btn" id="menu" aria-label="目次を開く" aria-expanded="false">目次</button> <b>パラメータから画像を考える — 全身版</b></div><div><span>Canon · Siemens ／ 0.55・1.5・3 T</span> <button type="button" class="print-button" onclick="window.print()">印刷</button></div></header>
+<main class="main" id="mainContent"><header class="topbar"><div><button type="button" class="menu-btn" id="menu" aria-label="目次を開く" aria-expanded="false">目次</button> <b>パラメータから画像を考える — 全身版</b></div><div><span>Siemens · Canon · GE · Philips · Fujifilm · United Imaging ／ 0.55・1.5・3 T</span> <label class="themesw"><span>配色</span><select id="themesel" aria-label="配色"><option value="standard">標準</option><option value="clinical">ライト</option><option value="dark">ダーク</option><option value="warm">ウォーム</option></select></label><span class="langsw" style="margin-right:10px"><b>日本語</b> · <a href="en.html" onclick="this.href='en.html'+location.hash">English</a> · <a href="zh.html" onclick="this.href='zh.html'+location.hash">中文</a></span> <button type="button" class="print-button" onclick="window.print()">印刷</button></div></header>
 <div class="content" id="content">
  <div class="view" id="v-sim">
   <header class="chapter-header"><div class="chapter-no">PARAMETER LAB PRO · <span id="sqcat"></span></div><h1 id="sqname">—</h1>
@@ -466,20 +571,20 @@ body.sbdrag{cursor:col-resize;user-select:none}
       <div class="thumbs" id="thumbs"></div>
       <div class="hover" id="hover">画像上にカーソルを置くと、組織名・信号・T1/T2 を表示します。</div></div>
      <div class="metrics" id="metrics"></div><ul class="warns" id="warns"></ul></div>
-    </aside><aside class="pro-chart" aria-label="コントラストのグラフ"><div class="sim-output chartbox"><h3 style="font-size:14px;margin:0 0 8px">コントラストのグラフ</h3><div id="chartctl"></div><canvas id="chartcv" style="width:100%;display:block;background:#fff;border:1px solid #cad7df;border-radius:4px"></canvas><div class="hover" id="chartnote"></div></div><div id="kfill" hidden></div>
+    </aside><aside class="pro-chart" aria-label="コントラストのグラフ"><div class="sim-output chartbox"><h3 style="font-size:14px;margin:0 0 8px">コントラストのグラフ</h3><div id="chartctl"></div><canvas id="chartcv" style="width:100%;display:block;background:var(--ch-bg,#fff);border:1px solid var(--rt-line);border-radius:4px"></canvas><div class="hover" id="chartnote"></div></div><div id="kfill" hidden></div>
    </aside></div>
   </div>
   <section class="sim-card" id="sim-tissue"><h2>組織ごとの信号（現在の画像）</h2>
    <div class="data-table-wrap"><table class="data-table sim-table"><thead><tr><th>教育用組織</th><th>T1 / T2 / T2*（現在の磁場・造影後）</th><th>相対信号</th><th>推定SNR</th><th>前回比</th></tr></thead><tbody id="bars"></tbody></table></div>
    <p class="sim-note">各組織の画素の中央値。相対信号は最大を 100 とした値。推定SNRは中央値÷雑音の標準偏差で、表面コイルの感度補正や並列画像の g 因子の場所による差は含みません。前回比は、直前の条件の同じ画像との比較です。</p></section>
  </div>
- <div class="view" id="v-names" hidden><header class="chapter-header"><div class="chapter-no">REFERENCE</div><h1>シーケンス名の対応（Siemens／Canon）</h1><p>確認度：<span class="cf o">公開資料</span> メーカーの公開資料で名称を確認／<span class="cf c">比較表</span> ベンダー比較表で確認（列の読み取りに曖昧さあり）／裏付けのとれていない名称は「—」としています。名称はソフトウェアのバージョン・地域で異なることがあります。お使いの装置のプロトコル名で確認してください。</p></header>
+ <div class="view" id="v-names" hidden><header class="chapter-header"><div class="chapter-no">REFERENCE</div><h1>シーケンス名の対応（メーカー別）</h1><p>確認度：<span class="cf o">公開資料</span> メーカーの公開資料で名称を確認／<span class="cf c">比較表</span> ベンダー比較表で確認（列の読み取りに曖昧さあり）／裏付けのとれていない名称は「—」としています。名称はソフトウェアのバージョン・地域で異なることがあります。お使いの装置のプロトコル名で確認してください。</p></header>
   <section class="sim-card"><h2>シーケンス</h2><div class="data-table-wrap" id="nametbl"></div></section>
   <section class="sim-card"><h2>加速・オプション</h2><div class="data-table-wrap" id="opttbl"></div><h3>出典</h3><ul id="namesrc" style="font-size:14px"></ul></section></div>
  <div class="view" id="v-tissue" hidden><header class="chapter-header"><div class="chapter-no">REFERENCE</div><h1>組織パラメータ（教育用の代表値）</h1><p>T1・T2 は文献の報告値を丸めた代表値、または文献値をもとにした教育用の推定値（出典欄が est）です。個人差・測定法による差が大きく、診断や定量の基準値ではありません。</p></header>
   <section class="sim-card"><div class="data-table-wrap" id="tisstbl"></div><h3>文献</h3><ul id="refs" style="font-size:14px"></ul></section></div>
  <div class="view" id="v-about" hidden><header class="chapter-header"><div class="chapter-no">HOW TO USE</div><h1>このツールの使い方と注意</h1><p>全身の仮想ファントムで、撮像条件を変えたときの画像と撮像時間・SNR・SAR の変化を確かめる教育用シミュレーターです。</p></header><section class="sim-card" id="about"></section></div>
- <footer class="footer"><p>教育用 · 全身・網羅版（2026年11月） · 外部ライブラリを使わず、すべての計算をこのファイル内で行います（オフラインで動作し、入力した値はどこにも送信しません）。</p><p><b>診療・装置の設定には使わないでください。</b>組織値は文献値を丸めた代表値・推定値、仮想ファントムは解析的な図形で描いた模式図で、画像・撮像時間・SNR・SAR は教育用の近似です。医療機器ではありません。</p><p>Siemens、Siemens Healthineers、Canon、Canon Medical Systems の各社名、および本ツールに記載のシーケンス名・機能名（TSE、HASTE、VIBE、SPACE、FASE、SPEEDER、AiCE など）は各社の商標または登録商標です。名称の対応を示す目的で記載しており、各社とは関係のない非公式のツールです。</p><p><a href="https://github.com/ringnir/MRI-SIMULATOR-html">GitHub</a> · <a href="https://github.com/ringnir/MRI-SIMULATOR-html/blob/main/LICENSE">MIT License</a> · © 2026 ringnir</p></footer>
+ <footer class="footer"><p>教育用 · 全身・網羅版（2026年11月） · 外部ライブラリを使わず、すべての計算をこのファイル内で行います（オフラインで動作し、入力した値はどこにも送信しません）。</p><p><b>診療・装置の設定には使わないでください。</b>組織値は文献値を丸めた代表値・推定値、仮想ファントムは解析的な図形で描いた模式図で、画像・撮像時間・SNR・SAR は教育用の近似です。医療機器ではありません。</p><p>Siemens Healthineers、GE HealthCare、Philips、Canon Medical Systems、Fujifilm、United Imaging Healthcare の各社名、および本ツールに記載のシーケンス名・機能名（TSE、HASTE、VIBE、SPACE、FASE、SPEEDER、AiCE、PROPELLER、SENSE など）は各社の商標または登録商標です。名称の対応を示す目的で記載しており、各社とは関係のない非公式のツールです。</p><p><a href="https://github.com/ringnir/MRI-SIMULATOR-html">GitHub</a> · <a href="https://github.com/ringnir/MRI-SIMULATOR-html/blob/main/LICENSE">MIT License</a> · © 2026 ringnir</p></footer>
 </div></main>
 </div>
 <script id="engine-src" type="text/plain">/* ===== 組織パラメータ（教育用の代表値） =====
@@ -2578,7 +2683,7 @@ MS.sig={
 /* ---------- 撮像条件の補正・時間・SNR・SAR ---------- */
 MS.derive=function(st,sq){
   var p=JSON.parse(JSON.stringify(st.p)); var W=[], info={};
-  var k=sq.k, dim=sq.dim||'2D';
+  var k=sq.timeAs||sq.k, dim=sq.dim||'2D';
   var tro=1000/p.bw; /* 読出し時間 ms */
   info.tro=tro;
   var Gmax=st.grad||45;
@@ -2914,7 +3019,7 @@ S('lge','lge','cardiac','遅延造影（LGE・PSIR）','Late gadolinium enhancem
 S('molli','map_t1','cardiac','T1マッピング（MOLLI）','Modified Look-Locker',['MOLLI（MyoMaps）','o'],['MOLLI','c'],'複数のTIの画像からT1を推定。MOLLIは真のT1よりやや短く出る傾向がある。',{tr:2.8,te:1.2,fa:35,bw:1000,thk:8,nex:1},[],{gre:true,ecgReq:true}),
 /* ---- 定量 ---- */
 S('t2map','map_t2','quant','T2マッピング（多エコーSE）','Multi-echo SE T2 map',['MapIt（T2）','o'],['T2 map','c'],'複数のTEのSE画像からT2を推定。軟骨・心筋・肝で使う。',{tr:1500,te:13,etl:8,esp:13,refoc:180,bw:200,nex:1},[],{}),
-S('t2smap','map_t2s','quant','T2*マッピング（多エコーGRE）','Multi-echo GRE T2* map',['MapIt（T2*）','o'],['T2* Relax Map','c'],'多エコーGREからT2*（R2*）を推定。鉄沈着の評価。空気との境界ではT2*が短く出る。',{tr:200,te:2.5,dte:2.5,ne:12,fa:20,bw:600,nex:1},[],{gre:true}),
+S('t2smap','map_t2s','quant','T2*マッピング（多エコーGRE）','Multi-echo GRE T2* map',['MapIt（T2*）','o'],['T2* Relax Map','x'],'多エコーGREからT2*（R2*）を推定。鉄沈着の評価。空気との境界ではT2*が短く出る。',{tr:200,te:2.5,dte:2.5,ne:12,fa:20,bw:600,nex:1},[],{gre:true}),
 S('t1map_vfa','map_vfa','quant','T1マッピング（可変フリップ角）','VFA T1 map',['VIBE VFA（MapIt）','c'],['（相当機能）','x'],'2つ以上のフリップ角の3D GREからT1を推定。B1の誤差に敏感。',{tr:5,te:1.5,fa:2,fa2:15,bw:450,npart:64,thk:3,nex:1},[],{gre:true,dim:'3D'}),
 /* ---- 応用・特殊 ---- */
 S('asl','asl','adv','動脈スピンラベリング（pCASL）','pCASL',['ASL（3D pCASL）','o'],['ASL','c'],'頸部で血液を磁気的に標識し、標識あり・なしの差から脳血流（CBF）を求める。造影剤不要。PLD が短いと血管内に信号が残る。',{tr:4600,te:16,pld:1800,ld:1800,npairs:8,bw:2300,nx:64,ny:64,thk:4,nex:1},[],{}),
@@ -3195,7 +3300,133 @@ K.mre=function(ctx,p,sq,st){ var G=ctx.geo, S=G.S, wave=new Float32Array(S*S), s
   return [{name:'弾性率マップ（kPa）',data:stiff,kind:'map',unit:'kPa',range:[0,8]},{name:'波動画像（'+f+' Hz）',data:wave,kind:'phase',range:[-1,1]},mag]; };
 K.mrs=function(ctx,p,sq,st){ var lesionOn=st.les&&(st.les.glioma||st.les.infarct); var B=st.B0; var lw=B>=3?5:3.5; var sp={te:p.te, lesion:st.mrsVox==='lesion', B:B, snr:Math.sqrt(p.navg/128)*Math.pow(p.vox/15,3)*(B>=3?1.8:1)*25, lw:lw};
   return [{name:'スペクトル',kind:'spectrum',spec:sp}]; };
+
+/* ---------- 拡張用 API（新しいシーケンスを src/seq/*.js から足す） ----------
+  MS.addSeq({ id, k, cat, n, gen, sie:[名称,確認度], can:[…], ge:[…], phi:[…], fuji:[…], uih:[…], d, p:{既定パラメータ}, o:[オプション], x:{gre:true, dim:'3D', …}, run:function(ctx,p,sq,st){…} })
+    k   … 画像を作る関数の種類。既存の種類（'se','fse','ir','gre','gre3d','bssfp','dwi' など MS.K のキー）を使えば run は不要。
+    run … 新しい種類のときだけ書く。MS.SEQAPI の部品（one, fsSig, greSig, flowVoid, excF, refF …）で acq を組み、[{name,data,kind}] を返す。
+  MS.addCat(id, 名前) … シーケンスの分類を足す */
+MS.K=K;
+MS.SEQAPI={one:one, real:real, phaseOf:phaseOf, fsSig:fsSig, mtFac:mtFac, excF:excF, refF:refF, flowVoid:flowVoid, inflow:inflow, fatT2fse:fatT2fse, greSig:greSig, boxBlur:boxBlur, maxOf:maxOf, mapOut:mapOut};
+MS.addCat=function(id,n){ if(!MS.CATS.some(function(c){ return c[0]===id; })) MS.CATS.push([id,n]); };
+MS.addSeq=function(def){ var x=def.x||{}; var e=S(def.id,def.k||def.id,def.cat||'adv',def.n,def.gen||def.n,def.sie||['—','—'],def.can||['—','—'],def.d||'',def.p||{},def.o||[],x);
+  ['ge','phi','fuji','uih'].forEach(function(v){ var a=def[v]; e[v]=a?a[0]:'—'; e[v+'C']=a?a[1]:'—'; });
+  if(def.run) K[e.k]=def.run; if(!K[e.k]) throw new Error('addSeq: 種類 '+e.k+' がありません（run を書くか、既存の種類を指定）');
+  if(MS.PUBLIC){ ['sie','can','ge','phi','fuji','uih'].forEach(function(v){ if(e[v+'C']==='x'){ e[v]='—'; e[v+'C']='—'; } }); }
+  var i=-1; MS.SEQS.forEach(function(s,j){ if(s.id===e.id) i=j; }); if(i>=0) MS.SEQS[i]=e; else MS.SEQS.push(e); MS.SEQ[e.id]=e; return e; };
 })();
+
+/* ===== 追加メーカーの名称（GE・Philips・Fujifilm・United Imaging） ===== conf: o=vendor public material, c=cross-vendor chart, x=unverified */
+/* Fujifilm = former Hitachi MR line (legacy Hitachi names shown where the chart only lists those). null = no equivalent found / not verified. */
+MS.VENDORS=[['sie','Siemens'],['ge','GE'],['phi','Philips'],['can','Canon'],['fuji','Fujifilm'],['uih','United Imaging']];
+MS.VNAMES={
+  se_t1:{ge:['SE','c'], phi:['SE','c'], fuji:['SE','c'], uih:['SE','x']},
+  se_pd:{ge:['SE','c'], phi:['SE','c'], fuji:['SE','c'], uih:['SE','x']},
+  fse_t2:{ge:['FSE','o'], phi:['TSE','o'], fuji:['FSE','o'], uih:['FSE','o']},
+  fse_pd:{ge:['FSE','o'], phi:['TSE','o'], fuji:['FSE','o'], uih:['FSE','o']},
+  fse_t1:{ge:['FSE','o'], phi:['TSE','o'], fuji:['FSE','o'], uih:['FSE','o']},
+  ssfse:{ge:['SSFSE','o'], phi:['Single-shot TSE','c'], fuji:['Single-shot FSE','c'], uih:['Single-shot FSE','x']},
+  stir:{ge:['STIR','c'], phi:['STIR','o'], fuji:['FIR-STIR','c'], uih:['STIR','x']},
+  flair:{ge:['T2 FLAIR','c'], phi:['FLAIR','o'], fuji:['FIR-FLAIR','c'], uih:['FLAIR','x']},
+  t1flair:{ge:['T1 FLAIR','x'], phi:['T1 FLAIR (IR-TSE)','x'], fuji:null, uih:null},
+  psir_ir:{ge:null, phi:['Real IR','c'], fuji:['Real-IR','c'], uih:['PSIR','o']},
+  dir3d:{ge:['Cube DIR','o'], phi:['Dual IR-TSE','c'], fuji:null, uih:null},
+  fse3d_t2:{ge:['Cube','o'], phi:['3D TSE VISTA (BrainVIEW)','c'], fuji:['isoFSE','o'], uih:['MATRIX','o']},
+  flair3d:{ge:['Cube FLAIR','x'], phi:['3D FLAIR VISTA','x'], fuji:['isoFSE FLAIR','o'], uih:['MATRIX FLAIR','x']},
+  fse3d_t1:{ge:['Cube T1','x'], phi:['3D T1 VISTA','x'], fuji:['isoFSE T1','o'], uih:['MATRIX T1','o']},
+  gre_t1:{ge:['SPGR','c'], phi:['T1-FFE','c'], fuji:['RSSG (RF-spoiled SARGE)','c'], uih:['FSP','o']},
+  gre_t2s:{ge:['GRE / MERGE','o'], phi:['FFE / mFFE','o'], fuji:['GrE T2* / ADAGE','o'], uih:['GRE','o']},
+  inopp:{ge:['Dual-echo FSPGR','x'], phi:['Dual-echo FFE','x'], fuji:['Dual Echo GrE','o'], uih:null},
+  vibe:{ge:['LAVA','o'], phi:['THRIVE (eTHRIVE)','o'], fuji:['TIGRE','o'], uih:['Quick3D','o']},
+  vibe_dixon:{ge:['LAVA Flex','o'], phi:['mDIXON XD FFE','o'], fuji:['FatSep (3D GrE)','c'], uih:['Quick3D WFI','o']},
+  starvibe:{ge:['LAVA Star','x'], phi:['3D VANE XD','o'], fuji:null, uih:['uFreeR','o']},
+  mprage:{ge:['BRAVO','o'], phi:['3D T1-TFE','c'], fuji:['3D-GEIR','o'], uih:['FSP+','x']},
+  mp2rage:{ge:null, phi:null, fuji:null, uih:null},
+  bssfp:{ge:['FIESTA','o'], phi:['Balanced FFE','c'], fuji:['BASG (Balanced SARGE)','o'], uih:['bSSFP','o']},
+  ciss:{ge:['FIESTA-C','c'], phi:null, fuji:['Balanced SARGE with phase cycling (PBSG)','o'], uih:null},
+  fisp:{ge:['GRASS','c'], phi:['FFE','c'], fuji:['Rephased SARGE','c'], uih:null},
+  psif:{ge:['SSFP','c'], phi:['T2-FFE','c'], fuji:['TRSG (Time-reversed SARGE)','c'], uih:['TRASS','o']},
+  dess:{ge:null, phi:null, fuji:null, uih:['PASS','o']},
+  swi:{ge:['SWAN','o'], phi:['SWIp','o'], fuji:['BSI','o'], uih:['SWI / SWI+','o']},
+  dwi:{ge:['DWI (eDWI)','o'], phi:['DWI','o'], fuji:['DWI','o'], uih:['DWI','o']},
+  dwi_rs:{ge:['MUSE','o'], phi:['DWI with segmented EPI','c'], fuji:['RADAR DWI','c'], uih:['Multi-shot EPI DWI','o']},
+  dwi_zoom:{ge:['FOCUS','o'], phi:['Zoom Diffusion','o'], fuji:null, uih:['Reduced-FOV DWI','x']},
+  dwibs:{ge:['eDWI','c'], phi:['DWIBS','o'], fuji:null, uih:null},
+  dti:{ge:['DTI','o'], phi:['DTI','o'], fuji:['DTI','o'], uih:['DTI','o']},
+  bold:{ge:['BOLD (HyperBand fMRI)','x'], phi:['BOLD','o'], fuji:null, uih:['BOLD','o']},
+  dsc:{ge:['EPI perfusion (BrainSTAT)','x'], phi:['Perfusion (T2* DSC)','o'], fuji:['Perfusion (Advanced NeuroSuite)','o'], uih:['Brain Perfusion','o']},
+  tof:{ge:['TOF (Inhance Inflow)','c'], phi:['TOF','c'], fuji:['TOF','o'], uih:['TOF','o']},
+  tof2d:{ge:['2D TOF','c'], phi:['2D TOF','c'], fuji:['2D TOF','x'], uih:['2D TOF','x']},
+  pc:{ge:['Phase Contrast (Inhance Velocity)','c'], phi:['Phase Contrast (QFlow)','c'], fuji:['Phase Contrast (PC)','c'], uih:['2D/4D Flow (FQ)','o']},
+  fbi:{ge:['Inhance 3D Deltaflow','o'], phi:['TRANCE','o'], fuji:['VASC-FSE','o'], uih:['NCEMRA','x']},
+  timeslip:{ge:['Inhance Inflow IR','c'], phi:['B-TRANCE','c'], fuji:['VASC-ASL','o'], uih:null},
+  qiss:{ge:null, phi:null, fuji:null, uih:null},
+  cemra:{ge:['CE-MRA (Fluoro Triggered / SmartPrep)','c'], phi:['CE-MRA (BolusTrak)','c'], fuji:['CE-MRA (FLUTE)','o'], uih:['CE-MRA (Auto Bolus Tracker)','o']},
+  twist:{ge:['TRICKS','o'], phi:['4D-TRAK XD','o'], fuji:['TRAQ','o'], uih:['4D CEMRA','o']},
+  mrcp3d:{ge:['3D MRCP (Cube)','x'], phi:['3D MRCP (TSE)','x'], fuji:['3D isoFSE MRCP','o'], uih:['3D MRCP','o']},
+  mrcp2d:{ge:['SSFSE thick slab','x'], phi:['Single-shot TSE thick slab','x'], fuji:null, uih:null},
+  dixon_tse:{ge:['FSE Flex (IDEAL)','o'], phi:['mDIXON XD TSE','o'], fuji:['FatSep (FSE)','c'], uih:['WFI (FSE)','x']},
+  pdff:{ge:['IDEAL IQ','o'], phi:['mDIXON Quant','o'], fuji:null, uih:['FACT','o']},
+  mre:{ge:['MR Touch','o'], phi:['MR Elastography','o'], fuji:null, uih:['MRE','o']},
+  cine:{ge:['FIESTA Cine','o'], phi:['Balanced TFE cine','x'], fuji:null, uih:['bSSFP cine','o']},
+  lge:{ge:['MDE / PS-MDE','o'], phi:['PSIR (TFE)','x'], fuji:null, uih:['PSIR','o']},
+  molli:{ge:['CardioMaps (T1)','o'], phi:['CardiacQuant (T1)','o'], fuji:null, uih:['Cardiac T1 Mapping','o']},
+  t2map:{ge:['CartiGram','o'], phi:['StarQuant (T2)','o'], fuji:['T2 RelaxMap','o'], uih:['Inline T2 Map','o']},
+  t2smap:{ge:['StarMap','o'], phi:['StarQuant (T2*)','o'], fuji:['T2* RelaxMap','o'], uih:['Inline T2* Map','o']},
+  t1map_vfa:{ge:null, phi:null, fuji:null, uih:['MQD','x']},
+  asl:{ge:['3D ASL','o'], phi:['3D ASL (pCASL)','o'], fuji:['ASL','c'], uih:['3D ASL','o']},
+  ute:{ge:['Silenz (ZTE)','c'], phi:['UTE','x'], fuji:['Micro TE','o'], uih:['UTE','o']},
+  mrs:{ge:['PROBE (PRESS/STEAM)','o'], phi:['SV spectroscopy (PRESS/STEAM)','x'], fuji:['SVS','x'], uih:['SVS (PRESS/STEAM)','o']},
+  metal:{ge:['MAVRIC SL','o'], phi:['O-MAR XD','o'], fuji:['primeFSE','o'], uih:['MARS+','o']}
+};
+MS.VOPT_NAMES=[  // same order and length as MS.VENDOR_OPTS (22 rows)
+  /* parallel imaging (image space) */ {ge:['ASSET','c'], phi:['SENSE (dS SENSE)','o'], fuji:['RAPID','o'], uih:null},
+  /* parallel imaging (k-space) */ {ge:['ARC','o'], phi:null, fuji:['k-RAPID','c'], uih:null},
+  /* CAIPIRINHA-type 3D sampling */ {ge:null, phi:null, fuji:null, uih:null},
+  /* SMS */ {ge:['HyperBand','o'], phi:['MultiBand SENSE','o'], fuji:null, uih:['MultiBand','o']},
+  /* compressed sensing */ {ge:['HyperSense','o'], phi:['Compressed SENSE','o'], fuji:['IP-RAPID','o'], uih:['uCS / ACS','o']},
+  /* DL reconstruction (denoising) */ {ge:['AIR Recon DL','o'], phi:['SmartSpeed','o'], fuji:['Synergy DLR','o'], uih:['DeepRecon','o']},
+  /* DL super-resolution / sharpness */ {ge:['AIR Recon DL (sharpness)','c'], phi:['SmartSpeed Precise','o'], fuji:['Synergy DLR Clear','x'], uih:['DeepRecon','o']},
+  /* fast 3D mode (Canon-specific) */ {ge:null, phi:null, fuji:null, uih:null},
+  /* radial blade motion correction */ {ge:['PROPELLER','o'], phi:['MultiVane XD','o'], fuji:['RADAR','o'], uih:['ARMS','o']},
+  /* respiratory triggering / navigator */ {ge:['Respiratory Triggering / Auto Navigator','o'], phi:['MotionTrak navigator','o'], fuji:['Respiratory gating','o'], uih:['Respiratory Navigator','o']},
+  /* chemical-shift-selective fat sat */ {ge:['Fat Sat / Chem Sat','c'], phi:['SPIR','c'], fuji:['H-Sinc','o'], uih:null},
+  /* adiabatic fat sat */ {ge:['ASPIR','c'], phi:['SPAIR','o'], fuji:null, uih:null},
+  /* water-selective excitation */ {ge:['Water Excitation','c'], phi:['ProSet','c'], fuji:['Water Excitation (WE)','o'], uih:null},
+  /* Dixon (FSE) */ {ge:['FSE Flex (IDEAL)','o'], phi:['mDIXON XD TSE','o'], fuji:['FatSep','o'], uih:['WFI','x']},
+  /* FSE flip-back */ {ge:['FRFSE','o'], phi:['DRIVE','o'], fuji:['DE-FSE','c'], uih:null},
+  /* MT pulse */ {ge:['MTC','c'], phi:['MTC','c'], fuji:['MTC','c'], uih:null},
+  /* TOF ramped flip angle */ {ge:['Ramped RF','c'], phi:['TONE','c'], fuji:['SSP','c'], uih:null},
+  /* bolus timing */ {ge:['Fluoro Triggered MRA / SmartPrep','c'], phi:['BolusTrak','c'], fuji:['FLUTE','o'], uih:['EasyBolus / Auto Bolus Tracker','o']},
+  /* computed b-values */ {ge:['MAGiC DWI','o'], phi:['Computed DWI','c'], fuji:null, uih:['cDWI','o']},
+  /* metal artifact (in-plane) */ {ge:null, phi:['O-MAR','c'], fuji:null, uih:null},
+  /* metal artifact (through-plane) */ {ge:['MAVRIC SL','o'], phi:['O-MAR XD','o'], fuji:null, uih:['MARS+','x']},
+  /* dynamic view sharing */ {ge:['DISCO (TRICKS for MRA)','o'], phi:['4D-TRAK (keyhole)','o'], fuji:['TRAQ','o'], uih:null}
+];
+MS.VSRC=[
+  ['Siemens Healthineers: MRI Acronyms Cross-Vendor Comparisons (PDF, 2020)','https://marketing.webassets.siemens-healthineers.com/7c27289490b774c4/7494aa896362/siemens-healthineers_mri_mri-acronyms_cross-vendor-comparison_v2.pdf'],
+  ['Siemens Healthineers Academy: MRI acronyms cross-vendor comparisons (web, incl. Fujifilm column)','https://academy.siemens-healthineers.com/en-us/mri-acronyms-crossvendor-comparisons'],
+  ['GE HealthCare: SIGNA Works application list','https://gehealthcare.com/static/GEHC-SIGNA-Lift/index.html'],
+  ['GE HealthCare: Discovery MR750w clinical gallery','https://www.gehealthcare.com/-/media/bae6349214c948d9bf42841453cf9ae9.pdf'],
+  ['GE HealthCare: Deep learning innovations (AIR Recon DL, Sonic DL)','https://www.gehealthcare.com/products/magnetic-resonance-imaging/deep-learning-innovations'],
+  ['GE Healthcare authors, ISMRM 2019 #1772 (LAVA Star)','https://archive.ismrm.org/2019/1772.html'],
+  ['Philips: MR clinical applications portfolio','https://www.documents.philips.com/assets/20171110/fa4423fc4cf048adbc96a82700fd405c.pdf'],
+  ['Philips: SmartSpeed Precise','https://www.philips.co.uk/healthcare/technology/smartspeed-precise'],
+  ['Fujifilm: ECHELON Smart applications','https://www.fujifilm.com/sg/en/healthcare/mri-and-ct/1_5t-superconductive-magnet-mri-system/echelon-smart/application'],
+  ['Fujifilm: Neurology applications','https://www.fujifilm.com/sg/en/healthcare/mri-and-ct/applications/neurology'],
+  ['Fujifilm: Vascular applications','https://www.fujifilm.com/sg/en/healthcare/mri-and-ct/applications/vascular'],
+  ['Fujifilm: Musculoskeletal applications','https://www.fujifilm.com/sg/en/healthcare/mri-and-ct/applications/musculoskeletal'],
+  ['Fujifilm: Whole body imaging applications','https://www.fujifilm.com/sg/en/healthcare/mri-and-ct/applications/whole-body-imaging'],
+  ['Fujifilm: ECHELON Synergy (US)','https://healthcaresolutions-us.fujifilm.com/products/diagnostic-imaging/mri/echelon-synergy/'],
+  ['Fujifilm: ECHELON Synergy ZeroHelium image gallery','https://www.fujifilm.com/de/en/healthcare/mri-and-ct/1_5t-superconductive-magnet-mri-system/echelon-Synergy-zerohelium/gallery'],
+  ['United Imaging: uMR Astra 510(k) K260113 feature table','https://fda.innolitics.com/device/K260113'],
+  ['United Imaging: uMR Ultra 510(k) K243547','https://fda.innolitics.com/device/K243547'],
+  ['United Imaging: uMR 780 510(k) K193176','https://fda.innolitics.com/device/K193176'],
+  ['United Imaging: uMR Omega 510(k) K220332','https://fda.innolitics.com/device/K220332'],
+  ['United Imaging: uMR 588 product page (uCS, DeepRecon, FACT)','https://www.united-imaging.com/en/product-service/products/mr/umr-588'],
+  ['United Imaging: uMR introduction deck (FSP, Quick3D, MATRIX, ARMS; third-party copy)','https://pdfcoffee.com/umr-introduction-2023-pdf-free.html']
+];
+(function(){ (MS.SEQS||[]).forEach(function(s){ var v=MS.VNAMES[s.id]||{}; ['ge','phi','fuji','uih'].forEach(function(k){ var a=v[k]; s[k]=a?a[0]:'—'; s[k+'C']=a?a[1]:'—'; }); }); })();
 
 /* ===== 既定値とパラメータ定義 ===== */
 (function(){
@@ -3292,6 +3523,9 @@ MS.defaultState=function(phid,seqid,prev){
   if(prev){ ['B0','grad','les','popt','hemStage','liverFF','liverIron','liverKpa','dlr','norm','b1corr','shim'].forEach(function(k){ if(prev[k]!==undefined) st[k]=JSON.parse(JSON.stringify(prev[k])); }); }
   return st;
 };
+
+/* 拡張用：パラメータを足す。a=[id, 名前, 単位, 最小, 最大, 刻み, 群（'geo'|'con'|'spc'|'acc'）, 説明]。シーケンスの p に同じ id を書くと画面に出る */
+MS.addParam=function(a){ if(MS.PDEF[a[0]]) return MS.PDEF[a[0]]; MS.PARAMS.push(a); MS.PDEF[a[0]]={id:a[0],n:a[1],u:a[2],min:a[3],max:a[4],step:a[5],g:a[6],tip:a[7]}; return MS.PDEF[a[0]]; };
 })();
 
 (function(){
@@ -3314,7 +3548,7 @@ MS.NAME_SRC=[
 MS.ABOUT=[
 '<h2>使い方</h2>',
 '<ol><li>左上で<b>部位</b>（頭部・胸部・上腹部・女性骨盤・男性骨盤・膝）と<b>病変</b>、<b>静磁場</b>を選びます。</li>',
-'<li><b>シーケンス</b>を一覧から選びます（検索欄に HASTE・FASE・SPACE・DWI などの装置名でも入力できます）。名称表示を Siemens／Canon／一般名に切り替えられます。</li>',
+'<li><b>シーケンス</b>を一覧から選びます（検索欄に HASTE・FASE・SPACE・DWI などの装置名でも入力できます）。メーカー別の名称は、シーケンスの見出しと「名称対応表」に出ます。</li>',
 '<li>パラメータは<b>スライダーまたは数値</b>で変更します。最短値より短い TE・TR・エコー間隔は自動で補正され、黄色の枠と右側の注意に理由が出ます。</li>',
 '<li>右側に<b>撮像時間・SNR（既定条件比）・ボクセル・SAR</b>と注意事項、シーケンスの説明と両社の名称が出ます。</li>',
 '<li>画像上を<b>ドラッグ</b>でウインドウ幅（左右）・レベル（上下）、<b>ダブルクリック</b>で自動に戻ります。「比較用に固定」で条件を変える前の画像を横に残せます。「k空間」で取得データの範囲、「組織境界」で解剖の輪郭を重ねて表示します。</li></ol>',
@@ -3395,7 +3629,42 @@ MS.LEARN=[
   pre:[['1.5T',{te:40}],['3T 相当',{te:20}]]}
 ];
 MS.LEARN_MAP={}; MS.LEARN.forEach(function(L){ MS.LEARN_MAP[L.seq]=L; });
+/* 拡張用：勉強用の項目を足す（書き方は MS.LEARN の各項目と同じ） */
+MS.addLearn=function(L){ MS.LEARN=MS.LEARN.filter(function(x){ return x.seq!==L.seq; }); MS.LEARN.push(L); MS.LEARN_MAP[L.seq]=L; return L; };
 MS.LEARN_COMMON=['fov','ny','thk','nex'];
+})();
+
+/* ===== 追加シーケンスの例 2：新しい種類（run）とパラメータ（addParam）を足す =====
+   2エコーのスピンエコー：1回の励起で TE の違う2枚（プロトン密度強調・T2強調）を同時に得る */
+(function(){
+var MS=window.MS, E=Math.exp;
+MS.addParam(['te2se','TE（第2エコー）','ms',20,300,1,'con','2つ目のエコーのTE。長いほどT2強調になる。']);
+MS.addSeq({
+  id:'se_dual', k:'se_dual', cat:'basic', x:{timeAs:'se'},      /* 撮像時間・最短TEの計算は SE と同じ扱い */
+  n:'2エコーSE（PD＋T2）', gen:'Dual-echo spin echo',
+  sie:['SE (2 echo)','c'], can:['SE (Dual echo)','x'], ge:['Dual Echo SE','x'], phi:['SE (Dual echo)','x'],
+  d:'1回の励起の後に180°パルスを2回打ち、短いTE（PD強調）と長いTE（T2強調）の2枚を同じ時間で得る。昔の頭部ルーチン。',
+  p:{tr:2500, te:20, te2se:90, bw:130, nex:1, nx:256, ny:192},
+  run:function(ctx,p,sq,st){ var A=MS.SEQAPI, TR=p.tr;
+    function acq(TE){ return {fs:A.fsSig(st), tr:TR, sig:function(tp,df,b1){
+      var M=1-2*E(-(TR-TE/2)/tp.T1)+E(-TR/tp.T1), Mf=1-2*E(-(TR-TE/2)/tp.fT1)+E(-TR/tp.fT1);
+      var e=A.excF(b1)*A.refF(b1), fv=A.flowVoid(tp,TE,p.thk);
+      return {w:tp.PD*(1-tp.ff)*M*E(-TE/tp.T2)*e*fv, f:tp.PD*tp.ff*Mf*E(-TE/tp.fT2)*e}; }}; }
+    var te2=Math.max(p.te2se, p.te+10);
+    return [A.one(ctx,acq(p.te),'第1エコー（PD強調）TE '+MS.fmt(p.te)+' ms'), A.one(ctx,acq(te2),'第2エコー（T2強調）TE '+MS.fmt(te2)+' ms')]; }
+});
+})();
+
+/* ===== 追加シーケンスの例 1：既存の種類（k:'se'）を使い、既定値だけ変える ===== */
+(function(){
+var MS=window.MS;
+MS.addSeq({
+  id:'se_t2', k:'se', cat:'basic',
+  n:'SE T2強調像（従来型SE）', gen:'Conventional spin echo T2',
+  sie:['SE','o'], can:['SE','o'], ge:['SE','c'], phi:['SE','c'], fuji:['SE','c'], uih:['SE','x'],
+  d:'1ライン×1TRの従来型スピンエコー。長いTR・長いTEでT2強調になる。撮像時間はTR×位相エンコード数×加算回数なので、FSEより大幅に長い。',
+  p:{tr:2500, te:90, bw:130, nex:1, nx:256, ny:192}
+});
 })();
 
 </script>
@@ -5495,7 +5764,7 @@ MS.sig={
 /* ---------- 撮像条件の補正・時間・SNR・SAR ---------- */
 MS.derive=function(st,sq){
   var p=JSON.parse(JSON.stringify(st.p)); var W=[], info={};
-  var k=sq.k, dim=sq.dim||'2D';
+  var k=sq.timeAs||sq.k, dim=sq.dim||'2D';
   var tro=1000/p.bw; /* 読出し時間 ms */
   info.tro=tro;
   var Gmax=st.grad||45;
@@ -5831,7 +6100,7 @@ S('lge','lge','cardiac','遅延造影（LGE・PSIR）','Late gadolinium enhancem
 S('molli','map_t1','cardiac','T1マッピング（MOLLI）','Modified Look-Locker',['MOLLI（MyoMaps）','o'],['MOLLI','c'],'複数のTIの画像からT1を推定。MOLLIは真のT1よりやや短く出る傾向がある。',{tr:2.8,te:1.2,fa:35,bw:1000,thk:8,nex:1},[],{gre:true,ecgReq:true}),
 /* ---- 定量 ---- */
 S('t2map','map_t2','quant','T2マッピング（多エコーSE）','Multi-echo SE T2 map',['MapIt（T2）','o'],['T2 map','c'],'複数のTEのSE画像からT2を推定。軟骨・心筋・肝で使う。',{tr:1500,te:13,etl:8,esp:13,refoc:180,bw:200,nex:1},[],{}),
-S('t2smap','map_t2s','quant','T2*マッピング（多エコーGRE）','Multi-echo GRE T2* map',['MapIt（T2*）','o'],['T2* Relax Map','c'],'多エコーGREからT2*（R2*）を推定。鉄沈着の評価。空気との境界ではT2*が短く出る。',{tr:200,te:2.5,dte:2.5,ne:12,fa:20,bw:600,nex:1},[],{gre:true}),
+S('t2smap','map_t2s','quant','T2*マッピング（多エコーGRE）','Multi-echo GRE T2* map',['MapIt（T2*）','o'],['T2* Relax Map','x'],'多エコーGREからT2*（R2*）を推定。鉄沈着の評価。空気との境界ではT2*が短く出る。',{tr:200,te:2.5,dte:2.5,ne:12,fa:20,bw:600,nex:1},[],{gre:true}),
 S('t1map_vfa','map_vfa','quant','T1マッピング（可変フリップ角）','VFA T1 map',['VIBE VFA（MapIt）','c'],['（相当機能）','x'],'2つ以上のフリップ角の3D GREからT1を推定。B1の誤差に敏感。',{tr:5,te:1.5,fa:2,fa2:15,bw:450,npart:64,thk:3,nex:1},[],{gre:true,dim:'3D'}),
 /* ---- 応用・特殊 ---- */
 S('asl','asl','adv','動脈スピンラベリング（pCASL）','pCASL',['ASL（3D pCASL）','o'],['ASL','c'],'頸部で血液を磁気的に標識し、標識あり・なしの差から脳血流（CBF）を求める。造影剤不要。PLD が短いと血管内に信号が残る。',{tr:4600,te:16,pld:1800,ld:1800,npairs:8,bw:2300,nx:64,ny:64,thk:4,nex:1},[],{}),
@@ -6112,7 +6381,133 @@ K.mre=function(ctx,p,sq,st){ var G=ctx.geo, S=G.S, wave=new Float32Array(S*S), s
   return [{name:'弾性率マップ（kPa）',data:stiff,kind:'map',unit:'kPa',range:[0,8]},{name:'波動画像（'+f+' Hz）',data:wave,kind:'phase',range:[-1,1]},mag]; };
 K.mrs=function(ctx,p,sq,st){ var lesionOn=st.les&&(st.les.glioma||st.les.infarct); var B=st.B0; var lw=B>=3?5:3.5; var sp={te:p.te, lesion:st.mrsVox==='lesion', B:B, snr:Math.sqrt(p.navg/128)*Math.pow(p.vox/15,3)*(B>=3?1.8:1)*25, lw:lw};
   return [{name:'スペクトル',kind:'spectrum',spec:sp}]; };
+
+/* ---------- 拡張用 API（新しいシーケンスを src/seq/*.js から足す） ----------
+  MS.addSeq({ id, k, cat, n, gen, sie:[名称,確認度], can:[…], ge:[…], phi:[…], fuji:[…], uih:[…], d, p:{既定パラメータ}, o:[オプション], x:{gre:true, dim:'3D', …}, run:function(ctx,p,sq,st){…} })
+    k   … 画像を作る関数の種類。既存の種類（'se','fse','ir','gre','gre3d','bssfp','dwi' など MS.K のキー）を使えば run は不要。
+    run … 新しい種類のときだけ書く。MS.SEQAPI の部品（one, fsSig, greSig, flowVoid, excF, refF …）で acq を組み、[{name,data,kind}] を返す。
+  MS.addCat(id, 名前) … シーケンスの分類を足す */
+MS.K=K;
+MS.SEQAPI={one:one, real:real, phaseOf:phaseOf, fsSig:fsSig, mtFac:mtFac, excF:excF, refF:refF, flowVoid:flowVoid, inflow:inflow, fatT2fse:fatT2fse, greSig:greSig, boxBlur:boxBlur, maxOf:maxOf, mapOut:mapOut};
+MS.addCat=function(id,n){ if(!MS.CATS.some(function(c){ return c[0]===id; })) MS.CATS.push([id,n]); };
+MS.addSeq=function(def){ var x=def.x||{}; var e=S(def.id,def.k||def.id,def.cat||'adv',def.n,def.gen||def.n,def.sie||['—','—'],def.can||['—','—'],def.d||'',def.p||{},def.o||[],x);
+  ['ge','phi','fuji','uih'].forEach(function(v){ var a=def[v]; e[v]=a?a[0]:'—'; e[v+'C']=a?a[1]:'—'; });
+  if(def.run) K[e.k]=def.run; if(!K[e.k]) throw new Error('addSeq: 種類 '+e.k+' がありません（run を書くか、既存の種類を指定）');
+  if(MS.PUBLIC){ ['sie','can','ge','phi','fuji','uih'].forEach(function(v){ if(e[v+'C']==='x'){ e[v]='—'; e[v+'C']='—'; } }); }
+  var i=-1; MS.SEQS.forEach(function(s,j){ if(s.id===e.id) i=j; }); if(i>=0) MS.SEQS[i]=e; else MS.SEQS.push(e); MS.SEQ[e.id]=e; return e; };
 })();
+
+/* ===== 追加メーカーの名称（GE・Philips・Fujifilm・United Imaging） ===== conf: o=vendor public material, c=cross-vendor chart, x=unverified */
+/* Fujifilm = former Hitachi MR line (legacy Hitachi names shown where the chart only lists those). null = no equivalent found / not verified. */
+MS.VENDORS=[['sie','Siemens'],['ge','GE'],['phi','Philips'],['can','Canon'],['fuji','Fujifilm'],['uih','United Imaging']];
+MS.VNAMES={
+  se_t1:{ge:['SE','c'], phi:['SE','c'], fuji:['SE','c'], uih:['SE','x']},
+  se_pd:{ge:['SE','c'], phi:['SE','c'], fuji:['SE','c'], uih:['SE','x']},
+  fse_t2:{ge:['FSE','o'], phi:['TSE','o'], fuji:['FSE','o'], uih:['FSE','o']},
+  fse_pd:{ge:['FSE','o'], phi:['TSE','o'], fuji:['FSE','o'], uih:['FSE','o']},
+  fse_t1:{ge:['FSE','o'], phi:['TSE','o'], fuji:['FSE','o'], uih:['FSE','o']},
+  ssfse:{ge:['SSFSE','o'], phi:['Single-shot TSE','c'], fuji:['Single-shot FSE','c'], uih:['Single-shot FSE','x']},
+  stir:{ge:['STIR','c'], phi:['STIR','o'], fuji:['FIR-STIR','c'], uih:['STIR','x']},
+  flair:{ge:['T2 FLAIR','c'], phi:['FLAIR','o'], fuji:['FIR-FLAIR','c'], uih:['FLAIR','x']},
+  t1flair:{ge:['T1 FLAIR','x'], phi:['T1 FLAIR (IR-TSE)','x'], fuji:null, uih:null},
+  psir_ir:{ge:null, phi:['Real IR','c'], fuji:['Real-IR','c'], uih:['PSIR','o']},
+  dir3d:{ge:['Cube DIR','o'], phi:['Dual IR-TSE','c'], fuji:null, uih:null},
+  fse3d_t2:{ge:['Cube','o'], phi:['3D TSE VISTA (BrainVIEW)','c'], fuji:['isoFSE','o'], uih:['MATRIX','o']},
+  flair3d:{ge:['Cube FLAIR','x'], phi:['3D FLAIR VISTA','x'], fuji:['isoFSE FLAIR','o'], uih:['MATRIX FLAIR','x']},
+  fse3d_t1:{ge:['Cube T1','x'], phi:['3D T1 VISTA','x'], fuji:['isoFSE T1','o'], uih:['MATRIX T1','o']},
+  gre_t1:{ge:['SPGR','c'], phi:['T1-FFE','c'], fuji:['RSSG (RF-spoiled SARGE)','c'], uih:['FSP','o']},
+  gre_t2s:{ge:['GRE / MERGE','o'], phi:['FFE / mFFE','o'], fuji:['GrE T2* / ADAGE','o'], uih:['GRE','o']},
+  inopp:{ge:['Dual-echo FSPGR','x'], phi:['Dual-echo FFE','x'], fuji:['Dual Echo GrE','o'], uih:null},
+  vibe:{ge:['LAVA','o'], phi:['THRIVE (eTHRIVE)','o'], fuji:['TIGRE','o'], uih:['Quick3D','o']},
+  vibe_dixon:{ge:['LAVA Flex','o'], phi:['mDIXON XD FFE','o'], fuji:['FatSep (3D GrE)','c'], uih:['Quick3D WFI','o']},
+  starvibe:{ge:['LAVA Star','x'], phi:['3D VANE XD','o'], fuji:null, uih:['uFreeR','o']},
+  mprage:{ge:['BRAVO','o'], phi:['3D T1-TFE','c'], fuji:['3D-GEIR','o'], uih:['FSP+','x']},
+  mp2rage:{ge:null, phi:null, fuji:null, uih:null},
+  bssfp:{ge:['FIESTA','o'], phi:['Balanced FFE','c'], fuji:['BASG (Balanced SARGE)','o'], uih:['bSSFP','o']},
+  ciss:{ge:['FIESTA-C','c'], phi:null, fuji:['Balanced SARGE with phase cycling (PBSG)','o'], uih:null},
+  fisp:{ge:['GRASS','c'], phi:['FFE','c'], fuji:['Rephased SARGE','c'], uih:null},
+  psif:{ge:['SSFP','c'], phi:['T2-FFE','c'], fuji:['TRSG (Time-reversed SARGE)','c'], uih:['TRASS','o']},
+  dess:{ge:null, phi:null, fuji:null, uih:['PASS','o']},
+  swi:{ge:['SWAN','o'], phi:['SWIp','o'], fuji:['BSI','o'], uih:['SWI / SWI+','o']},
+  dwi:{ge:['DWI (eDWI)','o'], phi:['DWI','o'], fuji:['DWI','o'], uih:['DWI','o']},
+  dwi_rs:{ge:['MUSE','o'], phi:['DWI with segmented EPI','c'], fuji:['RADAR DWI','c'], uih:['Multi-shot EPI DWI','o']},
+  dwi_zoom:{ge:['FOCUS','o'], phi:['Zoom Diffusion','o'], fuji:null, uih:['Reduced-FOV DWI','x']},
+  dwibs:{ge:['eDWI','c'], phi:['DWIBS','o'], fuji:null, uih:null},
+  dti:{ge:['DTI','o'], phi:['DTI','o'], fuji:['DTI','o'], uih:['DTI','o']},
+  bold:{ge:['BOLD (HyperBand fMRI)','x'], phi:['BOLD','o'], fuji:null, uih:['BOLD','o']},
+  dsc:{ge:['EPI perfusion (BrainSTAT)','x'], phi:['Perfusion (T2* DSC)','o'], fuji:['Perfusion (Advanced NeuroSuite)','o'], uih:['Brain Perfusion','o']},
+  tof:{ge:['TOF (Inhance Inflow)','c'], phi:['TOF','c'], fuji:['TOF','o'], uih:['TOF','o']},
+  tof2d:{ge:['2D TOF','c'], phi:['2D TOF','c'], fuji:['2D TOF','x'], uih:['2D TOF','x']},
+  pc:{ge:['Phase Contrast (Inhance Velocity)','c'], phi:['Phase Contrast (QFlow)','c'], fuji:['Phase Contrast (PC)','c'], uih:['2D/4D Flow (FQ)','o']},
+  fbi:{ge:['Inhance 3D Deltaflow','o'], phi:['TRANCE','o'], fuji:['VASC-FSE','o'], uih:['NCEMRA','x']},
+  timeslip:{ge:['Inhance Inflow IR','c'], phi:['B-TRANCE','c'], fuji:['VASC-ASL','o'], uih:null},
+  qiss:{ge:null, phi:null, fuji:null, uih:null},
+  cemra:{ge:['CE-MRA (Fluoro Triggered / SmartPrep)','c'], phi:['CE-MRA (BolusTrak)','c'], fuji:['CE-MRA (FLUTE)','o'], uih:['CE-MRA (Auto Bolus Tracker)','o']},
+  twist:{ge:['TRICKS','o'], phi:['4D-TRAK XD','o'], fuji:['TRAQ','o'], uih:['4D CEMRA','o']},
+  mrcp3d:{ge:['3D MRCP (Cube)','x'], phi:['3D MRCP (TSE)','x'], fuji:['3D isoFSE MRCP','o'], uih:['3D MRCP','o']},
+  mrcp2d:{ge:['SSFSE thick slab','x'], phi:['Single-shot TSE thick slab','x'], fuji:null, uih:null},
+  dixon_tse:{ge:['FSE Flex (IDEAL)','o'], phi:['mDIXON XD TSE','o'], fuji:['FatSep (FSE)','c'], uih:['WFI (FSE)','x']},
+  pdff:{ge:['IDEAL IQ','o'], phi:['mDIXON Quant','o'], fuji:null, uih:['FACT','o']},
+  mre:{ge:['MR Touch','o'], phi:['MR Elastography','o'], fuji:null, uih:['MRE','o']},
+  cine:{ge:['FIESTA Cine','o'], phi:['Balanced TFE cine','x'], fuji:null, uih:['bSSFP cine','o']},
+  lge:{ge:['MDE / PS-MDE','o'], phi:['PSIR (TFE)','x'], fuji:null, uih:['PSIR','o']},
+  molli:{ge:['CardioMaps (T1)','o'], phi:['CardiacQuant (T1)','o'], fuji:null, uih:['Cardiac T1 Mapping','o']},
+  t2map:{ge:['CartiGram','o'], phi:['StarQuant (T2)','o'], fuji:['T2 RelaxMap','o'], uih:['Inline T2 Map','o']},
+  t2smap:{ge:['StarMap','o'], phi:['StarQuant (T2*)','o'], fuji:['T2* RelaxMap','o'], uih:['Inline T2* Map','o']},
+  t1map_vfa:{ge:null, phi:null, fuji:null, uih:['MQD','x']},
+  asl:{ge:['3D ASL','o'], phi:['3D ASL (pCASL)','o'], fuji:['ASL','c'], uih:['3D ASL','o']},
+  ute:{ge:['Silenz (ZTE)','c'], phi:['UTE','x'], fuji:['Micro TE','o'], uih:['UTE','o']},
+  mrs:{ge:['PROBE (PRESS/STEAM)','o'], phi:['SV spectroscopy (PRESS/STEAM)','x'], fuji:['SVS','x'], uih:['SVS (PRESS/STEAM)','o']},
+  metal:{ge:['MAVRIC SL','o'], phi:['O-MAR XD','o'], fuji:['primeFSE','o'], uih:['MARS+','o']}
+};
+MS.VOPT_NAMES=[  // same order and length as MS.VENDOR_OPTS (22 rows)
+  /* parallel imaging (image space) */ {ge:['ASSET','c'], phi:['SENSE (dS SENSE)','o'], fuji:['RAPID','o'], uih:null},
+  /* parallel imaging (k-space) */ {ge:['ARC','o'], phi:null, fuji:['k-RAPID','c'], uih:null},
+  /* CAIPIRINHA-type 3D sampling */ {ge:null, phi:null, fuji:null, uih:null},
+  /* SMS */ {ge:['HyperBand','o'], phi:['MultiBand SENSE','o'], fuji:null, uih:['MultiBand','o']},
+  /* compressed sensing */ {ge:['HyperSense','o'], phi:['Compressed SENSE','o'], fuji:['IP-RAPID','o'], uih:['uCS / ACS','o']},
+  /* DL reconstruction (denoising) */ {ge:['AIR Recon DL','o'], phi:['SmartSpeed','o'], fuji:['Synergy DLR','o'], uih:['DeepRecon','o']},
+  /* DL super-resolution / sharpness */ {ge:['AIR Recon DL (sharpness)','c'], phi:['SmartSpeed Precise','o'], fuji:['Synergy DLR Clear','x'], uih:['DeepRecon','o']},
+  /* fast 3D mode (Canon-specific) */ {ge:null, phi:null, fuji:null, uih:null},
+  /* radial blade motion correction */ {ge:['PROPELLER','o'], phi:['MultiVane XD','o'], fuji:['RADAR','o'], uih:['ARMS','o']},
+  /* respiratory triggering / navigator */ {ge:['Respiratory Triggering / Auto Navigator','o'], phi:['MotionTrak navigator','o'], fuji:['Respiratory gating','o'], uih:['Respiratory Navigator','o']},
+  /* chemical-shift-selective fat sat */ {ge:['Fat Sat / Chem Sat','c'], phi:['SPIR','c'], fuji:['H-Sinc','o'], uih:null},
+  /* adiabatic fat sat */ {ge:['ASPIR','c'], phi:['SPAIR','o'], fuji:null, uih:null},
+  /* water-selective excitation */ {ge:['Water Excitation','c'], phi:['ProSet','c'], fuji:['Water Excitation (WE)','o'], uih:null},
+  /* Dixon (FSE) */ {ge:['FSE Flex (IDEAL)','o'], phi:['mDIXON XD TSE','o'], fuji:['FatSep','o'], uih:['WFI','x']},
+  /* FSE flip-back */ {ge:['FRFSE','o'], phi:['DRIVE','o'], fuji:['DE-FSE','c'], uih:null},
+  /* MT pulse */ {ge:['MTC','c'], phi:['MTC','c'], fuji:['MTC','c'], uih:null},
+  /* TOF ramped flip angle */ {ge:['Ramped RF','c'], phi:['TONE','c'], fuji:['SSP','c'], uih:null},
+  /* bolus timing */ {ge:['Fluoro Triggered MRA / SmartPrep','c'], phi:['BolusTrak','c'], fuji:['FLUTE','o'], uih:['EasyBolus / Auto Bolus Tracker','o']},
+  /* computed b-values */ {ge:['MAGiC DWI','o'], phi:['Computed DWI','c'], fuji:null, uih:['cDWI','o']},
+  /* metal artifact (in-plane) */ {ge:null, phi:['O-MAR','c'], fuji:null, uih:null},
+  /* metal artifact (through-plane) */ {ge:['MAVRIC SL','o'], phi:['O-MAR XD','o'], fuji:null, uih:['MARS+','x']},
+  /* dynamic view sharing */ {ge:['DISCO (TRICKS for MRA)','o'], phi:['4D-TRAK (keyhole)','o'], fuji:['TRAQ','o'], uih:null}
+];
+MS.VSRC=[
+  ['Siemens Healthineers: MRI Acronyms Cross-Vendor Comparisons (PDF, 2020)','https://marketing.webassets.siemens-healthineers.com/7c27289490b774c4/7494aa896362/siemens-healthineers_mri_mri-acronyms_cross-vendor-comparison_v2.pdf'],
+  ['Siemens Healthineers Academy: MRI acronyms cross-vendor comparisons (web, incl. Fujifilm column)','https://academy.siemens-healthineers.com/en-us/mri-acronyms-crossvendor-comparisons'],
+  ['GE HealthCare: SIGNA Works application list','https://gehealthcare.com/static/GEHC-SIGNA-Lift/index.html'],
+  ['GE HealthCare: Discovery MR750w clinical gallery','https://www.gehealthcare.com/-/media/bae6349214c948d9bf42841453cf9ae9.pdf'],
+  ['GE HealthCare: Deep learning innovations (AIR Recon DL, Sonic DL)','https://www.gehealthcare.com/products/magnetic-resonance-imaging/deep-learning-innovations'],
+  ['GE Healthcare authors, ISMRM 2019 #1772 (LAVA Star)','https://archive.ismrm.org/2019/1772.html'],
+  ['Philips: MR clinical applications portfolio','https://www.documents.philips.com/assets/20171110/fa4423fc4cf048adbc96a82700fd405c.pdf'],
+  ['Philips: SmartSpeed Precise','https://www.philips.co.uk/healthcare/technology/smartspeed-precise'],
+  ['Fujifilm: ECHELON Smart applications','https://www.fujifilm.com/sg/en/healthcare/mri-and-ct/1_5t-superconductive-magnet-mri-system/echelon-smart/application'],
+  ['Fujifilm: Neurology applications','https://www.fujifilm.com/sg/en/healthcare/mri-and-ct/applications/neurology'],
+  ['Fujifilm: Vascular applications','https://www.fujifilm.com/sg/en/healthcare/mri-and-ct/applications/vascular'],
+  ['Fujifilm: Musculoskeletal applications','https://www.fujifilm.com/sg/en/healthcare/mri-and-ct/applications/musculoskeletal'],
+  ['Fujifilm: Whole body imaging applications','https://www.fujifilm.com/sg/en/healthcare/mri-and-ct/applications/whole-body-imaging'],
+  ['Fujifilm: ECHELON Synergy (US)','https://healthcaresolutions-us.fujifilm.com/products/diagnostic-imaging/mri/echelon-synergy/'],
+  ['Fujifilm: ECHELON Synergy ZeroHelium image gallery','https://www.fujifilm.com/de/en/healthcare/mri-and-ct/1_5t-superconductive-magnet-mri-system/echelon-Synergy-zerohelium/gallery'],
+  ['United Imaging: uMR Astra 510(k) K260113 feature table','https://fda.innolitics.com/device/K260113'],
+  ['United Imaging: uMR Ultra 510(k) K243547','https://fda.innolitics.com/device/K243547'],
+  ['United Imaging: uMR 780 510(k) K193176','https://fda.innolitics.com/device/K193176'],
+  ['United Imaging: uMR Omega 510(k) K220332','https://fda.innolitics.com/device/K220332'],
+  ['United Imaging: uMR 588 product page (uCS, DeepRecon, FACT)','https://www.united-imaging.com/en/product-service/products/mr/umr-588'],
+  ['United Imaging: uMR introduction deck (FSP, Quick3D, MATRIX, ARMS; third-party copy)','https://pdfcoffee.com/umr-introduction-2023-pdf-free.html']
+];
+(function(){ (MS.SEQS||[]).forEach(function(s){ var v=MS.VNAMES[s.id]||{}; ['ge','phi','fuji','uih'].forEach(function(k){ var a=v[k]; s[k]=a?a[0]:'—'; s[k+'C']=a?a[1]:'—'; }); }); })();
 
 /* ===== 既定値とパラメータ定義 ===== */
 (function(){
@@ -6209,6 +6604,9 @@ MS.defaultState=function(phid,seqid,prev){
   if(prev){ ['B0','grad','les','popt','hemStage','liverFF','liverIron','liverKpa','dlr','norm','b1corr','shim'].forEach(function(k){ if(prev[k]!==undefined) st[k]=JSON.parse(JSON.stringify(prev[k])); }); }
   return st;
 };
+
+/* 拡張用：パラメータを足す。a=[id, 名前, 単位, 最小, 最大, 刻み, 群（'geo'|'con'|'spc'|'acc'）, 説明]。シーケンスの p に同じ id を書くと画面に出る */
+MS.addParam=function(a){ if(MS.PDEF[a[0]]) return MS.PDEF[a[0]]; MS.PARAMS.push(a); MS.PDEF[a[0]]={id:a[0],n:a[1],u:a[2],min:a[3],max:a[4],step:a[5],g:a[6],tip:a[7]}; return MS.PDEF[a[0]]; };
 })();
 
 (function(){
@@ -6231,7 +6629,7 @@ MS.NAME_SRC=[
 MS.ABOUT=[
 '<h2>使い方</h2>',
 '<ol><li>左上で<b>部位</b>（頭部・胸部・上腹部・女性骨盤・男性骨盤・膝）と<b>病変</b>、<b>静磁場</b>を選びます。</li>',
-'<li><b>シーケンス</b>を一覧から選びます（検索欄に HASTE・FASE・SPACE・DWI などの装置名でも入力できます）。名称表示を Siemens／Canon／一般名に切り替えられます。</li>',
+'<li><b>シーケンス</b>を一覧から選びます（検索欄に HASTE・FASE・SPACE・DWI などの装置名でも入力できます）。メーカー別の名称は、シーケンスの見出しと「名称対応表」に出ます。</li>',
 '<li>パラメータは<b>スライダーまたは数値</b>で変更します。最短値より短い TE・TR・エコー間隔は自動で補正され、黄色の枠と右側の注意に理由が出ます。</li>',
 '<li>右側に<b>撮像時間・SNR（既定条件比）・ボクセル・SAR</b>と注意事項、シーケンスの説明と両社の名称が出ます。</li>',
 '<li>画像上を<b>ドラッグ</b>でウインドウ幅（左右）・レベル（上下）、<b>ダブルクリック</b>で自動に戻ります。「比較用に固定」で条件を変える前の画像を横に残せます。「k空間」で取得データの範囲、「組織境界」で解剖の輪郭を重ねて表示します。</li></ol>',
@@ -6312,7 +6710,42 @@ MS.LEARN=[
   pre:[['1.5T',{te:40}],['3T 相当',{te:20}]]}
 ];
 MS.LEARN_MAP={}; MS.LEARN.forEach(function(L){ MS.LEARN_MAP[L.seq]=L; });
+/* 拡張用：勉強用の項目を足す（書き方は MS.LEARN の各項目と同じ） */
+MS.addLearn=function(L){ MS.LEARN=MS.LEARN.filter(function(x){ return x.seq!==L.seq; }); MS.LEARN.push(L); MS.LEARN_MAP[L.seq]=L; return L; };
 MS.LEARN_COMMON=['fov','ny','thk','nex'];
+})();
+
+/* ===== 追加シーケンスの例 2：新しい種類（run）とパラメータ（addParam）を足す =====
+   2エコーのスピンエコー：1回の励起で TE の違う2枚（プロトン密度強調・T2強調）を同時に得る */
+(function(){
+var MS=window.MS, E=Math.exp;
+MS.addParam(['te2se','TE（第2エコー）','ms',20,300,1,'con','2つ目のエコーのTE。長いほどT2強調になる。']);
+MS.addSeq({
+  id:'se_dual', k:'se_dual', cat:'basic', x:{timeAs:'se'},      /* 撮像時間・最短TEの計算は SE と同じ扱い */
+  n:'2エコーSE（PD＋T2）', gen:'Dual-echo spin echo',
+  sie:['SE (2 echo)','c'], can:['SE (Dual echo)','x'], ge:['Dual Echo SE','x'], phi:['SE (Dual echo)','x'],
+  d:'1回の励起の後に180°パルスを2回打ち、短いTE（PD強調）と長いTE（T2強調）の2枚を同じ時間で得る。昔の頭部ルーチン。',
+  p:{tr:2500, te:20, te2se:90, bw:130, nex:1, nx:256, ny:192},
+  run:function(ctx,p,sq,st){ var A=MS.SEQAPI, TR=p.tr;
+    function acq(TE){ return {fs:A.fsSig(st), tr:TR, sig:function(tp,df,b1){
+      var M=1-2*E(-(TR-TE/2)/tp.T1)+E(-TR/tp.T1), Mf=1-2*E(-(TR-TE/2)/tp.fT1)+E(-TR/tp.fT1);
+      var e=A.excF(b1)*A.refF(b1), fv=A.flowVoid(tp,TE,p.thk);
+      return {w:tp.PD*(1-tp.ff)*M*E(-TE/tp.T2)*e*fv, f:tp.PD*tp.ff*Mf*E(-TE/tp.fT2)*e}; }}; }
+    var te2=Math.max(p.te2se, p.te+10);
+    return [A.one(ctx,acq(p.te),'第1エコー（PD強調）TE '+MS.fmt(p.te)+' ms'), A.one(ctx,acq(te2),'第2エコー（T2強調）TE '+MS.fmt(te2)+' ms')]; }
+});
+})();
+
+/* ===== 追加シーケンスの例 1：既存の種類（k:'se'）を使い、既定値だけ変える ===== */
+(function(){
+var MS=window.MS;
+MS.addSeq({
+  id:'se_t2', k:'se', cat:'basic',
+  n:'SE T2強調像（従来型SE）', gen:'Conventional spin echo T2',
+  sie:['SE','o'], can:['SE','o'], ge:['SE','c'], phi:['SE','c'], fuji:['SE','c'], uih:['SE','x'],
+  d:'1ライン×1TRの従来型スピンエコー。長いTR・長いTEでT2強調になる。撮像時間はTR×位相エンコード数×加算回数なので、FSEより大幅に長い。',
+  p:{tr:2500, te:90, bw:130, nex:1, nx:256, ny:192}
+});
 })();
 
 </script>
@@ -6322,6 +6755,8 @@ var MS=window.MS, $=function(s){return document.querySelector(s);}, el=function(
 var st=null, res=null, cur=0, manualW=null, pinned=null, vendor='both', snrRef=1, lastSeq=null;
 var closedG={}; try{ closedG=JSON.parse(localStorage.getItem('mrisimClosedGroups')||'{}')||{}; }catch(e){ closedG={}; }
 var defPcache={key:null,p:null};
+function vlist(){ var nm={sie:'Siemens',can:'Canon',ge:'GE',phi:'Philips',fuji:'Fujifilm',uih:'United Imaging'}; var order=['sie','can','ge','phi','fuji','uih']; return order.filter(function(k){ return k==='sie'||k==='can'||(MS.SEQS[0]&&MS.SEQS[0][k]!==undefined); }).map(function(k){ return [k,nm[k]]; }); }
+if(MS.PUBLIC){ ['ge','phi','fuji','uih'].forEach(function(k){ MS.SEQS.forEach(function(s){ if(s[k+'C']==='x'){ s[k]='—'; s[k+'C']='—'; } }); (MS.VOPT_NAMES||[]).forEach(function(r){ if(r[k]&&r[k][1]==='x') r[k]=null; }); }); }
 
 var LOG={tr:1,te:1,ti:1,ti2:1,bw:1,trs:1,pld:1,nx:1,ny:1,npart:1,etl:1,fov:1,thk:1,nex:1,venc:1,bbti:1,navg:1,nvol:1,ndir:1,esp:1};
 var ROMAN={brain:'頭部',chest:'胸部',abd:'上腹部',pelvis:'骨盤',msk:'骨軟部'};
@@ -6360,10 +6795,10 @@ function buildSeqList(){ var box=$('#navigation'), q=($('#seqq').value||'').toLo
   if(!q){ box.appendChild(el('div',{class:'nav-group'},'はじめに')); box.appendChild(nb('このツールの使い方','',view==='about',function(){ setView('about'); }));
     box.appendChild(el('div',{class:'nav-group'},'勉強用（よく使うシーケンス）'));
     MS.LEARN.forEach(function(L){ var s=MS.SEQ[L.seq]; box.appendChild(nb(s.n,'',view==='sim'&&mode==='learn'&&st&&st.seq===L.seq,function(){ setView('sim'); startLearn(L.seq); })); });
-    box.appendChild(el('div',{class:'nav-group'},'資料')); box.appendChild(nb('名称対応表','Canon／Siemens',view==='names',function(){ setView('names'); })); box.appendChild(nb('組織パラメータ','T1・T2・文献',view==='tissue',function(){ setView('tissue'); }));
+    box.appendChild(el('div',{class:'nav-group'},'資料')); box.appendChild(nb('名称対応表','メーカー別',view==='names',function(){ setView('names'); })); box.appendChild(nb('組織パラメータ','T1・T2・文献',view==='tissue',function(){ setView('tissue'); }));
     box.appendChild(el('div',{class:'nav-group',style:'color:#fff;font-weight:700;margin-top:26px'},'エキスパート用（全 '+MS.SEQS.length+' シーケンス）')); }
   var hit=0;
-  MS.CATS.forEach(function(c){ var items=MS.SEQS.filter(function(s){ return s.cat===c[0] && (!q || (s.n+s.gen+s.sie+s.can+s.d).toLowerCase().indexOf(q)>=0); }); if(!items.length) return; hit+=items.length;
+  MS.CATS.forEach(function(c){ var items=MS.SEQS.filter(function(s){ return s.cat===c[0] && (!q || (s.n+s.gen+s.sie+s.can+(s.ge||'')+(s.phi||'')+(s.fuji||'')+(s.uih||'')+s.d).toLowerCase().indexOf(q)>=0); }); if(!items.length) return; hit+=items.length;
     box.appendChild(el('div',{class:'nav-group'},c[1])); items.forEach(function(s){ box.appendChild(nb(s.n,'',view==='sim'&&mode==='expert'&&st&&st.seq===s.id,function(){ setView('sim'); mode='expert'; newState(st.phantom,s.id,true); setHash('expert'); })); }); });
   if(q && !hit) box.appendChild(el('div',{class:'nav-group'},'該当なし')); }
 function setHash(h){ try{ history.replaceState(null,'','#'+h); }catch(e){} }
@@ -6459,7 +6894,7 @@ var B0pref=1.5;
 function refInfo(){ var sq=MS.SEQ[st.seq]; var s2=MS.defaultState(st.phantom,st.seq); s2.B0=1.5; s2.coilG=MS.PHANTOMS[st.phantom].coilG; s2.coil=MS.PHANTOMS[st.phantom].coil; s2.p.dim3=sq.dim==='3D'; try{ snrRef=MS.derive(s2,sq).snr0; }catch(e){ snrRef=1; } }
 function seqCard(){ var sq=MS.SEQ[st.seq]; $('#sqname').textContent=sq.n; $('#sqcat').textContent=mode==='learn'?'勉強用':(MS.CATS.filter(function(c){return c[0]===sq.cat;})[0]||['',''])[1]; $('#v-sim .chapter-no').firstChild.nodeValue=mode==='learn'?'STUDY · ':'PARAMETER LAB PRO · '; document.title=sq.n+' — MRIパラメータシミュレーター Pro'; var v=$('#vend'); v.innerHTML='';
   function cf(c){ if(c==='—') return ''; return '<span class="cf '+c+'">'+({o:'公開資料',c:'比較表',x:'要確認'}[c]||'')+'</span>'; }
-  v.innerHTML='<b>一般名</b><span>'+sq.gen+'</span><b>Siemens</b><span>'+sq.sie+cf(sq.sieC)+'</span><b>Canon</b><span>'+sq.can+cf(sq.canC)+'</span>';
+  var h='<b>一般名</b><span>'+sq.gen+'</span>'; vlist().forEach(function(vd){ h+='<b>'+vd[1]+'</b><span>'+(sq[vd[0]]||'—')+cf(sq[vd[0]+'C'])+'</span>'; }); v.innerHTML=h;
   $('#sqdesc').textContent=sq.d; }
 /* ---------- 表示 ---------- */
 var LUT=(function(){ var stops=[[0,[48,18,59]],[0.15,[70,110,230]],[0.35,[30,190,220]],[0.5,[60,230,120]],[0.65,[180,240,50]],[0.8,[250,190,40]],[0.92,[240,90,20]],[1,[150,15,5]]]; var L=[]; for(var i=0;i<256;i++){ var t=i/255,a=0; while(a<stops.length-2&&t>stops[a+1][0]) a++; var s0=stops[a],s1=stops[a+1],f=(t-s0[0])/(s1[0]-s0[0]); L.push([0,1,2].map(function(c){return Math.round(s0[1][c]+(s1[1][c]-s0[1][c])*f);})); } return L; })();
@@ -6548,7 +6983,8 @@ var chart={mode:'curve',xk:null,yk:null,metric:'sig',A:null,B:null,follow:true,f
 var LOGAX={tr:1,trs:1,bw:1};
 var lastChanged=null, prevRes=null, mode='expert';
 var MET={sig:'信号（M0=100）',snr:'SNR（組織ごと）',diff:'コントラスト A−B（M0=100）',ratio:'信号比 A/B',cnr:'CNR（|A−B|／雑音）',cnrt:'CNR効率（CNR／√撮像時間）',time:'撮像時間（秒）',sar:'SAR（相対 %）'};
-var PAL=['#007d82','#c2410c','#2c55a5','#9f2f3b','#6d28d9','#15803d','#b45309','#0e7490','#be185d','#4d7c0f','#475569','#a16207','#1d4ed8','#7c2d12'];
+function chartColors(){ var cs=getComputedStyle(document.documentElement); function v(n,d){ var x=cs.getPropertyValue(n).trim(); return x||d; } var pal=v('--ch-pal',''); if(pal) PAL=pal.split(',').map(function(x){return x.trim();}); else PAL=PAL0; return {text:v('--ch-text','#52667d'),text2:v('--ch-text2','#34495f'),grid:v('--ch-grid','#e6edf3'),zero:v('--ch-zero','#9fb0c0'),frame:v('--ch-frame','#b9c8d8'),frame2:v('--ch-frame2','#d7e1eb'),cursor:v('--ch-cursor','#12283e'),dot:v('--ch-dot','#fff')}; }
+var PAL0=['#007d82','#c2410c','#2c55a5','#9f2f3b','#6d28d9','#15803d','#b45309','#0e7490','#be185d','#4d7c0f','#475569','#a16207','#1d4ed8','#7c2d12']; var PAL=PAL0.slice();
 var pworker=null; try{ pworker=new Worker(URL.createObjectURL(new Blob([wsrc],{type:'text/javascript'}))); pworker.onmessage=function(e){ chart.busy=false; if(!e.data.err && e.data.id===chart.id){ chart.data=e.data.r; drawChart(); } else if(e.data.err) console.error(e.data.err); if(chart.queued){ chart.queued=false; reqChart(); } }; }catch(e){ pworker=null; }
 function uniq(a){ var o=[]; a.forEach(function(x){ if(o.indexOf(x)<0) o.push(x); }); return o; }
 function chartKeys(){ var sq=MS.SEQ[st.seq], ks;
@@ -6612,27 +7048,27 @@ function interp(xs,vs,x,lg){ var n=xs.length; if(!(n>1)) return NaN; var f=funct
 function metricVal(pt,keys,m,ti){ var iA=keys.indexOf(chart.A), iB=keys.indexOf(chart.B); var a=pt.v[iA], b=pt.v[iB]; var sc=(pt.kind==='mag'||pt.kind==='signed')?100:1;
   switch(m){ case 'sig': return pt.v[ti]*sc; case 'snr': return pt.v[ti]*pt.snr; case 'sigA': return a*sc; case 'diff': return (a-b)*sc; case 'ratio': return b?a/b:NaN; case 'cnr': return Math.abs(a-b)*pt.snr; case 'cnrt': return Math.abs(a-b)*pt.snr/Math.sqrt(Math.max(pt.T,1e-3)); case 'time': return pt.T; case 'sar': return pt.sar; } return NaN; }
 function fmtN(v){ if(!isFinite(v)) return '—'; var a=Math.abs(v); return a>=1000?Math.round(v).toLocaleString():a>=100?v.toFixed(0):a>=10?v.toFixed(1):a>=1?v.toFixed(2):v.toFixed(3); }
-function drawChart(){ var cv=$('#chartcv'); if(!cv) return; var note=$('#chartnote'); var W=cv.clientWidth||460, big=window.innerWidth>=1200, H=chart.mode==='map'?(big?Math.max(360,Math.min(520,W*0.8)):330):(big?Math.max(300,Math.min(460,W*0.68)):290); var dpr=window.devicePixelRatio||1; cv.width=W*dpr; cv.height=H*dpr; cv.style.height=H+'px'; var g=cv.getContext('2d'); g.setTransform(dpr,0,0,dpr,0,0); g.clearRect(0,0,W,H);
+function drawChart(){ var cv=$('#chartcv'); if(!cv) return; var note=$('#chartnote'); var W=cv.clientWidth||460, big=window.innerWidth>=1200, H=chart.mode==='map'?(big?Math.max(360,Math.min(520,W*0.8)):330):(big?Math.max(300,Math.min(460,W*0.68)):290); var dpr=window.devicePixelRatio||1; cv.width=W*dpr; cv.height=H*dpr; cv.style.height=H+'px'; var CC=chartColors(); var g=cv.getContext('2d'); g.setTransform(dpr,0,0,dpr,0,0); g.clearRect(0,0,W,H);
   var D=chart.data, sp=chart.spec; g.font='11px '+getComputedStyle(document.body).fontFamily;
-  if(!D||!sp||!res){ g.fillStyle='#52667d'; g.fillText(res&&res.outs[cur]&&res.outs[cur].kind==='spectrum'?'スペクトルにはグラフを出しません。':'計算中…',12,24); return; }
+  if(!D||!sp||!res){ g.fillStyle=CC.text; g.fillText(res&&res.outs[cur]&&res.outs[cur].kind==='spectrum'?'スペクトルにはグラフを出しません。':'計算中…',12,24); return; }
   var keys=D.keys, m=chart.metric, L=50, R=chart.mode==='map'?58:24, T=14, B=36; var pw=W-L-R, ph=H-T-B;
   var dx=sp.xd, lx=dx.log&&sp.xs[0]>0; var x0=sp.xs[0], x1=sp.xs[sp.xs.length-1]; function X(v){ return L+(lx? Math.log(v/x0)/Math.log(x1/x0) : (v-x0)/(x1-x0))*pw; }
   function ticks(a,b,log){ var t=[]; if(log){ var e0=Math.floor(Math.log10(a)), e1=Math.ceil(Math.log10(b)); for(var e=e0;e<=e1;e++) [1,2,5].forEach(function(k){ var v=k*Math.pow(10,e); if(v>=a*0.999&&v<=b*1.001) t.push(v); }); return t; } var st_=Math.pow(10,Math.floor(Math.log10((b-a)/4||1))); var n=(b-a)/st_; if(n>8) st_*=2; if(n>16) st_*=2.5; for(var v=Math.ceil(a/st_)*st_;v<=b+1e-9;v+=st_) t.push(+v.toFixed(10)); return t; }
-  g.strokeStyle='#d7e1eb'; g.fillStyle='#52667d'; g.lineWidth=1;
+  g.strokeStyle=CC.frame2; g.fillStyle=CC.text; g.lineWidth=1;
   ticks(x0,x1,lx).forEach(function(v){ var x=X(v); g.beginPath(); g.moveTo(x,T); g.lineTo(x,T+ph); g.stroke(); g.textAlign='center'; g.fillText(fmtN(v),x,T+ph+14); });
-  g.textAlign='center'; g.fillStyle='#34495f'; g.fillText(dx.n+(dx.u?'（'+dx.u+'）':''),L+pw/2,H-4);
+  g.textAlign='center'; g.fillStyle=CC.text2; g.fillText(dx.n+(dx.u?'（'+dx.u+'）':''),L+pw/2,H-4);
   if(chart.mode==='curve'){
     var series=[]; if(m==='sig'||m==='snr'){ keys.forEach(function(k,i){ if(chart.hide[k]||chart.hide[k]===undefined&&k!==chart.A&&k!==chart.B) return; if(!present().some(function(p){return p.key===k;})) return; series.push({k:k,n:D.names[i],c:colorOf(k),v:D.pts.map(function(pt){ return metricVal(pt,keys,m,i); }),cur:metricVal(D.cur,keys,m,i)}); }); }
-    else series.push({k:'m',n:MET[m],c:'#007d82',v:D.pts.map(function(pt){ return metricVal(pt,keys,m); }),cur:metricVal(D.cur,keys,m)});
+    else series.push({k:'m',n:MET[m],c:PAL[0],v:D.pts.map(function(pt){ return metricVal(pt,keys,m); }),cur:metricVal(D.cur,keys,m)});
     var ymin=0,ymax=0; series.forEach(function(s){ s.v.forEach(function(v){ if(isFinite(v)){ if(v<ymin) ymin=v; if(v>ymax) ymax=v; } }); }); if(m==='ratio'){ ymin=Math.min(ymin,0); } if(ymax===ymin) ymax=ymin+1; ymax*=1.06; if(ymin<0) ymin*=1.06;
     function Y(v){ return T+ph-(v-ymin)/(ymax-ymin)*ph; }
-    ticks(ymin,ymax,false).forEach(function(v){ var y=Y(v); g.strokeStyle='#e6edf3'; g.beginPath(); g.moveTo(L,y); g.lineTo(L+pw,y); g.stroke(); g.fillStyle='#52667d'; g.textAlign='right'; g.fillText(fmtN(v),L-5,y+4); });
-    if(ymin<0){ g.strokeStyle='#9fb0c0'; g.beginPath(); g.moveTo(L,Y(0)); g.lineTo(L+pw,Y(0)); g.stroke(); }
-    g.strokeStyle='#b9c8d8'; g.strokeRect(L,T,pw,ph);
+    ticks(ymin,ymax,false).forEach(function(v){ var y=Y(v); g.strokeStyle=CC.grid; g.beginPath(); g.moveTo(L,y); g.lineTo(L+pw,y); g.stroke(); g.fillStyle=CC.text; g.textAlign='right'; g.fillText(fmtN(v),L-5,y+4); });
+    if(ymin<0){ g.strokeStyle=CC.zero; g.beginPath(); g.moveTo(L,Y(0)); g.lineTo(L+pw,Y(0)); g.stroke(); }
+    g.strokeStyle=CC.frame; g.strokeRect(L,T,pw,ph);
     series.forEach(function(s){ g.strokeStyle=s.c; g.lineWidth=2; g.beginPath(); var st0=false; s.v.forEach(function(v,i){ if(!isFinite(v)){ st0=false; return; } var x=X(sp.xs[i]), y=Y(v); if(!st0){ g.moveTo(x,y); st0=true; } else g.lineTo(x,y); }); g.stroke(); });
     /* 現在値の縦線 */
-    if(sp.vx>=Math.min(x0,x1)&&sp.vx<=Math.max(x0,x1)){ var xc=X(sp.vx); g.save(); g.setLineDash([5,4]); g.strokeStyle='#12283e'; g.lineWidth=1.4; g.beginPath(); g.moveTo(xc,T); g.lineTo(xc,T+ph); g.stroke(); g.restore(); g.fillStyle='#12283e'; g.textAlign=xc>L+pw-80?'right':'left'; g.font='bold 11px '+getComputedStyle(document.body).fontFamily; g.fillText(' 現在 '+fmtN(sp.vx)+(dx.u?' '+dx.u:'')+' ',xc,T+11);
-      series.forEach(function(s){ var cv_=interp(sp.xs,s.v,sp.vx,lx); s.cur=cv_; if(!isFinite(cv_)) return; g.fillStyle='#fff'; g.beginPath(); g.arc(xc,Y(cv_),5,0,7); g.fill(); g.fillStyle=s.c; g.beginPath(); g.arc(xc,Y(cv_),3.6,0,7); g.fill(); }); }
+    if(sp.vx>=Math.min(x0,x1)&&sp.vx<=Math.max(x0,x1)){ var xc=X(sp.vx); g.save(); g.setLineDash([5,4]); g.strokeStyle=CC.cursor; g.lineWidth=1.4; g.beginPath(); g.moveTo(xc,T); g.lineTo(xc,T+ph); g.stroke(); g.restore(); g.fillStyle=CC.cursor; g.textAlign=xc>L+pw-80?'right':'left'; g.font='bold 11px '+getComputedStyle(document.body).fontFamily; g.fillText(' 現在 '+fmtN(sp.vx)+(dx.u?' '+dx.u:'')+' ',xc,T+11);
+      series.forEach(function(s){ var cv_=interp(sp.xs,s.v,sp.vx,lx); s.cur=cv_; if(!isFinite(cv_)) return; g.fillStyle=CC.dot; g.beginPath(); g.arc(xc,Y(cv_),5,0,7); g.fill(); g.fillStyle=s.c; g.beginPath(); g.arc(xc,Y(cv_),3.6,0,7); g.fill(); }); }
     cv.onmousemove=function(e){ var rc=cv.getBoundingClientRect(), mx=e.clientX-rc.left; var best=0,bd=1e9; sp.xs.forEach(function(v,i){ var d=Math.abs(X(v)-mx); if(d<bd){bd=d;best=i;} });
       var s='<b>'+dx.n+' '+fmtN(sp.xs[best])+(dx.u?' '+dx.u:'')+'</b>：'+series.map(function(q){ return '<span style="color:'+q.c+'">■</span>'+q.n+' '+fmtN(q.v[best]); }).join('　'); note.innerHTML=s; };
     note.innerHTML=chartNote(series.length?series:null);
@@ -6641,13 +7077,13 @@ function drawChart(){ var cv=$('#chartcv'); if(!cv) return; var note=$('#chartno
     var nx=sp.xs.length, ny=sp.ys.length, vals=D.pts.map(function(pt){ return metricVal(pt,keys,m); }); var vmin=Infinity,vmax=-Infinity; vals.forEach(function(v){ if(isFinite(v)){ vmin=Math.min(vmin,v); vmax=Math.max(vmax,v); } }); if(m!=='diff') vmin=Math.min(vmin,0); if(vmax===vmin) vmax=vmin+1;
     var cw=pw/nx, chh=ph/ny;
     for(var j=0;j<ny;j++) for(var i=0;i<nx;i++){ var v=vals[j*nx+i]; var t=isFinite(v)?(v-vmin)/(vmax-vmin):0; var c=LUT[Math.max(0,Math.min(255,Math.round(t*255)))]; g.fillStyle='rgb('+c[0]+','+c[1]+','+c[2]+')'; g.fillRect(L+i*cw,T+ph-(j+1)*chh,cw+0.6,chh+0.6); }
-    ticks(y0,y1,ly).forEach(function(v){ var y=Y2(v); g.fillStyle='#52667d'; g.textAlign='right'; g.fillText(fmtN(v),L-5,y+4); });
-    g.save(); g.translate(11,T+ph/2); g.rotate(-Math.PI/2); g.textAlign='center'; g.fillStyle='#34495f'; g.fillText(dy.n+(dy.u?'（'+dy.u+'）':''),0,0); g.restore();
-    g.strokeStyle='#b9c8d8'; g.strokeRect(L,T,pw,ph);
+    ticks(y0,y1,ly).forEach(function(v){ var y=Y2(v); g.fillStyle=CC.text; g.textAlign='right'; g.fillText(fmtN(v),L-5,y+4); });
+    g.save(); g.translate(11,T+ph/2); g.rotate(-Math.PI/2); g.textAlign='center'; g.fillStyle=CC.text2; g.fillText(dy.n+(dy.u?'（'+dy.u+'）':''),0,0); g.restore();
+    g.strokeStyle=CC.frame; g.strokeRect(L,T,pw,ph);
     /* 現在値の十字 */
-    var xc2=X(Math.min(Math.max(sp.vx,Math.min(x0,x1)),Math.max(x0,x1))), yc2=Y2(Math.min(Math.max(sp.vy,Math.min(y0,y1)),Math.max(y0,y1))); g.strokeStyle='#fff'; g.lineWidth=2.5; g.beginPath(); g.moveTo(xc2,T); g.lineTo(xc2,T+ph); g.moveTo(L,yc2); g.lineTo(L+pw,yc2); g.stroke(); g.strokeStyle='#12283e'; g.lineWidth=1; g.setLineDash([4,3]); g.stroke(); g.setLineDash([]); g.fillStyle='#12283e'; g.beginPath(); g.arc(xc2,yc2,4.5,0,7); g.fill();
+    var xc2=X(Math.min(Math.max(sp.vx,Math.min(x0,x1)),Math.max(x0,x1))), yc2=Y2(Math.min(Math.max(sp.vy,Math.min(y0,y1)),Math.max(y0,y1))); g.strokeStyle=CC.dot; g.lineWidth=2.5; g.beginPath(); g.moveTo(xc2,T); g.lineTo(xc2,T+ph); g.moveTo(L,yc2); g.lineTo(L+pw,yc2); g.stroke(); g.strokeStyle=CC.cursor; g.lineWidth=1; g.setLineDash([4,3]); g.stroke(); g.setLineDash([]); g.fillStyle=CC.cursor; g.beginPath(); g.arc(xc2,yc2,4.5,0,7); g.fill();
     /* カラーバー */
-    var bx=L+pw+12; for(var k=0;k<ph;k++){ var c2=LUT[Math.round((1-k/ph)*255)]; g.fillStyle='rgb('+c2[0]+','+c2[1]+','+c2[2]+')'; g.fillRect(bx,T+k,12,1.2); } g.fillStyle='#52667d'; g.textAlign='left'; g.fillText(fmtN(vmax),bx+15,T+8); g.fillText(fmtN(vmin),bx+15,T+ph);
+    var bx=L+pw+12; for(var k=0;k<ph;k++){ var c2=LUT[Math.round((1-k/ph)*255)]; g.fillStyle='rgb('+c2[0]+','+c2[1]+','+c2[2]+')'; g.fillRect(bx,T+k,12,1.2); } g.fillStyle=CC.text; g.textAlign='left'; g.fillText(fmtN(vmax),bx+15,T+8); g.fillText(fmtN(vmin),bx+15,T+ph);
     cv.onmousemove=function(e){ var rc=cv.getBoundingClientRect(), mx=e.clientX-rc.left, my=e.clientY-rc.top; var i=Math.floor((mx-L)/cw), j=Math.floor((T+ph-my)/chh); if(i<0||j<0||i>=nx||j>=ny) return; note.innerHTML='<b>'+dx.n+' '+fmtN(sp.xs[i])+'、'+dy.n+' '+fmtN(sp.ys[j])+'</b>：'+(m==='sigA'?'組織Aの信号':MET[m])+' '+fmtN(vals[j*nx+i]); };
     note.innerHTML=chartNote(null,vals,vmin,vmax);
   } }
@@ -6658,11 +7094,11 @@ function chartNote(series){ var D=chart.data, m=chart.metric, keys=D.keys; var n
 
 /* ---------- 表 ---------- */
 function tables(){ function cf(c){ if(c==='—'||!c) return ''; return '<span class="cf '+c+'">'+({o:'公開資料',c:'比較表',x:'要確認',"—":''}[c]||'')+'</span>'; }
-  var h='<table class="data-table"><thead><tr><th>分類</th><th>日本語名</th><th>一般名</th><th>Siemens</th><th>Canon</th></tr></thead><tbody>';
-  MS.CATS.forEach(function(c){ MS.SEQS.filter(function(s){return s.cat===c[0];}).forEach(function(s){ h+='<tr><td>'+c[1]+'</td><td>'+s.n+'</td><td>'+s.gen+'</td><td>'+s.sie+cf(s.sieC)+'</td><td>'+s.can+cf(s.canC)+'</td></tr>'; }); });
+  var VL=vlist(), h='<table class="data-table"><thead><tr><th>分類</th><th>名称</th><th>一般名</th>'+VL.map(function(vd){ return '<th>'+vd[1]+'</th>'; }).join('')+'</tr></thead><tbody>';
+  MS.CATS.forEach(function(c){ MS.SEQS.filter(function(s){return s.cat===c[0];}).forEach(function(s){ h+='<tr><td>'+c[1]+'</td><td>'+s.n+'</td><td>'+s.gen+'</td>'+VL.map(function(vd){ return '<td>'+(s[vd[0]]||'—')+cf(s[vd[0]+'C'])+'</td>'; }).join('')+'</tr>'; }); });
   $('#nametbl').innerHTML=h+'</tbody></table>';
-  var h2='<table class="data-table"><thead><tr><th>機能</th><th>Siemens</th><th>Canon</th></tr></thead><tbody>'; MS.VENDOR_OPTS.forEach(function(r){ h2+='<tr><td>'+r[0]+'</td><td>'+r[1]+cf(r[2])+'</td><td>'+r[3]+cf(r[4])+'</td></tr>'; }); $('#opttbl').innerHTML=h2+'</tbody></table>';
-  $('#namesrc').innerHTML=MS.NAME_SRC.map(function(s){ return '<li>'+s[0]+'：<a href="'+s[1]+'" target="_blank" rel="noopener">'+s[1]+'</a></li>'; }).join('');
+  var h2='<table class="data-table"><thead><tr><th>機能</th>'+VL.map(function(vd){ return '<th>'+vd[1]+'</th>'; }).join('')+'</tr></thead><tbody>'; MS.VENDOR_OPTS.forEach(function(r,ri){ var ex=(MS.VOPT_NAMES||[])[ri]||{}; h2+='<tr><td>'+r[0]+'</td>'+VL.map(function(vd){ var k=vd[0]; if(k==='sie') return '<td>'+r[1]+cf(r[2])+'</td>'; if(k==='can') return '<td>'+r[3]+cf(r[4])+'</td>'; var a=ex[k]; return '<td>'+(a?a[0]+cf(a[1]):'—')+'</td>'; }).join('')+'</tr>'; }); $('#opttbl').innerHTML=h2+'</tbody></table>';
+  $('#namesrc').innerHTML=MS.NAME_SRC.concat(MS.VSRC||[]).map(function(s){ return '<li>'+s[0]+'：<a href="'+s[1]+'" target="_blank" rel="noopener">'+s[1]+'</a></li>'; }).join('');
   var t='<table class="data-table"><thead><tr><th>組織</th><th>T1 1.5T/3T (ms)</th><th>T2 (ms)</th><th>T2* (ms)</th><th>PD</th><th>ADC</th><th>脂肪分率</th><th>出典</th></tr></thead><tbody>';
   Object.keys(MS.TISSUES).forEach(function(k){ var x=MS.TISSUES[k]; if(!x.PD) return; t+='<tr><td>'+x.n+'</td><td>'+x.T1.join(' / ')+'</td><td>'+x.T2.join(' / ')+'</td><td>'+x.T2s.join(' / ')+'</td><td>'+x.PD+'</td><td>'+x.ADC+'</td><td>'+(x.ff?Math.round(x.ff*100)+'%':'')+'</td><td>'+x.src+'</td></tr>'; });
   $('#tisstbl').innerHTML=t+'</tbody></table>';
@@ -6672,6 +7108,7 @@ function tables(){ function cf(c){ if(c==='—'||!c) return ''; return '<span cl
 function init(){ tables(); try{ if(window.top!==window) $('#save').hidden=true; }catch(e){ $('#save').hidden=true; }
   $('#seqq').oninput=buildSeqList;
   $('#reset').onclick=function(){ newState(st.phantom,st.seq,true); }; initGroupTools();
+  (function(){ var ts=$('#themesel'); if(!ts) return; ts.value=document.documentElement.getAttribute('data-theme')||'standard'; ts.onchange=function(){ var v=ts.value; if(v==='standard') document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme',v); try{ localStorage.setItem('mrisimTheme',v); }catch(e){} if(res&&view==='sim') show(res); }; })();
   ['#showK','#showLab','#color'].forEach(function(s){ $(s).onchange=function(){ if(res) show(res); }; });
   $('#auto').onclick=function(){ manualW=null; if(res) show(res); };
   $('#pin').onclick=function(){ if(!res) return; if(pinned){ pinned=null; $('#pin').textContent='比較用に固定'; show(res); return; } var c=$('#stage canvas'); var cc=el('canvas'); cc.width=c.width; cc.height=c.height; cc.getContext('2d').drawImage(c,0,0); pinned={c:cc,t:MS.SEQ[st.seq].n+'（'+res.outs[cur].name+'）'}; $('#pin').textContent='固定を解除'; show(res); };
@@ -6695,7 +7132,7 @@ var kfOpen=true;
 function kfill(){ var box=$('#kfill'); if(!box) return; var sq=MS.SEQ[st.seq];
   if(mode!=='expert'||!res||!res.info||sq.k==='mrs'){ box.hidden=true; return; }
   box.hidden=false; box.innerHTML='';
-  var i=res.info, p=i.p||st.p, k=sq.k, d3=sq.dim==='3D';
+  var i=res.info, p=i.p||st.p, k=sq.timeAs||sq.k, d3=sq.dim==='3D';
   var R=i.R||1, Rz=i.Rz||1, CS=i.CS||1, pf=p.pf||1, pfz=p.pfz||1, ny=Math.max(8,Math.round(p.ny||128)), nz=Math.max(1,Math.round(p.npart||1));
   var epi=/^(dwi|dti|bold|dsc)$/.test(k)||!!sq.epi, fse=/^(fse|ir|dixon_tse|map_t2)$/.test(k), ss=/^(ssfse|mrcp2d)$/.test(k);
   var rad=null; if(k==='ute') rad='ute'; else if(st.seq==='starvibe') rad='spoke'; else if(i.radial) rad=(fse||ss||k==='fse3d')?'blade':'spoke';

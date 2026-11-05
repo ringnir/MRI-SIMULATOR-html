@@ -66,7 +66,7 @@ S('lge','lge','cardiac','遅延造影（LGE・PSIR）','Late gadolinium enhancem
 S('molli','map_t1','cardiac','T1マッピング（MOLLI）','Modified Look-Locker',['MOLLI（MyoMaps）','o'],['MOLLI','c'],'複数のTIの画像からT1を推定。MOLLIは真のT1よりやや短く出る傾向がある。',{tr:2.8,te:1.2,fa:35,bw:1000,thk:8,nex:1},[],{gre:true,ecgReq:true}),
 /* ---- 定量 ---- */
 S('t2map','map_t2','quant','T2マッピング（多エコーSE）','Multi-echo SE T2 map',['MapIt（T2）','o'],['T2 map','c'],'複数のTEのSE画像からT2を推定。軟骨・心筋・肝で使う。',{tr:1500,te:13,etl:8,esp:13,refoc:180,bw:200,nex:1},[],{}),
-S('t2smap','map_t2s','quant','T2*マッピング（多エコーGRE）','Multi-echo GRE T2* map',['MapIt（T2*）','o'],['T2* Relax Map','c'],'多エコーGREからT2*（R2*）を推定。鉄沈着の評価。空気との境界ではT2*が短く出る。',{tr:200,te:2.5,dte:2.5,ne:12,fa:20,bw:600,nex:1},[],{gre:true}),
+S('t2smap','map_t2s','quant','T2*マッピング（多エコーGRE）','Multi-echo GRE T2* map',['MapIt（T2*）','o'],['T2* Relax Map','x'],'多エコーGREからT2*（R2*）を推定。鉄沈着の評価。空気との境界ではT2*が短く出る。',{tr:200,te:2.5,dte:2.5,ne:12,fa:20,bw:600,nex:1},[],{gre:true}),
 S('t1map_vfa','map_vfa','quant','T1マッピング（可変フリップ角）','VFA T1 map',['VIBE VFA（MapIt）','c'],['（相当機能）','x'],'2つ以上のフリップ角の3D GREからT1を推定。B1の誤差に敏感。',{tr:5,te:1.5,fa:2,fa2:15,bw:450,npart:64,thk:3,nex:1},[],{gre:true,dim:'3D'}),
 /* ---- 応用・特殊 ---- */
 S('asl','asl','adv','動脈スピンラベリング（pCASL）','pCASL',['ASL（3D pCASL）','o'],['ASL','c'],'頸部で血液を磁気的に標識し、標識あり・なしの差から脳血流（CBF）を求める。造影剤不要。PLD が短いと血管内に信号が残る。',{tr:4600,te:16,pld:1800,ld:1800,npairs:8,bw:2300,nx:64,ny:64,thk:4,nex:1},[],{}),
@@ -347,4 +347,18 @@ K.mre=function(ctx,p,sq,st){ var G=ctx.geo, S=G.S, wave=new Float32Array(S*S), s
   return [{name:'弾性率マップ（kPa）',data:stiff,kind:'map',unit:'kPa',range:[0,8]},{name:'波動画像（'+f+' Hz）',data:wave,kind:'phase',range:[-1,1]},mag]; };
 K.mrs=function(ctx,p,sq,st){ var lesionOn=st.les&&(st.les.glioma||st.les.infarct); var B=st.B0; var lw=B>=3?5:3.5; var sp={te:p.te, lesion:st.mrsVox==='lesion', B:B, snr:Math.sqrt(p.navg/128)*Math.pow(p.vox/15,3)*(B>=3?1.8:1)*25, lw:lw};
   return [{name:'スペクトル',kind:'spectrum',spec:sp}]; };
+
+/* ---------- 拡張用 API（新しいシーケンスを src/seq/*.js から足す） ----------
+  MS.addSeq({ id, k, cat, n, gen, sie:[名称,確認度], can:[…], ge:[…], phi:[…], fuji:[…], uih:[…], d, p:{既定パラメータ}, o:[オプション], x:{gre:true, dim:'3D', …}, run:function(ctx,p,sq,st){…} })
+    k   … 画像を作る関数の種類。既存の種類（'se','fse','ir','gre','gre3d','bssfp','dwi' など MS.K のキー）を使えば run は不要。
+    run … 新しい種類のときだけ書く。MS.SEQAPI の部品（one, fsSig, greSig, flowVoid, excF, refF …）で acq を組み、[{name,data,kind}] を返す。
+  MS.addCat(id, 名前) … シーケンスの分類を足す */
+MS.K=K;
+MS.SEQAPI={one:one, real:real, phaseOf:phaseOf, fsSig:fsSig, mtFac:mtFac, excF:excF, refF:refF, flowVoid:flowVoid, inflow:inflow, fatT2fse:fatT2fse, greSig:greSig, boxBlur:boxBlur, maxOf:maxOf, mapOut:mapOut};
+MS.addCat=function(id,n){ if(!MS.CATS.some(function(c){ return c[0]===id; })) MS.CATS.push([id,n]); };
+MS.addSeq=function(def){ var x=def.x||{}; var e=S(def.id,def.k||def.id,def.cat||'adv',def.n,def.gen||def.n,def.sie||['—','—'],def.can||['—','—'],def.d||'',def.p||{},def.o||[],x);
+  ['ge','phi','fuji','uih'].forEach(function(v){ var a=def[v]; e[v]=a?a[0]:'—'; e[v+'C']=a?a[1]:'—'; });
+  if(def.run) K[e.k]=def.run; if(!K[e.k]) throw new Error('addSeq: 種類 '+e.k+' がありません（run を書くか、既存の種類を指定）');
+  if(MS.PUBLIC){ ['sie','can','ge','phi','fuji','uih'].forEach(function(v){ if(e[v+'C']==='x'){ e[v]='—'; e[v+'C']='—'; } }); }
+  var i=-1; MS.SEQS.forEach(function(s,j){ if(s.id===e.id) i=j; }); if(i>=0) MS.SEQS[i]=e; else MS.SEQS.push(e); MS.SEQ[e.id]=e; return e; };
 })();

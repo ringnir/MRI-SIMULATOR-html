@@ -73,7 +73,7 @@ MS.sig={
 /* ---------- 撮像条件の補正・時間・SNR・SAR ---------- */
 MS.derive=function(st,sq){
   var p=JSON.parse(JSON.stringify(st.p)); var W=[], info={};
-  var k=sq.k, dim=sq.dim||'2D';
+  var k=sq.timeAs||sq.k, dim=sq.dim||'2D';
   var tro=1000/p.bw; /* 読出し時間 ms */
   info.tro=tro;
   var Gmax=st.grad||45;

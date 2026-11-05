@@ -93,4 +93,7 @@ MS.defaultState=function(phid,seqid,prev){
   if(prev){ ['B0','grad','les','popt','hemStage','liverFF','liverIron','liverKpa','dlr','norm','b1corr','shim'].forEach(function(k){ if(prev[k]!==undefined) st[k]=JSON.parse(JSON.stringify(prev[k])); }); }
   return st;
 };
+
+/* 拡張用：パラメータを足す。a=[id, 名前, 単位, 最小, 最大, 刻み, 群（'geo'|'con'|'spc'|'acc'）, 説明]。シーケンスの p に同じ id を書くと画面に出る */
+MS.addParam=function(a){ if(MS.PDEF[a[0]]) return MS.PDEF[a[0]]; MS.PARAMS.push(a); MS.PDEF[a[0]]={id:a[0],n:a[1],u:a[2],min:a[3],max:a[4],step:a[5],g:a[6],tip:a[7]}; return MS.PDEF[a[0]]; };
 })();

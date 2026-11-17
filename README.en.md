@@ -21,7 +21,10 @@
 > **Educational approximation only. Do not use it for clinical decisions or scanner settings.** Tissue values are rounded literature values or estimates, and the virtual phantoms are analytic schematic drawings. Images, scan time, SNR and SAR do not reproduce any scanner's displayed values. This is not a medical device.
 
 > [!NOTE]
-> **Unofficial tool.** Not affiliated with Siemens Healthineers, GE HealthCare, Philips, Canon Medical Systems, Fujifilm or United Imaging Healthcare. Vendor sequence and feature names are shown only to indicate correspondence; they are trademarks or registered trademarks of their respective owners. Names can differ by software version and region — check the protocol names on your own scanner. Names that could not be verified are shown as "—".
+> **Unofficial tool.** Not an official tool of Siemens Healthineers, GE HealthCare, Philips, Canon Medical Systems, Fujifilm or United Imaging Healthcare, and not commissioned, funded or reviewed by any vendor. Vendor sequence and feature names are shown only to indicate correspondence; they are trademarks or registered trademarks of their respective owners. Names can differ by software version and region — check the protocol names on your own scanner. Names that could not be verified are shown as "—".
+
+> [!NOTE]
+> **Disclosure:** The author belongs to an industry-academia collaborative chair at Nagoya University funded by Canon Medical Systems Corporation. This tool was created by the author as an individual.
 
 ## Features
 

@@ -34,6 +34,7 @@
 | 🎛️ **60 种序列** | SE/FSE/IR、GRE、SSFP、扩散（DWI、DTI、读出分段、小视野）、MRA（TOF、PC、FBI、Time-SLIP、QISS、增强 MRA）、心脏（电影、LGE、MOLLI）、Dixon/PDFF、MRCP、ASL、BOLD、DSC、UTE、MRE、MRS |
 | 🔧 **几乎全部参数** | TR、TE、TI、翻转角、回波链长度、回波间隔、带宽、矩阵、FOV、层数；并行成像（GRAPPA/SENSE、CAIPIRINHA）、SMS、压缩感知、部分傅里叶、深度学习重建；脂肪抑制；呼吸/心电门控；增强时相 |
 | 📈 **对比度曲线** | 横轴可选任意参数，纵轴为信号、CNR、扫描时间或 SAR，并标出当前值；也可显示两个参数的二维图 |
+| 🧮 **精确计算・Bloch 等效模式** | 用扩展相位图（EPG）计算组织信号（FSE 受激回波、射频扰相与 Bloch 方程一致）；Bloch 等效模式由逐像素磁化与信号方程生成图像 |
 | 🧩 **k 空间填充** | 采集线、并行成像欠采样、部分傅里叶、FSE 回波顺序、EPI 轨迹、放射状采集示意（专家模式） |
 | 📱 **手机布局** | 图像与估算值固定在上方，底部标签切换“部位·病灶／参数／曲线／详情” |
 | 🏷️ **厂商名称对照** | Siemens、Canon、GE、Philips、Fujifilm、United Imaging（附确认程度） |

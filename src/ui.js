@@ -133,6 +133,10 @@ function buildParams0(){ var sq=MS.SEQ[st.seq], box=$('#params'); box.innerHTML=
   det5.appendChild(chk('B1 不均一の補正（3T 体部）',function(){return st.b1corr;},function(v){st.b1corr=v;},'多チャンネル送信・誘電パッド等'));
   det5.appendChild(chk('シミング（高次）',function(){return st.shim;},function(v){st.shim=v;},'磁場の不均一を減らす'));
   det5.appendChild(chk('高速表示（256格子で計算）',function(){return st.fast;},function(v){st.fast=v;},'マトリクス 256 超でも 256 格子で計算して速くする'));
+  var det6=grp('計算方法');
+  det6.appendChild(chk('精密計算（EPG）',function(){return st.epg;},function(v){st.epg=v;},'組織ごとの信号を拡張位相グラフ（EPG）で計算します。再収束角が180°未満のFSEの刺激エコー、IRの定常状態、RFスポイリングつきGRE、FISP／PSIFが、Bloch方程式と同じ結果になります。グラフにも反映されます。'));
+  det6.appendChild(chk('Bloch準拠モード',function(){return st.bloch;},function(v){st.bloch=v;},'画素ごとのB1・磁場ずれで磁化を求め、k空間の各サンプルを信号式から直接足し合わせて画像を作ります（SE・FSE・IR・シングルショットFSE・2D GRE・bSSFP）。1枚に1〜3秒かかります。'));
+  det6.appendChild(el('p',{class:'sim-note'},'Bloch準拠モードでは、化学シフト・磁場ずれによる歪み・T2*のぼけ・エコーごとの信号の違いが、近似ではなく信号式から出ます。体動・流れ・EPI・3Dは通常の計算のままです。'));
 }
 /* ---------- 状態 ---------- */
 function newState(ph,seq,keep){ var prev=st; st=MS.defaultState(ph,seq,keep?prev:null); if(keep&&prev&&prev.phantom===ph){ st.les=prev.les; st.popt=prev.popt; } else { st.les={}; MS.PHANTOMS[ph].les(st.popt).forEach(function(L,i){ if(i===0) st.les[L.id]=true; }); }

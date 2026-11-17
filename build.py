@@ -28,7 +28,7 @@ elif os.path.isdir(os.path.join(here,'css')): rt=None
 elif os.path.isdir(os.path.join(here,'..','src_v7')): rt=os.path.join(here,'..','src_v7')
 if rt: bookcss,rtui,theme=css_from_rt(rt)
 else: bookcss,rtui,theme=[open(os.path.join(here,'css',f),encoding='utf-8').read() for f in ['book.css','radtools-ui.css','theme.css']]
-files=[d+'tissues.js',d+'phantom.js']+sorted(glob.glob(d+'ph/*.js'))+[d+f+'.js' for f in ['engine','seqs','vendors','state','meta','learn'] if os.path.exists(d+f+'.js')]+sorted(glob.glob(d+'seq/*.js'))
+files=[d+'tissues.js',d+'phantom.js']+sorted(glob.glob(d+'ph/*.js'))+[d+f+'.js' for f in ['engine','epg','bloch','seqs','vendors','state','meta','learn'] if os.path.exists(d+f+'.js')]+sorted(glob.glob(d+'seq/*.js'))
 parts=[open(f,encoding='utf-8').read() for f in files]
 if PUBLIC: parts.insert(1,'MS.PUBLIC=true;')
 eng='\n'.join(parts)+'\n'

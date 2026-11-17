@@ -38,6 +38,7 @@
 | 🎛️ **シーケンス 60 種** | SE／FSE／IR、GRE、SSFP、拡散（DWI・DTI・RESOLVE・ズーム）、MRA（TOF・PC・FBI・Time-SLIP・QISS・造影）、心臓（シネ・LGE・MOLLI）、Dixon・PDFF、MRCP、ASL・BOLD・DSC、UTE、MRE、MRS など |
 | 🔧 **ほぼ全パラメータ** | TR・TE・TI・フリップ角・ETL・エコー間隔・バンド幅・マトリクス・FOV・スライス、並列画像（GRAPPA／SENSE、CAIPIRINHA）・SMS・圧縮センシング・部分フーリエ・深層学習再構成、脂肪抑制、呼吸・心電図同期、造影の時相 |
 | 📈 **コントラストのグラフ** | 横軸に任意のパラメータ、縦軸に信号・CNR・撮像時間・SAR など。現在値に縦線。2つのパラメータの 2D マップも |
+| 🧮 **精密計算・Bloch準拠モード** | 組織の信号を拡張位相グラフ（EPG）で計算（FSE の刺激エコー・RF スポイリングまで Bloch 方程式と一致）。Bloch準拠モードでは画素ごとの磁化と信号式から画像を作る |
 | 🧩 **k空間の充填** | 取得したライン・並列の間引き・部分フーリエ・FSE のエコー番号・EPI の軌跡・ラジアルの模式図（エキスパート用） |
 | 🖼️ **アーチファクト** | 折り返し、動き・拍動のゴースト、化学シフト、磁化率・金属、EPI の歪み、バンディング、並列画像の残存折り返し |
 | 🏷️ **メーカー別の名称対応** | Siemens・Canon・GE・Philips・Fujifilm・United Imaging のシーケンス・オプション名（確認度つき） |
@@ -66,6 +67,7 @@
 
 - 組織ごとの T1・T2・T2*・水素密度・ADC・脂肪分率・磁化率などから、シーケンスごとの信号式（SE、IR、スポイルド GRE、bSSFP の定常状態、MPRAGE／MP2RAGE の数値計算など）で信号を求めます。
 - 1024² のラベル画像に描いた仮想ファントムを、FOV・位相方向で標本化し、k空間で エコートレインの減衰・動き・部分フーリエ・フィルタを加えてから画像に戻し、コイル感度・雑音・並列画像の g 因子を加えます。
+- 「精密計算（EPG）」では組織の信号を拡張位相グラフで、「Bloch準拠モード」では画素ごとの磁化と k 空間の信号式で計算します（SE・FSE・IR・シングルショットFSE・2D GRE・bSSFP）。
 - 計算はすべてブラウザの中（Web Worker）で行います。外部ライブラリは使っていません。
 
 組織値の出典：Stanisz GJ, et al. MRM 2005（PMID 16086319）、de Bazelaire CMJ, et al. Radiology 2004（PMID 14990831）、Gold GE, et al. AJR 2004（PMID 15269023）、Wansapura JP, et al. JMRI 1999（PMID 10232510）、Rohrer M, et al. Invest Radiol 2005（PMID 16230904）。一部は推定値です（画面の「組織パラメータ」に出典つきで一覧）。
@@ -89,6 +91,8 @@ python3 build.py en.html --public --lang=en     # 英語版
 python3 build.py zh.html --public --lang=zh     # 中国語（簡体字）版
 node tests/all.js                       # 全ファントム×全シーケンス×1.5/3T（数分）
 node tests/learn_chk.js                 # 勉強用の設定の整合
+node tests/epg_validate.js              # EPG と Bloch 方程式（isochromat）の比較
+node tests/modes.js bloch               # Bloch準拠モードで全ファントム×全シーケンス
 ```
 
 ## 拡張する

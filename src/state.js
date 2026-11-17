@@ -90,7 +90,7 @@ MS.defaultState=function(phid,seqid,prev){
   if(/gre3d|cemra|twist/.test(sq.k) && (reg==='abd'||reg==='chest'||reg==='pelvis')) { st.pimode='grappa'; p.r=2; }
   if(sq.k==='dwi'||sq.k==='dti'||sq.k==='bold'||sq.k==='dsc'){ st.pimode='grappa'; p.r=2; }
   if(sq.dim==='3D' && reg==='brain' && /mprage|mp2rage|fse3d|swi|tof/.test(sq.k)){ st.pimode='grappa'; p.r=2; }
-  if(prev){ ['B0','grad','les','popt','hemStage','liverFF','liverIron','liverKpa','dlr','norm','b1corr','shim'].forEach(function(k){ if(prev[k]!==undefined) st[k]=JSON.parse(JSON.stringify(prev[k])); }); }
+  if(prev){ ['B0','grad','les','popt','hemStage','liverFF','liverIron','liverKpa','dlr','norm','b1corr','shim','epg','bloch'].forEach(function(k){ if(prev[k]!==undefined) st[k]=JSON.parse(JSON.stringify(prev[k])); }); }
   return st;
 };
 

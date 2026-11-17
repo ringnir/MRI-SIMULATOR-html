@@ -217,6 +217,7 @@ MS.form=function(ctx,acq){
       if(acq.gre) fp0+=-2*PI*fH*acq.te/1000; var fm=acq.fs||'none'; if(fm==='chess') f0=0; else if(fm==='spair') f0*=0.03; else if(fm==='we') f0*=0.05;
       pre[pq]=w0*cos(wp0)+f0*cos(fp0); pim[pq]=w0*sin(wp0)+f0*sin(fp0); }
     return {re:pre,im:pim,kmag:null}; }
+  if(st.bloch && acq.bloch && MS.Bloch) return MS.Bloch.form(ctx,acq);
   var B0=st.B0, hzppm=GAMMA*B0, fatHz=MS.FAT_PPM*hzppm;
   var bw=p.bw, nx=Math.min(S,p.nx), ny=Math.min(S,p.ny);
   var roScale=S/nx, peScale=S/ny;

@@ -10,7 +10,7 @@
 | メーカー名称 | `src/vendors.js`（GE・Philips・Fujifilm・United Imaging）、`src/seqs.js`（Siemens・Canon） | 確認度 `o`＝メーカー公開資料、`c`＝比較表、`x`＝未確認（公開版では「—」） |
 | 翻訳 | `i18n/extra_en.json`・`i18n/extra_zh.json` | 日本語の文字列 → 訳 |
 
-読み込み順：`tissues.js` → `phantom.js` → `ph/*.js` → `engine.js` → `seqs.js` → `vendors.js` → `state.js` → `meta.js` → `learn.js` → `seq/*.js`。
+読み込み順：`tissues.js` → `phantom.js` → `ph/*.js` → `engine.js` → `epg.js` → `bloch.js` → `seqs.js` → `vendors.js` → `state.js` → `meta.js` → `learn.js` → `seq/*.js`。
 
 ---
 
@@ -52,6 +52,11 @@ run:function(ctx,p,sq,st){ var A=MS.SEQAPI, E=Math.exp, TR=p.tr;
 }
 ```
 `acq` にはほかに `train:{type:'fse'|'ss'|'epi'|'fse3d', etl, esp, te}`（エコートレインのぼけ）、`gre:true`（T2* 減衰・磁化率）、`epi:{lines,esp}`（EPI の歪み）などを書けます。既存の `K.xxx` が見本です。
+
+### 精密計算（EPG）と Bloch 準拠モードに対応させる
+- **精密計算（EPG）**：`run` の中で `st.epg||st.bloch` のときに、組織の信号を `MS.EPG` で求めます。`MS.EPG.fse(T1,T2,{etl,esp,tr,b1,refoc,restore,ti,refs,df})` はエコー列（定常状態）を、`MS.EPG.spgrM(T1,T2,TR,a)` は RF スポイリングつき GRE を、`MS.EPG.ssfpM(T1,T2,TR,a)` は FISP／PSIF を返します。
+- **Bloch 準拠モード**：`acq` に `bloch:{type:'se'|'fse'|'ss'|'gre'|'bssfp', tr, te, etl, esp, refoc, restore, ti, fT2}` を書くと、`st.bloch` のときに `MS.Bloch.form` が画素ごとの磁化と信号式（k 空間の各サンプルを直接足し合わせる）で画像を作ります。書かなければ通常の計算のままです。
+- 検証：`node tests/epg_validate.js`（EPG と isochromat による Bloch 方程式の直接計算の比較）、`node tests/modes.js epg`・`node tests/modes.js bloch`（全ファントム×全シーケンス）。
 
 ### (c) 新しいパラメータ
 ```js

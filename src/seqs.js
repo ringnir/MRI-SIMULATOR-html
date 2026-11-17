@@ -134,6 +134,8 @@ MS.run=function(st){
   var ctx={st:st,sq:sq,info:info,ph:ph,geo:geo,tps:tps,motion:mot,wantK:true};
   MS.resetNoise(st.noiseSeed||12345);
   var outs=(K[sq.k]||K.fse)(ctx,p,sq,st);
+  if(st.bloch){ if(info.bloch) info.W.push({lv:'info',t:'Bloch準拠モードで計算（格子 '+info.bloch.N+'、エコー '+info.bloch.nE+' 種、'+(info.bloch.ms/1000).toFixed(1)+' 秒）。体動・流れの位相は含みません'}); else info.W.push({lv:'info',t:'このシーケンスは Bloch 準拠モードに未対応のため、通常の計算（精密計算 EPG つき）で表示しています'}); }
+  else if(st.epg) info.W.push({lv:'info',t:'精密計算（EPG）で組織の信号を計算しています'});
   return {outs:outs, info:info, geo:geo, ph:ph, tps:tps, sq:sq, S:S};
 };
 /* ---------- 掃引（グラフ用）：1画素=1組織の小格子でシーケンス計算を回す ---------- */
@@ -159,21 +161,34 @@ function fsSig(st){ return (st.fs==='stir')?'none':(st.fs||'none'); }
 function mtFac(tp,st,sq,p){ var lv=0; if(st.mt) lv+=0.5; if((sq.k==='fse'||sq.k==='ir')&&(p.nsl||1)>4) lv+=0.25*Math.pow((p.refoc||150)/180,2)*Math.min(1,(p.etl||1)/10); return 1-Math.min(0.6,tp.mt*lv); }
 
 var K={};
-K.se=function(ctx,p,sq,st){ var TR=p.tr,TE=p.te; return [one(ctx,{fs:fsSig(st),tr:TR,sig:function(tp,df,b1){ var M=(1-2*E(-(TR-TE/2)/tp.T1)+E(-TR/tp.T1)); var fv=flowVoid(tp,TE,p.thk); var Mf=(1-2*E(-(TR-TE/2)/tp.fT1)+E(-TR/tp.fT1));
+/* 精密計算（EPG）：st.epg のとき、組織ごとの信号を EPG で求める */
+function epgOn(st){ return !!((st.epg||st.bloch) && MS.EPG); }
+function eIdx(TE,esp,etl){ return Math.max(0,Math.min(etl-1,Math.round(TE/esp)-1)); }
+K.se=function(ctx,p,sq,st){ var TR=p.tr,TE=p.te; return [one(ctx,{fs:fsSig(st),tr:TR,bloch:{type:'se',tr:TR,te:TE},sig:epgOn(st)? function(tp,df,b1){ var EP=MS.EPG, fv=flowVoid(tp,TE,p.thk);
+    var rw=EP.fse(tp.T1,tp.T2,{etl:1,esp:TE,tr:TR,b1:b1}), rf_=EP.fse(tp.fT1,tp.fT2,{etl:1,esp:TE,tr:TR,b1:b1}); return {w:tp.PD*(1-tp.ff)*rw.echo[0]*fv, f:tp.PD*tp.ff*rf_.echo[0]}; } : function(tp,df,b1){ var M=(1-2*E(-(TR-TE/2)/tp.T1)+E(-TR/tp.T1)); var fv=flowVoid(tp,TE,p.thk); var Mf=(1-2*E(-(TR-TE/2)/tp.fT1)+E(-TR/tp.fT1));
   var e=excF(b1)*refF(b1); return {w:tp.PD*(1-tp.ff)*M*E(-TE/tp.T2)*e*fv, f:tp.PD*tp.ff*Mf*E(-TE/tp.fT2)*e}; }},sq.n)]; };
 K.fse=function(ctx,p,sq,st){ var TR=p.tr,TE=p.te,etl=p.etl,esp=p.esp; var trn=etl*esp, rest=st.restore;
   if(sq.id==='metal'){ st.vat=st.vat!==false; }
-  return [one(ctx,{fs:fsSig(st),tr:TR,train:{type:'fse',etl:etl,esp:esp,te:TE},sig:function(tp,df,b1){
+  if(epgOn(st)) return [one(ctx,{fs:fsSig(st),tr:TR,train:{type:'fse',etl:etl,esp:esp,te:TE},bloch:{type:'fse',tr:TR,te:TE,etl:etl,esp:esp,refoc:p.refoc||150,restore:!!rest,fT2:function(tp){ return fatT2fse(tp,esp); }},sig:function(tp,df,b1){ var EP=MS.EPG, ne=eIdx(TE,esp,etl), o={etl:etl,esp:esp,tr:TR,b1:b1,refoc:p.refoc||150,restore:!!rest};
+    var rw=EP.fse(tp.T1,tp.T2,o), fT2=fatT2fse(tp,esp), rf_=EP.fse(tp.fT1,fT2,o); var fv=flowVoid(tp,esp*2,p.thk);
+    return {w:tp.PD*(1-tp.ff)*rw.echo[ne]*fv*mtFac(tp,st,sq,p), f:tp.PD*tp.ff*rf_.echo[ne], T2b:EP.effT2(rw.echo,esp,tp.T2), fT2b:EP.effT2(rf_.echo,esp,fT2)}; }},sq.n)];
+  return [one(ctx,{fs:fsSig(st),tr:TR,train:{type:'fse',etl:etl,esp:esp,te:TE},bloch:{type:'fse',tr:TR,te:TE,etl:etl,esp:esp,refoc:p.refoc||150,restore:!!rest,fT2:function(tp){ return fatT2fse(tp,esp); }},sig:function(tp,df,b1){
     var mfb=rest?E(-trn/tp.T2):0, mfbF=rest?E(-trn/fatT2fse(tp,esp)):0;
     var M=1-(1-mfb)*E(-(TR-trn)/tp.T1), Mf=1-(1-mfbF)*E(-(TR-trn)/tp.fT1);
     var rf=0.55+0.45*Math.pow(sin((p.refoc||150)*D*b1/2),2); var e=excF(b1)*rf; var fv=flowVoid(tp,esp*2,p.thk);
     return {w:tp.PD*(1-tp.ff)*M*E(-TE/tp.T2)*e*fv*mtFac(tp,st,sq,p), f:tp.PD*tp.ff*Mf*E(-TE/fatT2fse(tp,esp))*e, T2b:tp.T2, fT2b:fatT2fse(tp,esp)}; }},sq.n)]; };
-K.ssfse=function(ctx,p,sq,st){ var TR=p.tr,TE=p.te,esp=p.esp; return [one(ctx,{fs:fsSig(st),tr:TR,train:{type:'ss',etl:p.ny,esp:esp,te:TE,R:ctx.info.R,te0:0},sig:function(tp,df,b1){
+K.ssfse=function(ctx,p,sq,st){ var TR=p.tr,TE=p.te,esp=p.esp; return [one(ctx,{fs:fsSig(st),tr:TR,train:{type:'ss',etl:p.ny,esp:esp,te:TE,R:ctx.info.R,te0:0},bloch:{type:'ss',tr:TR,te:TE,esp:esp,refoc:p.refoc||150,fT2:function(tp){ return fatT2fse(tp,esp); }},sig:epgOn(st)? function(tp,df,b1){ var EP=MS.EPG, n=Math.max(2,Math.round(TE/esp)+8), ne=eIdx(TE,esp,n), o={etl:n,esp:esp,tr:TR,b1:b1,refoc:p.refoc||150};
+    var rw=EP.fse(tp.T1,tp.T2,o), fT2=fatT2fse(tp,esp), rf_=EP.fse(tp.fT1,fT2,o); var fv=flowVoid(tp,esp*2,p.thk);
+    return {w:tp.PD*(1-tp.ff)*rw.echo[ne]*fv, f:tp.PD*tp.ff*rf_.echo[ne], T2b:EP.effT2(rw.echo,esp,tp.T2), fT2b:EP.effT2(rf_.echo,esp,fT2)}; } : function(tp,df,b1){
   var M=1-E(-TR/tp.T1), Mf=1-E(-TR/tp.fT1); var e=excF(b1)*(0.55+0.45*Math.pow(sin((p.refoc||150)*D*b1/2),2)); var fv=flowVoid(tp,esp*2,p.thk);
   return {w:tp.PD*(1-tp.ff)*M*E(-TE/tp.T2)*e*fv, f:tp.PD*tp.ff*Mf*E(-TE/fatT2fse(tp,esp))*e, T2b:tp.T2, fT2b:fatT2fse(tp,esp)}; }},sq.n)]; };
 K.mrcp2d=K.ssfse;
 K.ir=function(ctx,p,sq,st){ var TR=p.tr,TE=p.te,TI=p.ti,etl=p.etl,esp=p.esp,trn=etl*esp;
-  var acq={fs:fsSig(st),tr:TR,train:{type:'fse',etl:etl,esp:esp,te:TE},sig:function(tp,df,b1){
+  var acq={fs:fsSig(st),tr:TR,train:{type:'fse',etl:etl,esp:esp,te:TE},bloch:{type:'fse',tr:TR,te:TE,etl:etl,esp:esp,refoc:p.refoc||150,ti:TI,fT2:function(tp){ return fatT2fse(tp,esp); }},sig:epgOn(st)? function(tp,df,b1){ var EP=MS.EPG, ne=eIdx(TE,esp,etl), o={etl:etl,esp:esp,tr:TR,b1:b1,refoc:p.refoc||150,ti:TI};
+    var rw=EP.fse(tp.T1,tp.T2,o), fT2=fatT2fse(tp,esp), rf_=EP.fse(tp.fT1,fT2,o); var fv=flowVoid(tp,esp*2,p.thk);
+    var w=tp.PD*(1-tp.ff)*rw.echo[ne]*fv*mtFac(tp,st,sq,p)*(rw.zexc<0?-1:1), f=tp.PD*tp.ff*rf_.echo[ne]*(rf_.zexc<0?-1:1);
+    if(sq.real) return {w:Math.abs(w), wph:w<0?PI:0, f:Math.abs(f), fph:f<0?PI:0, T2b:EP.effT2(rw.echo,esp,tp.T2), fT2b:EP.effT2(rf_.echo,esp,fT2)};
+    return {w:Math.abs(w), f:Math.abs(f), T2b:EP.effT2(rw.echo,esp,tp.T2), fT2b:EP.effT2(rf_.echo,esp,fT2)}; } : function(tp,df,b1){
     var inv=Math.pow(sin(90*D*b1),2); var Trec=TR-TI-trn; var Mw=MS.sig.ir(tp.T1,TI,Trec), Mf=MS.sig.ir(tp.fT1,TI,Trec); Mw=1-(1-Mw)*inv; Mf=1-(1-Mf)*inv;
     var e=excF(b1)*(0.55+0.45*Math.pow(sin((p.refoc||150)*D*b1/2),2)); var fv=flowVoid(tp,esp*2,p.thk);
     var w=tp.PD*(1-tp.ff)*Mw*E(-TE/tp.T2)*e*fv*mtFac(tp,st,sq,p), f=tp.PD*tp.ff*Mf*E(-TE/fatT2fse(tp,esp))*e;
@@ -183,6 +198,11 @@ K.ir=function(ctx,p,sq,st){ var TR=p.tr,TE=p.te,TI=p.ti,etl=p.etl,esp=p.esp,trn=
   if(sq.real){ var r=real(fz); return [{name:sq.n+'（実部・符号付き）', data:r, kmag:im.kmag, kind:'signed'}, Object.assign(o,{name:'強度画像（参考）'})]; }
   return [o]; };
 K.fse3d=function(ctx,p,sq,st){ var TR=p.tr,TE=p.te,etl=p.etl,esp=p.esp,trn=etl*esp; var isIR=!!sq.ir||!!p.ti&&!sq.dir; var refo=p.refoc||120;
+  if(epgOn(st)){ var refs=MS.EPG.vfaTrain(etl,refo); return [one(ctx,{fs:fsSig(st),tr:TR,train:{type:'fse3d',etl:etl,esp:esp,te:TE},sig:function(tp,df,b1){ var EP=MS.EPG, ne=eIdx(TE,esp,etl);
+    var Mw=1-E(-Math.max(0,TR-trn)/tp.T1), Mf=1-E(-Math.max(0,TR-trn)/tp.fT1), Trec=TR-trn-(p.ti||0);
+    if(sq.dir){ Mw=Math.abs(MS.sig.dir(tp.T1,p.ti,p.ti2,TR-trn-p.ti)); Mf=Math.abs(MS.sig.dir(tp.fT1,p.ti,p.ti2,TR-trn-p.ti)); } else if(isIR){ Mw=Math.abs(MS.sig.ir(tp.T1,p.ti,Trec)); Mf=Math.abs(MS.sig.ir(tp.fT1,p.ti,Trec)); }
+    var o={etl:etl,esp:esp,tr:1e7,b1:b1,refs:refs}, fT2=fatT2fse(tp,esp); var rw=EP.fse(tp.T1,tp.T2,o), rf_=EP.fse(tp.fT1,fT2,o); var fv=tp.v?E(-tp.v/6):1;
+    return {w:tp.PD*(1-tp.ff)*Mw*rw.echo[ne]*fv, f:tp.PD*tp.ff*Mf*rf_.echo[ne], T2b:EP.effT2(rw.echo,esp,tp.T2), fT2b:EP.effT2(rf_.echo,esp,fT2)}; }},sq.n)]; }
   return [one(ctx,{fs:fsSig(st),tr:TR,train:{type:'fse3d',etl:etl,esp:esp,te:TE},sig:function(tp,df,b1){
     var Trec=TR-trn-(p.ti||0); var Mw=1-E(-Math.max(0,TR-trn)/tp.T1), Mf=1-E(-Math.max(0,TR-trn)/tp.fT1);
     if(sq.dir){ Mw=Math.abs(MS.sig.dir(tp.T1,p.ti,p.ti2,TR-trn-p.ti)); Mf=Math.abs(MS.sig.dir(tp.fT1,p.ti,p.ti2,TR-trn-p.ti)); }
@@ -192,10 +212,10 @@ K.fse3d=function(ctx,p,sq,st){ var TR=p.tr,TE=p.te,etl=p.etl,esp=p.esp,trn=etl*e
     return {w:tp.PD*(1-tp.ff)*Mw*E(-TE/T2e*0.85)*e*fv, f:tp.PD*tp.ff*Mf*E(-TE/(fatT2fse(tp,esp)*1.3))*e, T2b:T2e, fT2b:fatT2fse(tp,esp)}; }},sq.n)]; };
 K.mrcp=K.fse3d;
 function greSig(p,st,TE,opt){ opt=opt||{}; var TR=p.tr, a=(opt.fa||p.fa)*D; var thk=opt.slab||p.thk; return function(tp,df,b1){
-  var aa=a*b1; var fr=opt.noInflow?0:inflow(tp,TR,opt.slab?opt.slab:thk); var Mw=MS.sig.spgr(tp.T1,1e9,TR,0,aa); var Ms=Mw; Mw=Mw*(1-fr)+sin(aa)*fr;
-  var fc=st.flowcomp?1:E(-Math.pow(tp.v*TE/220,2)); var Mf=MS.sig.spgr(tp.fT1,1e9,TR,0,aa);
+  var aa=a*b1; var fr=opt.noInflow?0:inflow(tp,TR,opt.slab?opt.slab:thk); var ep=epgOn(st); var Mw=ep? MS.EPG.spgrM(tp.T1,tp.T2,TR,aa) : MS.sig.spgr(tp.T1,1e9,TR,0,aa); var Ms=Mw; Mw=Mw*(1-fr)+sin(aa)*fr;
+  var fc=st.flowcomp?1:E(-Math.pow(tp.v*TE/220,2)); var Mf=ep? MS.EPG.spgrM(tp.fT1,tp.fT2,TR,aa) : MS.sig.spgr(tp.fT1,1e9,TR,0,aa);
   return {w:tp.PD*(1-tp.ff)*Mw*E(-TE/tp.T2s)*(tp.v?fc:1), f:tp.PD*tp.ff*Mf*E(-TE/tp.fT2s)}; }; }
-K.gre=function(ctx,p,sq,st){ return [one(ctx,{fs:fsSig(st),tr:p.tr,gre:true,te:p.te,sig:greSig(p,st,p.te)},sq.n)]; };
+K.gre=function(ctx,p,sq,st){ return [one(ctx,{fs:fsSig(st),tr:p.tr,gre:true,te:p.te,bloch:{type:'gre',tr:p.tr,te:p.te},sig:greSig(p,st,p.te)},sq.n)]; };
 K.gre3d=function(ctx,p,sq,st){ var slab=p.npart*p.thk; var o=one(ctx,{fs:fsSig(st),tr:p.tr,tmul:p.npart/(ctx.info.Rz||1),gre:true,te:p.te,sig:greSig(p,st,p.te,{slab:slab})},sq.n);
   if(sq.twist){ var A=p.pa/100, Bv=p.pb/100; var tres=ctx.info.T*(A+(1-A)*Bv); ctx.info.tres=tres*1000; ctx.info.W.push({lv:'info',t:'時間分解能（1時相の更新間隔）≈ '+tres.toFixed(1)+' 秒（中心'+p.pa+'%・周辺'+p.pb+'%）。全k空間の時間幅は約 '+(ctx.info.T).toFixed(1)+' 秒'}); }
   return [o]; };
@@ -234,17 +254,19 @@ K.mp2rage=function(ctx,p,sq,st){ var n=Math.round(p.npart/(ctx.info.Rz||1));
   for(var j=0;j<n2;j++){ var best=0,bd=9; for(var q=0;q<lut.length;q++){ var d=Math.abs(lut[q][0]-U[j]); if(d<bd){bd=d;best=lut[q][1];} } T1m[j]=(A.re[j]*A.re[j]+A.im[j]*A.im[j]+Bv.re[j]*Bv.re[j]+Bv.im[j]*Bv.im[j])>4e-6?best:0; }
   return [{name:'UNI画像',data:U,kind:'signed',kmag:a.kmag},{name:'INV1（TI '+p.ti+' ms）',data:MS.mag(A),kind:'mag'},{name:'INV2（TI '+p.ti2+' ms）',data:MS.mag(Bv),kind:'mag'},{name:'T1マップ（ms）',data:T1m,kind:'map',unit:'ms',range:[0,3000]}]; };
 K.bssfp=function(ctx,p,sq,st){ var TR=p.tr, a=p.fa*D, hz=MS.FAT_PPM*42.577*st.B0;
-  function acq(off){ return {fs:fsSig(st),tr:TR,perPixel:true,sig:function(tp,df,b1){ var th=2*PI*(df/1000*TR)+off, thf=2*PI*((df+hz)/1000*TR)+off;
+  function acq(off){ return {fs:fsSig(st),tr:TR,perPixel:true,bloch:{type:'bssfp',tr:TR,te:TR/2},sig:function(tp,df,b1){ var th=2*PI*(df/1000*TR)+off, thf=2*PI*((df+hz)/1000*TR)+off;
     var w=MS.sig.bssfp(tp.T1,tp.T2,TR,a*b1,th), f=MS.sig.bssfp(tp.fT1,tp.fT2,TR,a*b1,thf); var fv=tp.v?0.95:1;
     return {w:tp.PD*(1-tp.ff)*w.mag*fv, wph:Math.atan2(w.im,w.re), f:tp.PD*tp.ff*f.mag, fph:Math.atan2(f.im,f.re)}; }}; }
   if(sq.ciss){ var A=MS.finish(ctx,MS.form(ctx,acq(0))), Bv=MS.finish(ctx,MS.form(ctx,acq(PI))); var m1=MS.mag(A), m2=MS.mag(Bv), C=new Float32Array(m1.length); for(var i=0;i<C.length;i++) C[i]=Math.max(m1[i],m2[i]);
     return [{name:'CISS（2つの位相サイクルの合成）',data:C,kind:'mag'},{name:'位相サイクル 0°（バンディングあり）',data:m1,kind:'mag'},{name:'位相サイクル 180°',data:m2,kind:'mag'}]; }
   return [one(ctx,acq(0),sq.n)]; };
 K.cine=function(ctx,p,sq,st){ var o=K.bssfp(ctx,p,sq,st); ctx.info.W.push({lv:'info',t:'時間分解能 ≈ '+MS.fmt((p.vps||12)*p.tr)+' ms（'+(p.vps||12)+' ライン/セグメント × TR）、1スライスの息止め ≈ '+MS.fmt(ctx.info.T/Math.max(1,p.nsl||1))+' 秒'}); o[0].name='シネ（拡張末期の1フレーム）'; return o; };
-K.fisp=function(ctx,p,sq,st){ var a=p.fa*D; return [one(ctx,{tr:p.tr,gre:true,te:p.te,sig:function(tp,df,b1){ return {w:tp.PD*(1-tp.ff)*Math.abs(MS.sig.fisp(tp.T1,tp.T2,p.tr,p.te,a*b1,tp.T2s)), f:tp.PD*tp.ff*Math.abs(MS.sig.fisp(tp.fT1,tp.fT2,p.tr,p.te,a*b1,tp.fT2s))}; }},sq.n)]; };
-K.psif=function(ctx,p,sq,st){ var a=p.fa*D; return [one(ctx,{tr:p.tr,sig:function(tp,df,b1){ var fv=tp.v?0.3:1; return {w:tp.PD*(1-tp.ff)*Math.abs(MS.sig.psif(tp.T1,tp.T2,p.tr,p.te,a*b1))*fv, f:tp.PD*tp.ff*Math.abs(MS.sig.psif(tp.fT1,tp.fT2,p.tr,p.te,a*b1))}; }},sq.n)]; };
-K.dess=function(ctx,p,sq,st){ var a=p.fa*D; var A=MS.form(ctx,{fs:fsSig(st),tr:p.tr,gre:true,te:p.te,sig:function(tp,df,b1){ var s1=Math.abs(MS.sig.fisp(tp.T1,tp.T2,p.tr,p.te,a*b1,tp.T2s)), s2=Math.abs(MS.sig.psif(tp.T1,tp.T2,p.tr,p.tr-p.te,a*b1));
-  var f1=Math.abs(MS.sig.fisp(tp.fT1,tp.fT2,p.tr,p.te,a*b1,tp.fT2s)), f2=Math.abs(MS.sig.psif(tp.fT1,tp.fT2,p.tr,p.tr-p.te,a*b1)); return {w:tp.PD*(1-tp.ff)*Math.sqrt(s1*s1+s2*s2), f:tp.PD*tp.ff*Math.sqrt(f1*f1+f2*f2)}; }});
+function fispF(st,T1,T2,TR,TE,a,T2s){ return epgOn(st)? MS.EPG.ssfpM(T1,T2,TR,a).fisp*E(-TE/(T2s||T2)) : MS.sig.fisp(T1,T2,TR,TE,a,T2s); }
+function psifF(st,T1,T2,TR,TE,a){ return epgOn(st)? MS.EPG.ssfpM(T1,T2,TR,a).psif : MS.sig.psif(T1,T2,TR,TE,a); }
+K.fisp=function(ctx,p,sq,st){ var a=p.fa*D; return [one(ctx,{tr:p.tr,gre:true,te:p.te,sig:function(tp,df,b1){ return {w:tp.PD*(1-tp.ff)*Math.abs(fispF(st,tp.T1,tp.T2,p.tr,p.te,a*b1,tp.T2s)), f:tp.PD*tp.ff*Math.abs(fispF(st,tp.fT1,tp.fT2,p.tr,p.te,a*b1,tp.fT2s))}; }},sq.n)]; };
+K.psif=function(ctx,p,sq,st){ var a=p.fa*D; return [one(ctx,{tr:p.tr,sig:function(tp,df,b1){ var fv=tp.v?0.3:1; return {w:tp.PD*(1-tp.ff)*Math.abs(psifF(st,tp.T1,tp.T2,p.tr,p.te,a*b1))*fv, f:tp.PD*tp.ff*Math.abs(psifF(st,tp.fT1,tp.fT2,p.tr,p.te,a*b1))}; }},sq.n)]; };
+K.dess=function(ctx,p,sq,st){ var a=p.fa*D; var A=MS.form(ctx,{fs:fsSig(st),tr:p.tr,gre:true,te:p.te,sig:function(tp,df,b1){ var s1=Math.abs(fispF(st,tp.T1,tp.T2,p.tr,p.te,a*b1,tp.T2s)), s2=Math.abs(psifF(st,tp.T1,tp.T2,p.tr,p.tr-p.te,a*b1));
+  var f1=Math.abs(fispF(st,tp.fT1,tp.fT2,p.tr,p.te,a*b1,tp.fT2s)), f2=Math.abs(psifF(st,tp.fT1,tp.fT2,p.tr,p.tr-p.te,a*b1)); return {w:tp.PD*(1-tp.ff)*Math.sqrt(s1*s1+s2*s2), f:tp.PD*tp.ff*Math.sqrt(f1*f1+f2*f2)}; }});
   var f=MS.finish(ctx,A); return [{name:sq.n,data:MS.mag(f),kmag:A.kmag,kind:'mag'}]; };
 K.swi=function(ctx,p,sq,st){ var slab=p.npart*p.thk; var A=MS.form(ctx,{tr:p.tr,gre:true,te:p.te,tmul:p.npart,sig:greSig(p,st,p.te,{slab:slab,noInflow:true})}); var f=MS.finish(ctx,A);
   var S=ctx.geo.S, mag=MS.mag(f), ph=phaseOf(f);

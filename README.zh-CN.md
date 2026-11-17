@@ -24,7 +24,7 @@
 > **非官方工具。** 不是 Siemens Healthineers、GE HealthCare、Philips、Canon Medical Systems、Fujifilm、United Imaging Healthcare 任何一家的官方工具，也未受任何厂商的委托、资助或审阅。各厂商的序列名与功能名仅用于说明对应关系，为各公司的商标或注册商标。名称可能因软件版本和地区而不同，请以所用设备的协议名称为准。无法确认的名称显示为“—”。
 
 > [!NOTE]
-> **利益冲突声明：** 作者隶属于名古屋大学与佳能医疗系统株式会社（Canon Medical Systems Corporation）共同设立的产学合作研究讲座。本工具由作者个人制作。
+> **利益冲突声明：** 作者隶属于名古屋大学与佳能株式会社（Canon Inc.）共同设立的产学合作研究讲座。本工具由作者个人制作。
 
 ## 功能
 

@@ -24,7 +24,7 @@
 > **Unofficial tool.** Not an official tool of Siemens Healthineers, GE HealthCare, Philips, Canon Medical Systems, Fujifilm or United Imaging Healthcare, and not commissioned, funded or reviewed by any vendor. Vendor sequence and feature names are shown only to indicate correspondence; they are trademarks or registered trademarks of their respective owners. Names can differ by software version and region — check the protocol names on your own scanner. Names that could not be verified are shown as "—".
 
 > [!NOTE]
-> **Disclosure:** The author belongs to an industry-academia collaborative chair at Nagoya University funded by Canon Medical Systems Corporation. This tool was created by the author as an individual.
+> **Disclosure:** The author belongs to an industry-academia collaborative chair at Nagoya University funded by Canon Inc. This tool was created by the author as an individual.
 
 ## Features
 

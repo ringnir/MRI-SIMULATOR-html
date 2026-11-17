@@ -41,7 +41,8 @@ if PUBLIC:
               ('<p>院内教育用 · 全身・網羅版（2026年11月） · 外部ライブラリを使わず、すべての計算をこのファイル内で行います。既存の「MRIシーケンス読本」内のパラメータシミュレーターはそのまま残しています。</p>',
                '<p>教育用 · 全身・網羅版（2026年11月） · 外部ライブラリを使わず、すべての計算をこのファイル内で行います（オフラインで動作し、入力した値はどこにも送信しません）。</p>'
                '<p><b>診療・装置の設定には使わないでください。</b>組織値は文献値を丸めた代表値・推定値、仮想ファントムは解析的な図形で描いた模式図で、画像・撮像時間・SNR・SAR は教育用の近似です。医療機器ではありません。</p>'
-               '<p>Siemens Healthineers、GE HealthCare、Philips、Canon Medical Systems、Fujifilm、United Imaging Healthcare の各社名、および本ツールに記載のシーケンス名・機能名（TSE、HASTE、VIBE、SPACE、FASE、SPEEDER、AiCE、PROPELLER、SENSE など）は各社の商標または登録商標です。名称の対応を示す目的で記載しており、各社とは関係のない非公式のツールです。</p>'
+               '<p>Siemens Healthineers、GE HealthCare、Philips、Canon Medical Systems、Fujifilm、United Imaging Healthcare の各社名、および本ツールに記載のシーケンス名・機能名（TSE、HASTE、VIBE、SPACE、FASE、SPEEDER、AiCE、PROPELLER、SENSE など）は各社の商標または登録商標です。名称の対応を示す目的で記載しています。いずれのメーカーの公式ツールでもなく、いずれのメーカーからも依頼、資金提供、監修を受けていません。</p>'
+               '<p>利益相反の開示：作者は、名古屋大学のキヤノン株式会社との産学協同研究講座に所属しています。このツールは作者個人が作成したものです。</p>'
                '<p><a href="'+REPO+'">GitHub</a> · <a href="'+REPO+'/blob/main/LICENSE">MIT License</a> · © 2026 ringnir</p>')]),
        ]
   for a,b in rep[0][1]:

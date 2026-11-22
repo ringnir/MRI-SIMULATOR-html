@@ -1,0 +1,122 @@
+# CI: the committed HTML builds must be up to date, every string must be translated,
+# and the Node tests must pass. The test scripts only print their results,
+# so each step checks the printed summary line.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash   # bash -eo pipefail, so a failing command before "| tee" fails the step
+
+jobs:
+  build:
+    name: Build (ja / en / zh) and check committed HTML
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Build index.html (Japanese)
+        run: python3 build.py index.html --public
+
+      - name: Build en.html (English) and check for untranslated strings
+        run: |
+          python3 build.py en.html --public --lang=en | tee "$RUNNER_TEMP/build_en.log"
+          if grep -q '未訳の文字列' "$RUNNER_TEMP/build_en.log"; then
+            echo "::error::Untranslated strings for en; add them to i18n/extra_en.json"
+            cat i18n/missing_en.json
+            exit 1
+          fi
+
+      - name: Build zh.html (Simplified Chinese) and check for untranslated strings
+        run: |
+          python3 build.py zh.html --public --lang=zh | tee "$RUNNER_TEMP/build_zh.log"
+          if grep -q '未訳の文字列' "$RUNNER_TEMP/build_zh.log"; then
+            echo "::error::Untranslated strings for zh; add them to i18n/extra_zh.json"
+            cat i18n/missing_zh.json
+            exit 1
+          fi
+
+      - name: Committed builds are up to date
+        run: |
+          if ! git diff --exit-code --stat -- index.html en.html zh.html; then
+            echo "::error::index.html / en.html / zh.html are stale. Run the three builds and commit the results."
+            exit 1
+          fi
+
+  test:
+    name: Node tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: All phantoms x all sequences x 1.5/3 T (tests/all.js)
+        run: |
+          node tests/all.js | tee "$RUNNER_TEMP/all.log"
+          # last line = list of failures followed by their count; the count must be 0
+          tail -n 1 "$RUNNER_TEMP/all.log" | awk '{ if ($NF != "0") exit 1 }'
+
+      - name: Learning-mode settings (tests/learn_chk.js)
+        run: |
+          node tests/learn_chk.js | tee "$RUNNER_TEMP/learn.log"
+          grep -q '^learn ok ' "$RUNNER_TEMP/learn.log"
+          # any other line is a reported problem
+          if grep -v '^learn ok ' "$RUNNER_TEMP/learn.log"; then exit 1; fi
+
+
+      - name: Optimizer (goal buttons) never makes things worse
+        run: |
+          node tests/optim_test.js | tee "$RUNNER_TEMP/optim.log"
+          grep -qE 'bad 0 ' "$RUNNER_TEMP/optim.log"
+
+      - name: Tasks (missions) evaluate without errors
+        run: |
+          node tests/mission_chk.js | tee "$RUNNER_TEMP/mission.log"
+          ! grep -q 'ERR' "$RUNNER_TEMP/mission.log"
+
+      - name: Pulse sequence diagrams draw for every sequence
+        run: |
+          node tests/psd_test.js | tee "$RUNNER_TEMP/psd.log"
+          grep -q 'errors 0' "$RUNNER_TEMP/psd.log"
+      - name: EPG vs isochromat Bloch simulation (tests/epg_validate.js, max error <= 3%)
+        run: |
+          node tests/epg_validate.js | tee "$RUNNER_TEMP/epg.log"
+          tail -n 1 "$RUNNER_TEMP/epg.log" | awk '
+            /^最大相対誤差 / { v = $NF; sub("%", "", v); found = 1
+                             if (v + 0 > 3) { print "max relative error " v "% > 3%"; exit 1 } }
+            END { if (!found) { print "summary line not found"; exit 1 } }'
+
+      - name: Precise (EPG) mode, all phantoms x all sequences (tests/modes.js epg)
+        run: |
+          node tests/modes.js epg | tee "$RUNNER_TEMP/modes_epg.log"
+          tail -n 1 "$RUNNER_TEMP/modes_epg.log" | grep -Eq ' bad 0( |$)'
+
+  test-bloch:
+    name: Bloch-equivalent mode (slow)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Bloch-equivalent mode, all phantoms x all sequences (tests/modes.js bloch)
+        run: |
+          node tests/modes.js bloch | tee "$RUNNER_TEMP/modes_bloch.log"
+          tail -n 1 "$RUNNER_TEMP/modes_bloch.log" | grep -Eq ' bad 0( |$)'

@@ -3,7 +3,7 @@ var MS=window.MS;
 MS.pack=function(r){ var tx=[]; var S=r.S, G=r.geo; var lab=new Int16Array(S*S); for(var q=0;q<S*S;q++) lab[q]=G.lab[q*G.ns*G.K];
   var outs=r.outs.map(function(o){ var x={name:o.name,kind:o.kind,unit:o.unit,range:o.range,othr:o.othr,spec:o.spec}; if(o.data){ x.data=new Float32Array(o.data); tx.push(x.data.buffer); } if(o.overlay){ x.overlay=new Float32Array(o.overlay); tx.push(x.overlay.buffer); } return x; });
   var km=null; for(var i=0;i<r.outs.length;i++) if(r.outs[i].kmag){ km=new Float32Array(r.outs[i].kmag); tx.push(km.buffer); break; }
-  var i2=r.info; var info={T:i2.T,snr0:i2.snr0,sar:i2.sar,W:i2.W,p:i2.p,R:i2.R,Rz:i2.Rz,CS:i2.CS,tres:i2.tres,dx:i2.dx,dy:i2.dy,dz:i2.dz,conc:i2.conc,tro:i2.tro,etlEPI:i2.etlEPI,radial:i2.radial};
+  var i2=r.info; var info={T:i2.T,snr0:i2.snr0,sar:i2.sar,W:i2.W,p:i2.p,R:i2.R,Rz:i2.Rz,CS:i2.CS,tres:i2.tres,dx:i2.dx,dy:i2.dy,dz:i2.dz,conc:i2.conc,tro:i2.tro,etlEPI:i2.etlEPI,radial:i2.radial,wrap:(r.geo&&r.geo.wrap)||0,bloch:i2.bloch,esp_epi:i2.p&&i2.p.esp_epi,readEPI:i2.readEPI};
   tx.push(lab.buffer);
   return {S:S, outs:outs, kmag:km, info:info, geo:{S:S,peV:G.peV,fov:G.fov,fovpe:G.fovpe}, labC:lab, tps:r.tps.map(function(t){ return {key:t.key,n:t.n,T1:t.T1,T2:t.T2,T2s:t.T2s,PD:t.PD,ADC:t.ADC,ff:t.ff,dR1:t.dR1}; }), tx:tx};
 };

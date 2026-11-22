@@ -14,65 +14,65 @@ S('fse_t2','fse','basic','FSE T2強調像','Turbo/Fast Spin Echo',['TSE','o'],['
 S('fse_pd','fse','basic','FSE プロトン密度強調像','TSE PD',['TSE','o'],['FSE','o'],'骨軟部で頻用。脂肪抑制併用で軟骨・半月板・骨髄浮腫を評価。',{tr:3000,te:30,etl:8,esp:9,refoc:150,bw:220,nex:1},['fs','restore','mt','satband']),
 S('fse_t1','fse','basic','FSE T1強調像','TSE T1',['TSE','o'],['FSE','o'],'短TR・短ETLのFSE。SE T1より速いが、ETLを伸ばすとT1コントラストが弱まる。',{tr:600,te:10,etl:3,esp:10,refoc:150,bw:200,nex:1},['fs','satband']),
 S('ssfse','ssfse','basic','シングルショットFSE（ハーフフーリエ）','Single-shot TSE / HASTE',['HASTE','o'],['FASE','o'],'1回の励起でk空間を全て埋める。動きに強く息止め・自由呼吸で使える。エコートレインが長く、T2減衰によるぼけが強い。',{tr:1200,te:90,esp:4.5,refoc:150,bw:500,nex:1,pf:0.55},['fs','satband']),
-S('stir','ir','basic','STIR','Short TI Inversion Recovery',['STIR（TIRM）','o'],['FastSTIR','c'],'反転パルス後、脂肪の縦磁化がゼロになる時刻（TI）で読み出し脂肪を抑制。磁場不均一に強いが、T1の短い組織（造影後の病変等）も抑制される。',{tr:4500,te:50,ti:160,etl:14,esp:9,refoc:150,bw:220,nex:1},['satband','mt']),
-S('flair','ir','basic','FLAIR','Fluid-Attenuated IR',['TIRM / Dark Fluid','o'],['FastFLAIR','c'],'長いTIで髄液を抑制したT2強調像。TR が短いと髄液の抑制が不十分。',{tr:9000,te:100,ti:2500,etl:18,esp:10,refoc:150,bw:200,nex:1},['fs','satband']),
-S('t1flair','ir','basic','T1-FLAIR','T1 FLAIR',['TIRM（T1 Dark Fluid）','c'],['FastFLAIR（T1）','x'],'中程度のTIで灰白質・白質のT1コントラストを強めたIR-FSE。',{tr:2200,te:10,ti:800,etl:6,esp:10,refoc:150,bw:200,nex:1},['satband']),
+S('stir','ir','basic','STIR','Short TI Inversion Recovery',['STIR（TIRM）','o'],['FastSTIR','o'],'反転パルス後、脂肪の縦磁化がゼロになる時刻（TI）で読み出し脂肪を抑制。磁場不均一に強いが、T1の短い組織（造影後の病変等）も抑制される。',{tr:4500,te:50,ti:160,etl:14,esp:9,refoc:150,bw:220,nex:1},['satband','mt']),
+S('flair','ir','basic','FLAIR','Fluid-Attenuated IR',['TIRM / Dark Fluid','o'],['FastFLAIR','o'],'長いTIで髄液を抑制したT2強調像。TR が短いと髄液の抑制が不十分。',{tr:9000,te:100,ti:2500,etl:18,esp:10,refoc:150,bw:200,nex:1},['fs','satband']),
+S('t1flair','ir','basic','T1-FLAIR','T1 FLAIR',['TIRM（T1 Dark Fluid）','c'],['FastIR（T1強調）','o'],'中程度のTIで灰白質・白質のT1コントラストを強めたIR-FSE。',{tr:2200,te:10,ti:800,etl:6,esp:10,refoc:150,bw:200,nex:1},['satband']),
 S('psir_ir','ir','basic','Real IR／位相補正IR','Phase-sensitive / Real IR',['TIR（real）','c'],['Real IR','x'],'反転からの回復を符号付きで表示。T1の差を広いダイナミックレンジで見られる。',{tr:5000,te:12,ti:400,etl:7,esp:10,refoc:150,bw:200,nex:1},[],{real:true}),
-S('dir3d','fse3d','basic','3D DIR（二重反転）','Double IR',['SPACE DIR','c'],['Dual IR（3D FSE）','x'],'2回の反転で髄液と白質を抑制し、皮質・病変を強調。皮質病変の検出に用いる。',{tr:7500,te:280,ti:3000,ti2:450,etl:200,esp:4.2,refoc:120,bw:600,npart:160,thk:1.1,nex:1},['fs'],{dim:'3D',dir:true}),
-S('fse3d_t2','fse3d','basic','3D FSE T2（可変フリップ角）','3D TSE / VFA',['SPACE','o'],['FASE3D（3D FSE）','c'],'可変リフォーカス角で非常に長いエコートレインを使う等方性3D撮像。任意断面再構成ができる。表示TEは「T2等価TE」。',{tr:2500,te:120,etl:120,esp:4,refoc:120,bw:600,npart:160,thk:1,nex:1},['fs','restore'],{dim:'3D'}),
-S('flair3d','fse3d','basic','3D FLAIR','3D FLAIR (VFA)',['SPACE FLAIR','o'],['3D FLAIR（FASE3D）','x'],'等方性の3D FLAIR。多発性硬化症などで標準的。',{tr:5000,te:390,ti:1800,etl:220,esp:3.6,refoc:120,bw:650,npart:176,thk:1,nex:1},['fs'],{dim:'3D',ir:true}),
-S('fse3d_t1','fse3d','basic','3D FSE T1（ブラックブラッド）','3D TSE T1',['SPACE T1','o'],['3D FSE T1','x'],'流れる血液が無信号になる（ブラックブラッド）。血管壁・転移の検出に。',{tr:600,te:12,etl:30,esp:4,refoc:120,bw:500,npart:160,thk:1,nex:1},['fs'],{dim:'3D'}),
+S('dir3d','fse3d','basic','3D DIR（二重反転）','Double IR',['SPACE DIR','o'],['Dual IR（3D FSE）','x'],'2回の反転で髄液と白質を抑制し、皮質・病変を強調。皮質病変の検出に用いる。',{tr:7500,te:280,ti:3000,ti2:450,etl:200,esp:4.2,refoc:120,bw:600,npart:160,thk:1.1,nex:1},['fs'],{dim:'3D',dir:true}),
+S('fse3d_t2','fse3d','basic','3D FSE T2（可変フリップ角）','3D TSE / VFA',['SPACE','o'],['3D mVox（FASE3D mVox）','o'],'可変リフォーカス角で非常に長いエコートレインを使う等方性3D撮像。任意断面再構成ができる。表示TEは「T2等価TE」。',{tr:2500,te:120,etl:120,esp:4,refoc:120,bw:600,npart:160,thk:1,nex:1},['fs','restore'],{dim:'3D'}),
+S('flair3d','fse3d','basic','3D FLAIR','3D FLAIR (VFA)',['SPACE FLAIR','o'],['3D mVox FLAIR','o'],'等方性の3D FLAIR。多発性硬化症などで標準的。',{tr:5000,te:390,ti:1800,etl:220,esp:3.6,refoc:120,bw:650,npart:176,thk:1,nex:1},['fs'],{dim:'3D',ir:true}),
+S('fse3d_t1','fse3d','basic','3D FSE T1（ブラックブラッド）','3D TSE T1',['SPACE T1','o'],['3D mVox T1W','o'],'流れる血液が無信号になる（ブラックブラッド）。血管壁・転移の検出に。',{tr:600,te:12,etl:30,esp:4,refoc:120,bw:500,npart:160,thk:1,nex:1},['fs'],{dim:'3D'}),
 /* ---- GRE・SSFP ---- */
-S('gre_t1','gre','gre','2D スポイルドGRE T1','Spoiled GRE',['FLASH','o'],['FE（RFスポイル）','c'],'RFスポイリングで横磁化を消し、T1強調を得る。フリップ角とTRで決まり、エルンスト角で信号最大。',{tr:150,te:4.6,fa:70,bw:250,nex:1},['fs','satband','flowcomp'],G2),
-S('gre_t2s','gre','gre','2D T2*強調GRE','T2* GRE',['FLASH（T2*）／MEDIC','o'],['FE（T2*）','c'],'長いTE・小さいフリップ角でT2*を強調。出血・石灰化・鉄沈着を低信号で示す。',{tr:600,te:20,fa:20,bw:120,nex:1},['flowcomp','satband'],G2),
+S('gre_t1','gre','gre','2D スポイルドGRE T1','Spoiled GRE',['FLASH','o'],['FE（RFスポイル）','o'],'RFスポイリングで横磁化を消し、T1強調を得る。フリップ角とTRで決まり、エルンスト角で信号最大。',{tr:150,te:4.6,fa:70,bw:250,nex:1},['fs','satband','flowcomp'],G2),
+S('gre_t2s','gre','gre','2D T2*強調GRE','T2* GRE',['FLASH（T2*）／MEDIC','o'],['FE（T2*）','o'],'長いTE・小さいフリップ角でT2*を強調。出血・石灰化・鉄沈着を低信号で示す。',{tr:600,te:20,fa:20,bw:120,nex:1},['flowcomp','satband'],G2),
 S('inopp','dixon','gre','In/Opposed-phase（2エコーGRE）','Dual-echo chemical shift',['FLASH in/opp','o'],['FE（in/out of phase）','x'],'水と脂肪が逆位相・同位相になるTEで撮像。少量の脂肪（脂肪肝・副腎腺腫）を逆位相の信号低下で検出。',{tr:150,te:2.3,te2:4.6,fa:70,bw:500,nex:1},['satband'],{gre:true,dixType:'gre2',outs:['op','ip']}),
 S('vibe','gre3d','gre','3D スポイルドGRE（脂肪抑制T1）','3D spoiled GRE',['VIBE','o'],['Quick 3D','c'],'腹部ダイナミック・造影の標準。息止めで薄いスライスの3D T1。',{tr:4,te:1.8,fa:12,bw:450,npart:56,thk:3.5,nex:1,pf:0.75,pos:0},['fs','satband'],{gre:true,dim:'3D',fsDef:'spair'}),
-S('vibe_dixon','dixon','gre','3D GRE Dixon（水・脂肪分離）','3D Dixon GRE',['VIBE Dixon','o'],['Quick 3D Dixon（WFS）','x'],'2つ以上のエコーから水画像・脂肪画像・同位相・逆位相を一度に作る。磁場不均一に強い均一な脂肪抑制。',{tr:6,te:2.4,te2:4.8,fa:10,bw:800,npart:72,thk:3,nex:1},['satband'],{gre:true,dim:'3D',dixType:'gre2',outs:['w','f','ip','op']}),
-S('starvibe','gre3d','gre','3D ラジアルGRE（自由呼吸）','Radial stack-of-stars GRE',['StarVIBE（FREEZEit）','o'],['（相当機能）','x'],'放射状にk空間を埋めるため呼吸の影響が分散し、自由呼吸で撮像できる。撮像時間はやや長い。',{tr:4,te:1.8,fa:12,bw:500,npart:72,thk:3,nex:1},['fs'],{gre:true,dim:'3D',radial:true,fsDef:'spair'}),
-S('mprage','mprage','gre','3D MPRAGE','MP-RAGE',['MPRAGE','o'],['3D MPRAGE（FastFE 3D）','c'],'反転パルスで準備した高速3D GRE。灰白質と白質のコントラストが高く、脳容積計測の標準。',{trs:2300,ti:1000,fa:9,esp:7,bw:200,npart:176,thk:1,nex:1},[],{gre:true,dim:'3D'}),
-S('mp2rage','mp2rage','gre','3D MP2RAGE','MP2RAGE',['MP2RAGE','o'],['（相当機能）','x'],'2つのTIで撮った画像を組み合わせ、受信感度・B1の影響を減らしたUNI画像とT1マップを作る。',{trs:5000,ti:700,ti2:2500,fa:4,fa2:5,esp:7,bw:240,npart:176,thk:1,nex:1},[],{gre:true,dim:'3D'}),
+S('vibe_dixon','dixon','gre','3D GRE Dixon（水・脂肪分離）','3D Dixon GRE',['VIBE Dixon','o'],['WFS DIXON（FE3D）','o'],'2つ以上のエコーから水画像・脂肪画像・同位相・逆位相を一度に作る。磁場不均一に強い均一な脂肪抑制。',{tr:6,te:2.4,te2:4.8,fa:10,bw:800,npart:72,thk:3,nex:1},['satband'],{gre:true,dim:'3D',dixType:'gre2',outs:['w','f','ip','op']}),
+S('starvibe','gre3d','gre','3D ラジアルGRE（自由呼吸）','Radial stack-of-stars GRE',['StarVIBE（FREEZEit）','o'],['Quick Star','o'],'放射状にk空間を埋めるため呼吸の影響が分散し、自由呼吸で撮像できる。撮像時間はやや長い。',{tr:4,te:1.8,fa:12,bw:500,npart:72,thk:3,nex:1},['fs'],{gre:true,dim:'3D',radial:true,fsDef:'spair'}),
+S('mprage','mprage','gre','3D MPRAGE','MP-RAGE',['MPRAGE','o'],['MPRAGE（FFE3D）','o'],'反転パルスで準備した高速3D GRE。灰白質と白質のコントラストが高く、脳容積計測の標準。',{trs:2300,ti:1000,fa:9,esp:7,bw:200,npart:176,thk:1,nex:1},[],{gre:true,dim:'3D'}),
+S('mp2rage','mp2rage','gre','3D MP2RAGE','MP2RAGE',['MP2RAGE','o'],['MP2RAGE','o'],'2つのTIで撮った画像を組み合わせ、受信感度・B1の影響を減らしたUNI画像とT1マップを作る。',{trs:5000,ti:700,ti2:2500,fa:4,fa2:5,esp:7,bw:240,npart:176,thk:1,nex:1},[],{gre:true,dim:'3D'}),
 S('bssfp','bssfp','gre','バランスドSSFP','Balanced SSFP',['TrueFISP','o'],['True SSFP','o'],'全軸の傾斜磁場を釣り合わせた定常状態。信号は T2/T1 比で決まり、血液・液体が明るい。磁場の不均一で帯状のアーチファクト（バンディング）が出る。',{tr:4,te:2,fa:60,bw:900,nex:1},['fs'],G2),
 S('ciss','bssfp','gre','位相サイクル併用 SSFP（CISS）','Phase-cycled bSSFP',['CISS','o'],['（True SSFP 位相サイクル）','x'],'位相をずらした2つのbSSFPを合成してバンディングを打ち消す。内耳・脳神経の高分解能撮像。',{tr:5.5,te:2.7,fa:50,bw:450,npart:64,thk:0.7,nex:1},[],{gre:true,dim:'3D',ciss:true}),
 S('fisp','fisp','gre','SSFP-FID（コヒーレントGRE）','SSFP-FID',['FISP','o'],['SSFP','c'],'横磁化を残す定常状態GRE。T2/T1 比とT1の混合コントラスト。',{tr:12,te:4,fa:40,bw:250,nex:1},[],G2),
 S('psif','psif','gre','SSFP-Echo（T2強調定常状態）','SSFP-Echo',['PSIF','o'],['（相当機能）','x'],'エコー成分を使う時間反転型SSFP。T2の影響が強い。拡散強調PSIFにも応用。',{tr:12,te:8,fa:40,bw:250,nex:1},[],G2),
 S('dess','dess','gre','DESS（2エコー定常状態）','Double Echo Steady State',['DESS','o'],['（相当機能）','x'],'FISP と PSIF のエコーを1回で収集し合成。膝軟骨の3D評価に用いる。',{tr:14,te:4.5,fa:25,bw:300,npart:120,thk:0.7,nex:1},['fs'],{gre:true,dim:'3D',fsDef:'we'}),
-S('swi','swi','gre','磁化率強調像（SWI）','Susceptibility-weighted imaging',['SWI','o'],['FSBB','c'],'3D GREの強度と位相を組み合わせ、静脈・微小出血・石灰化・鉄沈着を強調。位相の符号の向きは装置で異なるので要確認。',{tr:28,te:20,fa:15,bw:120,npart:72,thk:2,nex:1},['flowcomp'],{gre:true,dim:'3D',fcDef:true}),
+S('swi','swi','gre','磁化率強調像（SWI）','Susceptibility-weighted imaging',['SWI','o'],['FSBB','o'],'3D GREの強度と位相を組み合わせ、静脈・微小出血・石灰化・鉄沈着を強調。位相の符号の向きは装置で異なるので要確認。',{tr:28,te:20,fa:15,bw:120,npart:72,thk:2,nex:1},['flowcomp'],{gre:true,dim:'3D',fcDef:true}),
 /* ---- 拡散・EPI ---- */
 S('dwi','dwi','epi','拡散強調像（シングルショットEPI）','DWI (ss-EPI)',['ep2d_diff','o'],['DWI（EPI）','o'],'EPIで撮る拡散強調像。b値が大きいほど水分子の動きの差を強調。ADCマップも作る。EPIは磁化率の差で歪みやすい。',{tr:5000,te:65,bw:1500,nex:2,bvals:'0,1000',ndir:3,pf:0.75,nx:160,ny:160,thk:5},['fs'],{epi:true,fsDef:'spair'}),
 S('dwi_rs','dwi','epi','読出し分割型EPI拡散強調像','Readout-segmented EPI',['RESOLVE','o'],['（相当機能）','x'],'読出し方向に分割して収集し、エコー間隔を短くして歪み・ぼけを減らす。撮像時間は分割数に比例。',{tr:5000,te:60,bw:1000,nex:1,bvals:'0,1000',ndir:3,seg:5,nx:192,ny:192,thk:4},['fs'],{epi:true,fsDef:'spair'}),
-S('dwi_zoom','dwi','epi','小FOV拡散強調像','Reduced-FOV DWI',['ZOOMit','o'],['Zoom DWI','c'],'2次元選択励起で関心領域だけを励起し、位相方向のFOVを狭めても折り返さない。前立腺・脊髄・膵などで高分解能・低歪み。',{tr:4000,te:65,bw:1400,nex:4,bvals:'0,1000',ndir:3,fov:200,pfov:40,nx:128,ny:56,thk:3},['fs'],{epi:true,zoom:true,fsDef:'spair'}),
-S('dwibs','dwi','epi','背景抑制拡散強調像（DWIBS）','DWIBS (STIR-EPI)',['REVEAL（DWI + STIR）','c'],['Body DWI（STIR）','x'],'STIRで脂肪を抑え自由呼吸で広範囲を撮像。全身の病変検索に。',{tr:7000,te:65,ti:180,bw:1800,nex:4,bvals:'0,1000',ndir:3,nx:160,ny:128,thk:5},[],{epi:true,stir:true}),
-S('dti','dti','epi','拡散テンソル（DTI）','DTI',['DTI','o'],['DTI','c'],'多方向の拡散強調像から異方性（FA）と平均拡散能を計算。神経線維の走行評価。',{tr:7000,te:75,bw:1600,nex:1,bvals:'0,1000',ndir:30,nx:128,ny:128,thk:2.5},['fs'],{epi:true,fsDef:'spair'}),
-S('bold','bold','epi','BOLD fMRI','BOLD EPI',['BOLD（ep2d_bold）','o'],['BOLD','x'],'T2*強調EPIを連続撮像し、課題で増える酸素化Hb（デオキシHbの減少）による信号上昇を検出。',{tr:2000,te:30,fa:80,bw:2200,nex:1,nvol:150,nx:64,ny:64,thk:3.5,nsl:36},[],{epi:true,gre:true}),
-S('dsc','dsc','epi','造影灌流（DSC）','DSC perfusion',['ep2d_perf','c'],['Perfusion（EPI）','x'],'造影剤の初回循環で起こるT2*短縮から相対脳血液量を求める。',{tr:1500,te:30,fa:70,bw:2000,nex:1,nvol:60,nx:128,ny:128,thk:5,nsl:20},[],{epi:true,gre:true}),
+S('dwi_zoom','dwi','epi','小FOV拡散強調像','Reduced-FOV DWI',['ZOOMit','o'],['Zoom DWI','o'],'2次元選択励起で関心領域だけを励起し、位相方向のFOVを狭めても折り返さない。前立腺・脊髄・膵などで高分解能・低歪み。',{tr:4000,te:65,bw:1400,nex:4,bvals:'0,1000',ndir:3,fov:200,pfov:40,nx:128,ny:56,thk:3},['fs'],{epi:true,zoom:true,fsDef:'spair'}),
+S('dwibs','dwi','epi','背景抑制拡散強調像（DWIBS）','DWIBS (STIR-EPI)',['syngo REVEAL','o'],['Body DWI（STIR）','x'],'STIRで脂肪を抑え自由呼吸で広範囲を撮像。全身の病変検索に。',{tr:7000,te:65,ti:180,bw:1800,nex:4,bvals:'0,1000',ndir:3,nx:160,ny:128,thk:5},[],{epi:true,stir:true}),
+S('dti','dti','epi','拡散テンソル（DTI）','DTI',['DTI','o'],['DTI','o'],'多方向の拡散強調像から異方性（FA）と平均拡散能を計算。神経線維の走行評価。',{tr:7000,te:75,bw:1600,nex:1,bvals:'0,1000',ndir:30,nx:128,ny:128,thk:2.5},['fs'],{epi:true,fsDef:'spair'}),
+S('bold','bold','epi','BOLD fMRI','BOLD EPI',['BOLD（ep2d_bold）','o'],['BOLD（2D FE-EPI）','o'],'T2*強調EPIを連続撮像し、課題で増える酸素化Hb（デオキシHbの減少）による信号上昇を検出。',{tr:2000,te:30,fa:80,bw:2200,nex:1,nvol:150,nx:64,ny:64,thk:3.5,nsl:36},[],{epi:true,gre:true}),
+S('dsc','dsc','epi','造影灌流（DSC）','DSC perfusion',['ep2d_perf','c'],['Perfusion（EPI）','o'],'造影剤の初回循環で起こるT2*短縮から相対脳血液量を求める。',{tr:1500,te:30,fa:70,bw:2000,nex:1,nvol:60,nx:128,ny:128,thk:5,nsl:20},[],{epi:true,gre:true}),
 /* ---- MRA ---- */
-S('tof','tof','mra','3D TOF MRA','Time-of-flight',['TOF（TONE）','o'],['TOF（ISCE）','c'],'流入する未飽和の血液が明るく、静止組織は繰り返しパルスで飽和して暗い。面内を流れる血管・遅い流れは飽和して見えにくい。',{tr:23,te:3.5,fa:20,bw:180,npart:40,thk:0.6,slabs:4,nex:1},['tone','mt','vsat'],{gre:true,dim:'3D',mtDef:true,toneDef:true,vsatDef:true}),
-S('tof2d','tof','mra','2D TOF MRA','2D TOF',['2D TOF','o'],['2D TOF','c'],'1断面ずつ撮る TOF。遅い流れ（静脈）に強い。',{tr:20,te:4,fa:60,bw:200,thk:2.5,nex:1},['vsat','mt'],{gre:true}),
-S('pc','pc','mra','位相コントラスト（流速計測）','Phase contrast',['Phase Contrast（flow quant）','o'],['Phase Shift（PS）','c'],'双極傾斜磁場で流速を位相に変換。VENC を超える流速は位相が折り返す（エイリアシング）。',{tr:20,te:4,fa:20,bw:300,venc:150,thk:6,nex:1},[],{gre:true}),
+S('tof','tof','mra','3D TOF MRA','Time-of-flight',['TOF（TONE）','o'],['TOF（ISCE）','o'],'流入する未飽和の血液が明るく、静止組織は繰り返しパルスで飽和して暗い。面内を流れる血管・遅い流れは飽和して見えにくい。',{tr:23,te:3.5,fa:20,bw:180,npart:40,thk:0.6,slabs:4,nex:1},['tone','mt','vsat'],{gre:true,dim:'3D',mtDef:true,toneDef:true,vsatDef:true}),
+S('tof2d','tof','mra','2D TOF MRA','2D TOF',['2D TOF','o'],['2D TOF','o'],'1断面ずつ撮る TOF。遅い流れ（静脈）に強い。',{tr:20,te:4,fa:60,bw:200,thk:2.5,nex:1},['vsat','mt'],{gre:true}),
+S('pc','pc','mra','位相コントラスト（流速計測）','Phase contrast',['Phase Contrast（flow quant）','o'],['Phase Shift（PS）','o'],'双極傾斜磁場で流速を位相に変換。VENC を超える流速は位相が折り返す（エイリアシング）。',{tr:20,te:4,fa:20,bw:300,venc:150,thk:6,nex:1},[],{gre:true}),
 S('fbi','ncmra_fbi','mra','非造影MRA（心電図同期3D FSE）','ECG-gated 3D FSE NC-MRA',['NATIVE-SPACE','o'],['FBI／FS-FBI','o'],'拡張期と収縮期の3D FSEを撮り、差分で動脈だけを残す。収縮期の速い動脈血は信号が抜ける。下肢・腹部で使う。',{tr:1700,te:60,etl:80,esp:4.5,refoc:150,bw:600,npart:40,thk:2.5,nex:1,spoil:30,ny:192,pf:0.6},['fs'],{dim:'3D',fsDef:'chess'}),
 S('timeslip','ncmra_ts','mra','非造影MRA（選択的反転・流入）','Inflow inversion bSSFP',['NATIVE-TrueFISP','o'],['Time-SLIP（True SSFP）','o'],'撮像範囲に反転パルス（タグ）をかけ、BBTI の間に流入した未反転の動脈血だけを明るく描く。腎動脈などで使う。',{tr:4.5,te:2.2,fa:90,bw:900,bbti:1200,npart:60,thk:1.5,nex:1},['fs'],{gre:true,dim:'3D',fsDef:'chess'}),
 S('qiss','ncmra_qiss','mra','非造影MRA（静止期シングルショット）','QISS',['QISS','o'],['（相当機能）','x'],'面内飽和で背景を抑え、静止期に流入した動脈血をシングルショットbSSFPで撮る。下肢動脈。',{tr:4,te:2,fa:90,bw:700,qi:230,thk:3,nex:1},['fs'],{gre:true}),
-S('cemra','cemra','mra','造影MRA','CE-MRA',['CE-MRA（CARE Bolus）','o'],['CE-MRA（Visual Prep）','c'],'造影剤の初回循環で血液のT1を大きく短縮させ、短TRの3D GREで撮る。造影前を差分。',{tr:3,te:1.1,fa:30,bw:600,npart:80,thk:1.2,nex:1,pf:0.75},[],{gre:true,dim:'3D'}),
+S('cemra','cemra','mra','造影MRA','CE-MRA',['CE-MRA（CARE Bolus）','o'],['CE-MRA（Visual Prep）','o'],'造影剤の初回循環で血液のT1を大きく短縮させ、短TRの3D GREで撮る。造影前を差分。',{tr:3,te:1.1,fa:30,bw:600,npart:80,thk:1.2,nex:1,pf:0.75},[],{gre:true,dim:'3D'}),
 S('twist','gre3d','mra','時間分解能造影MRA／ダイナミック','Time-resolved MRA (view sharing)',['TWIST','o'],['DRKS','c'],'k空間中心を頻回に、周辺を間引いて更新し（ビューシェアリング）、高い時間分解能で動態を追う。',{tr:3,te:1.1,fa:25,bw:650,npart:48,thk:1.5,nex:1,pa:20,pb:25},[],{gre:true,dim:'3D',twist:true}),
 /* ---- 体部 ---- */
-S('mrcp3d','mrcp','body','3D MRCP','3D heavily T2-weighted FSE',['SPACE MRCP','o'],['3D MRCP（FASE3D）','x'],'非常に長いTEで液体（胆汁・膵液）だけを残す。呼吸同期またはナビゲータで撮る。',{tr:4500,te:650,etl:140,esp:5,refoc:120,bw:400,npart:72,thk:1.2,nex:1},['fs'],{dim:'3D',fsDef:'spair'}),
-S('mrcp2d','mrcp2d','body','2D 厚切りMRCP','Thick-slab single-shot',['HASTE thick slab','o'],['FASE（厚切り）','c'],'40〜80 mm の厚いスライスを1回のシングルショットで撮る投影像。',{tr:6000,te:750,esp:6,refoc:150,bw:400,thk:50,nex:1,pf:0.6},['fs'],{fsDef:'spair'}),
-S('dixon_tse','dixon_tse','body','FSE Dixon（水・脂肪分離）','TSE Dixon',['TSE Dixon','o'],['WFOP（FSE）','c'],'FSEのエコー位置をずらして水・脂肪を分離。T2強調でも均一な脂肪抑制が得られる。',{tr:4000,te:80,etl:14,esp:9,refoc:150,bw:300,nex:1,dixpts:2},['restore'],{dixType:'tse',outs:['w','f','ip']}),
+S('mrcp3d','mrcp','body','3D MRCP','3D heavily T2-weighted FSE',['SPACE MRCP','o'],['3D MRCP（FASE3D）','o'],'非常に長いTEで液体（胆汁・膵液）だけを残す。呼吸同期またはナビゲータで撮る。',{tr:4500,te:650,etl:140,esp:5,refoc:120,bw:400,npart:72,thk:1.2,nex:1},['fs'],{dim:'3D',fsDef:'spair'}),
+S('mrcp2d','mrcp2d','body','2D 厚切りMRCP','Thick-slab single-shot',['HASTE thick slab','o'],['FASE（厚切り）','o'],'40〜80 mm の厚いスライスを1回のシングルショットで撮る投影像。',{tr:6000,te:750,esp:6,refoc:150,bw:400,thk:50,nex:1,pf:0.6},['fs'],{fsDef:'spair'}),
+S('dixon_tse','dixon_tse','body','FSE Dixon（水・脂肪分離）','TSE Dixon',['TSE Dixon','o'],['WFS DIXON（FSE2D）','o'],'FSEのエコー位置をずらして水・脂肪を分離。T2強調でも均一な脂肪抑制が得られる。',{tr:4000,te:80,etl:14,esp:9,refoc:150,bw:300,nex:1,dixpts:2},['restore'],{dixType:'tse',outs:['w','f','ip']}),
 S('pdff','pdff','quant','多エコーDixon（PDFF・R2*）','Multi-echo Dixon PDFF',['LiverLab（qDixon）','o'],['Fat Fraction Quantification','o'],'6エコー程度のGREで脂肪分率（PDFF）とR2*を同時に推定。脂肪肝・鉄過剰の定量。',{tr:9,te:1.1,dte:1.1,ne:6,fa:4,bw:1100,npart:64,thk:3.5,nex:1},[],{gre:true,dim:'3D'}),
-S('mre','mre','quant','MRエラストグラフィ','MR Elastography',['MR Elastography','o'],['MRE','x'],'外部の加振装置で肝に剪断波を伝え、波の長さから硬さ（kPa）を求める。線維化の評価。',{tr:50,te:20,fa:25,bw:300,freq:60,nsl:4,thk:10,nex:1},[],{gre:true}),
+S('mre','mre','quant','MRエラストグラフィ','MR Elastography',['MR Elastography','o'],['MR Elastography','o'],'外部の加振装置で肝に剪断波を伝え、波の長さから硬さ（kPa）を求める。線維化の評価。',{tr:50,te:20,fa:25,bw:300,freq:60,nsl:4,thk:10,nex:1},[],{gre:true}),
 /* ---- 心臓 ---- */
-S('cine','cine','cardiac','シネ（bSSFP）','Cine bSSFP',['TrueFISP cine','o'],['True SSFP cine','c'],'心電図同期・セグメント収集で心周期の動画を作る。時間分解能 = 1セグメントのライン数 × TR。',{tr:3.2,te:1.6,fa:55,bw:950,vps:12,thk:8,nex:1},[],{gre:true,ecgReq:true}),
-S('lge','lge','cardiac','遅延造影（LGE・PSIR）','Late gadolinium enhancement',['PSIR（IR-TurboFLASH）','o'],['LGE（PSIR）','x'],'造影後10分前後に、正常心筋がゼロになるTIで撮像。瘢痕・線維化が高信号。PSIRはTIの誤差に強い。',{tr:6,te:2.5,ti:300,fa:25,bw:300,vps:25,thk:8,nex:1},[],{gre:true,ecgReq:true,forceAgent:'eca',forcePhase:3}),
-S('molli','map_t1','cardiac','T1マッピング（MOLLI）','Modified Look-Locker',['MOLLI（MyoMaps）','o'],['MOLLI','c'],'複数のTIの画像からT1を推定。MOLLIは真のT1よりやや短く出る傾向がある。',{tr:2.8,te:1.2,fa:35,bw:1000,thk:8,nex:1},[],{gre:true,ecgReq:true}),
+S('cine','cine','cardiac','シネ（bSSFP）','Cine bSSFP',['TrueFISP cine','o'],['True SSFP cine','o'],'心電図同期・セグメント収集で心周期の動画を作る。時間分解能 = 1セグメントのライン数 × TR。',{tr:3.2,te:1.6,fa:55,bw:950,vps:12,thk:8,nex:1},[],{gre:true,ecgReq:true}),
+S('lge','lge','cardiac','遅延造影（LGE・PSIR）','Late gadolinium enhancement',['PSIR（IR-TurboFLASH）','o'],['PSIR','o'],'造影後10分前後に、正常心筋がゼロになるTIで撮像。瘢痕・線維化が高信号。PSIRはTIの誤差に強い。',{tr:6,te:2.5,ti:300,fa:25,bw:300,vps:25,thk:8,nex:1},[],{gre:true,ecgReq:true,forceAgent:'eca',forcePhase:3}),
+S('molli','map_t1','cardiac','T1マッピング（MOLLI）','Modified Look-Locker',['MOLLI（MyoMaps）','o'],['MOLLI','o'],'複数のTIの画像からT1を推定。MOLLIは真のT1よりやや短く出る傾向がある。',{tr:2.8,te:1.2,fa:35,bw:1000,thk:8,nex:1},[],{gre:true,ecgReq:true}),
 /* ---- 定量 ---- */
-S('t2map','map_t2','quant','T2マッピング（多エコーSE）','Multi-echo SE T2 map',['MapIt（T2）','o'],['T2 map','c'],'複数のTEのSE画像からT2を推定。軟骨・心筋・肝で使う。',{tr:1500,te:13,etl:8,esp:13,refoc:180,bw:200,nex:1},[],{}),
-S('t2smap','map_t2s','quant','T2*マッピング（多エコーGRE）','Multi-echo GRE T2* map',['MapIt（T2*）','o'],['T2* Relax Map','x'],'多エコーGREからT2*（R2*）を推定。鉄沈着の評価。空気との境界ではT2*が短く出る。',{tr:200,te:2.5,dte:2.5,ne:12,fa:20,bw:600,nex:1},[],{gre:true}),
+S('t2map','map_t2','quant','T2マッピング（多エコーSE）','Multi-echo SE T2 map',['MapIt（T2）','o'],['T2 map（FSE2D mEcho）','o'],'複数のTEのSE画像からT2を推定。軟骨・心筋・肝で使う。',{tr:1500,te:13,etl:8,esp:13,refoc:180,bw:200,nex:1},[],{}),
+S('t2smap','map_t2s','quant','T2*マッピング（多エコーGRE）','Multi-echo GRE T2* map',['MapIt（T2*）','o'],['FFE2D mEcho（T2* map）','o'],'多エコーGREからT2*（R2*）を推定。鉄沈着の評価。空気との境界ではT2*が短く出る。',{tr:200,te:2.5,dte:2.5,ne:12,fa:20,bw:600,nex:1},[],{gre:true}),
 S('t1map_vfa','map_vfa','quant','T1マッピング（可変フリップ角）','VFA T1 map',['VIBE VFA（MapIt）','c'],['（相当機能）','x'],'2つ以上のフリップ角の3D GREからT1を推定。B1の誤差に敏感。',{tr:5,te:1.5,fa:2,fa2:15,bw:450,npart:64,thk:3,nex:1},[],{gre:true,dim:'3D'}),
 /* ---- 応用・特殊 ---- */
-S('asl','asl','adv','動脈スピンラベリング（pCASL）','pCASL',['ASL（3D pCASL）','o'],['ASL','c'],'頸部で血液を磁気的に標識し、標識あり・なしの差から脳血流（CBF）を求める。造影剤不要。PLD が短いと血管内に信号が残る。',{tr:4600,te:16,pld:1800,ld:1800,npairs:8,bw:2300,nx:64,ny:64,thk:4,nex:1},[],{}),
-S('ute','ute','adv','超短TE（UTE）','Ultrashort TE',['UTE／PETRA','o'],['mUTE','x'],'0.1 ms 以下の超短TEで、通常は無信号の皮質骨・腱・半月板・肺から信号を得る。2エコーの差分で短T2成分を強調。',{tr:6,te:0.07,te2:2.3,fa:8,bw:700,nex:1},[],{gre:true}),
-S('mrs','mrs','adv','MRスペクトロスコピー（単一ボクセル）','Single-voxel MRS',['SVS（PRESS／STEAM）','o'],['SVS（PRESS／STEAM）','x'],'ボクセル内の代謝物（NAA・Cr・Cho・乳酸など）をスペクトルで表示。TE 135–144 ms では乳酸の二重線が下向き。',{tr:2000,te:30,navg:128,vox:15},[],{}),
-S('metal','fse','adv','金属アーチファクト低減FSE','Metal artifact reduction',['WARP（VAT＋SEMAC）','o'],['VAT（FSE）','c'],'受信帯域を広げ、VAT（view angle tilting）で面内のずれを、SEMAC で面直交方向のずれを補正する。',{tr:4000,te:30,etl:14,esp:8,refoc:150,bw:600,nex:2},['fs','vat','semac'],{vatDef:true})
+S('asl','asl','adv','動脈スピンラベリング（pCASL）','pCASL',['ASL（3D pCASL）','o'],['pCASL／mASTAR','o'],'頸部で血液を磁気的に標識し、標識あり・なしの差から脳血流（CBF）を求める。造影剤不要。PLD が短いと血管内に信号が残る。',{tr:4600,te:16,pld:1800,ld:1800,npairs:8,bw:2300,nx:64,ny:64,thk:4,nex:1},[],{}),
+S('ute','ute','adv','超短TE（UTE）','Ultrashort TE',['UTE／PETRA','o'],['mUTE','o'],'0.1 ms 以下の超短TEで、通常は無信号の皮質骨・腱・半月板・肺から信号を得る。2エコーの差分で短T2成分を強調。',{tr:6,te:0.07,te2:2.3,fa:8,bw:700,nex:1},[],{gre:true}),
+S('mrs','mrs','adv','MRスペクトロスコピー（単一ボクセル）','Single-voxel MRS',['SVS（PRESS／STEAM）','o'],['Single Voxel MRS','o'],'ボクセル内の代謝物（NAA・Cr・Cho・乳酸など）をスペクトルで表示。TE 135–144 ms では乳酸の二重線が下向き。',{tr:2000,te:30,navg:128,vox:15},[],{}),
+S('metal','fse','adv','金属アーチファクト低減FSE','Metal artifact reduction',['WARP（VAT＋SEMAC）','o'],['mART+（VAT）／mART EXP','o'],'受信帯域を広げ、VAT（view angle tilting）で面内のずれを、SEMAC で面直交方向のずれを補正する。',{tr:4000,te:30,etl:14,esp:8,refoc:150,bw:600,nex:2},['fs','vat','semac'],{vatDef:true})
 ];
 MS.SEQ={}; MS.SEQS.forEach(function(s){ MS.SEQ[s.id]=s; });
 
@@ -81,24 +81,24 @@ MS.VENDOR_OPTS=[
   ['並列画像（画像空間）','mSENSE','o','SPEEDER','o'],
   ['並列画像（k空間）','GRAPPA','o','（SPEEDER として統合）','c'],
   ['3D の CAIPIRINHA 型サンプリング','CAIPIRINHA','o','（相当機能）','x'],
-  ['同時多断面励起（SMS）','Simultaneous Multi-Slice','o','MultiBand SPEEDER','c'],
+  ['同時多断面励起（SMS）','Simultaneous Multi-Slice','o','MultiBand SPEEDER','o'],
   ['圧縮センシング','Compressed Sensing','o','Compressed SPEEDER','o'],
   ['深層学習再構成（雑音低減）','Deep Resolve Gain／Boost','o','AiCE','o'],
-  ['深層学習による高分解能化','Deep Resolve Sharp','o','PIQE','c'],
+  ['深層学習による高分解能化','Deep Resolve Sharp','o','PIQE','o'],
   ['高速3D収集','—','—','Fast 3D mode','o'],
-  ['ラジアル（ブレード）動き補正','BLADE','o','JET','c'],
-  ['呼吸同期・ナビゲータ','PACE','o','呼吸同期／RMC','c'],
-  ['化学シフト選択的脂肪抑制','Fat Sat','o','MSOFT（比較表）','c'],
+  ['ラジアル（ブレード）動き補正','BLADE','o','JET','o'],
+  ['呼吸同期・ナビゲータ','PACE','o','呼吸同期／RMC','o'],
+  ['化学シフト選択的脂肪抑制','Fat Sat','o','MSOFT','o'],
   ['断熱パルスの脂肪抑制','SPAIR','o','SPAIR','o'],
   ['水選択励起','Water Excitation','o','PASTA','o'],
-  ['Dixon 法（FSE）','TSE Dixon','o','WFOP','c'],
+  ['Dixon 法（FSE）','TSE Dixon','o','WFS DIXON','o'],
   ['FSE のフリップバック','RESTORE','o','T2 Plus','o'],
-  ['磁化移動（MT）パルス','MTC','o','SORS-STC','c'],
-  ['TOF の傾斜フリップ角','TONE','o','ISCE','c'],
-  ['ボーラスタイミング','CARE Bolus','o','Visual Prep','c'],
-  ['計算 b 値','Computed b-values','o','cDWI','c'],
-  ['金属アーチファクト（面内）','WARP（VAT）','o','VAT','c'],
-  ['金属アーチファクト（面直交）','Advanced WARP（SEMAC）','o','（相当機能）','x'],
+  ['磁化移動（MT）パルス','MTC','o','SORS-STC','o'],
+  ['TOF の傾斜フリップ角','TONE','o','ISCE','o'],
+  ['ボーラスタイミング','CARE Bolus','o','Visual Prep','o'],
+  ['計算 b 値','Computed b-values','o','cDWI','o'],
+  ['金属アーチファクト（面内）','WARP（VAT）','o','VAT（mART+）','o'],
+  ['金属アーチファクト（面直交）','Advanced WARP（SEMAC）','o','mART EXP','o'],
   ['ダイナミックのビューシェアリング','TWIST','o','DRKS','c']
 ];
 /* 公開版：裏付けのとれていないメーカー名称（確認度 x）は「—」にする */
@@ -134,7 +134,7 @@ MS.run=function(st){
   var ctx={st:st,sq:sq,info:info,ph:ph,geo:geo,tps:tps,motion:mot,wantK:true};
   MS.resetNoise(st.noiseSeed||12345);
   var outs=(K[sq.k]||K.fse)(ctx,p,sq,st);
-  if(st.bloch){ if(info.bloch) info.W.push({lv:'info',t:'Bloch準拠モードで計算（格子 '+info.bloch.N+'、エコー '+info.bloch.nE+' 種、'+(info.bloch.ms/1000).toFixed(1)+' 秒）。体動・流れの位相は含みません'}); else info.W.push({lv:'info',t:'このシーケンスは Bloch 準拠モードに未対応のため、通常の計算（精密計算 EPG つき）で表示しています'}); }
+  if(st.bloch){ if(info.bloch) info.W.push({lv:'info',t:'Bloch準拠モードで計算（格子 '+info.bloch.N+'、エコー '+info.bloch.nE+' 種、'+(info.bloch.ms/1000).toFixed(1)+' 秒）。体動は含みません'}); else info.W.push({lv:'info',t:'このシーケンスは Bloch 準拠モードに未対応のため、通常の計算（精密計算 EPG つき）で表示しています'}); }
   else if(st.epg) info.W.push({lv:'info',t:'精密計算（EPG）で組織の信号を計算しています'});
   return {outs:outs, info:info, geo:geo, ph:ph, tps:tps, sq:sq, S:S};
 };
@@ -198,7 +198,7 @@ K.ir=function(ctx,p,sq,st){ var TR=p.tr,TE=p.te,TI=p.ti,etl=p.etl,esp=p.esp,trn=
   if(sq.real){ var r=real(fz); return [{name:sq.n+'（実部・符号付き）', data:r, kmag:im.kmag, kind:'signed'}, Object.assign(o,{name:'強度画像（参考）'})]; }
   return [o]; };
 K.fse3d=function(ctx,p,sq,st){ var TR=p.tr,TE=p.te,etl=p.etl,esp=p.esp,trn=etl*esp; var isIR=!!sq.ir||!!p.ti&&!sq.dir; var refo=p.refoc||120;
-  if(epgOn(st)){ var refs=MS.EPG.vfaTrain(etl,refo); return [one(ctx,{fs:fsSig(st),tr:TR,train:{type:'fse3d',etl:etl,esp:esp,te:TE},sig:function(tp,df,b1){ var EP=MS.EPG, ne=eIdx(TE,esp,etl);
+  if(epgOn(st)){ var refs=MS.EPG.vfaTrain(etl,refo); return [one(ctx,{fs:fsSig(st),tr:TR,train:{type:'fse3d',etl:etl,esp:esp,te:TE},bloch:{type:'fse3d',tr:TR,trEPG:1e7,te:TE,etl:etl,esp:esp,refs:refs,slab:p.npart*p.thk,fT2:function(tp){ return fatT2fse(tp,esp); }},sig:function(tp,df,b1){ var EP=MS.EPG, ne=eIdx(TE,esp,etl);
     var Mw=1-E(-Math.max(0,TR-trn)/tp.T1), Mf=1-E(-Math.max(0,TR-trn)/tp.fT1), Trec=TR-trn-(p.ti||0);
     if(sq.dir){ Mw=Math.abs(MS.sig.dir(tp.T1,p.ti,p.ti2,TR-trn-p.ti)); Mf=Math.abs(MS.sig.dir(tp.fT1,p.ti,p.ti2,TR-trn-p.ti)); } else if(isIR){ Mw=Math.abs(MS.sig.ir(tp.T1,p.ti,Trec)); Mf=Math.abs(MS.sig.ir(tp.fT1,p.ti,Trec)); }
     var o={etl:etl,esp:esp,tr:1e7,b1:b1,refs:refs}, fT2=fatT2fse(tp,esp); var rw=EP.fse(tp.T1,tp.T2,o), rf_=EP.fse(tp.fT1,fT2,o); var fv=tp.v?E(-tp.v/6):1;
@@ -216,7 +216,7 @@ function greSig(p,st,TE,opt){ opt=opt||{}; var TR=p.tr, a=(opt.fa||p.fa)*D; var 
   var fc=st.flowcomp?1:E(-Math.pow(tp.v*TE/220,2)); var Mf=ep? MS.EPG.spgrM(tp.fT1,tp.fT2,TR,aa) : MS.sig.spgr(tp.fT1,1e9,TR,0,aa);
   return {w:tp.PD*(1-tp.ff)*Mw*E(-TE/tp.T2s)*(tp.v?fc:1), f:tp.PD*tp.ff*Mf*E(-TE/tp.fT2s)}; }; }
 K.gre=function(ctx,p,sq,st){ return [one(ctx,{fs:fsSig(st),tr:p.tr,gre:true,te:p.te,bloch:{type:'gre',tr:p.tr,te:p.te},sig:greSig(p,st,p.te)},sq.n)]; };
-K.gre3d=function(ctx,p,sq,st){ var slab=p.npart*p.thk; var o=one(ctx,{fs:fsSig(st),tr:p.tr,tmul:p.npart/(ctx.info.Rz||1),gre:true,te:p.te,sig:greSig(p,st,p.te,{slab:slab})},sq.n);
+K.gre3d=function(ctx,p,sq,st){ var slab=p.npart*p.thk; var o=one(ctx,{fs:fsSig(st),tr:p.tr,tmul:p.npart/(ctx.info.Rz||1),gre:true,te:p.te,bloch:{type:'gre3d',tr:p.tr,te:p.te,slab:slab},sig:greSig(p,st,p.te,{slab:slab})},sq.n);
   if(sq.twist){ var A=p.pa/100, Bv=p.pb/100; var tres=ctx.info.T*(A+(1-A)*Bv); ctx.info.tres=tres*1000; ctx.info.W.push({lv:'info',t:'時間分解能（1時相の更新間隔）≈ '+tres.toFixed(1)+' 秒（中心'+p.pa+'%・周辺'+p.pb+'%）。全k空間の時間幅は約 '+(ctx.info.T).toFixed(1)+' 秒'}); }
   return [o]; };
 K.dixon=function(ctx,p,sq,st){ var outs=[]; var a=MS.form(ctx,{tr:p.tr,gre:true,te:p.te,sig:greSig(p,st,p.te,{slab:sq.dim==='3D'?p.npart*p.thk:p.thk})}); var A=MS.finish(ctx,a);
@@ -284,7 +284,7 @@ K.dwi=function(ctx,p,sq,st){ var bs=(p.bvals||'0,1000').split(',').map(Number).f
   var stir=sq.stir||st.fs==='stir'; var fsm=stir?'none':(st.fs||'none');
   if(sq.zoom){ ctx.info.W.push({lv:'info',t:'小FOV励起：位相方向のFOV外は励起されないため折り返しません'}); }
   var outs=[], imgs=[];
-  bs.forEach(function(b){ var acq={fs:fsm,tr:TR,gre:false,te:TE,epi:{lines:lines,esp:esp},train:{type:'epi',etl:lines,esp:esp,te:TE},sig:function(tp,df,b1){
+  bs.forEach(function(b){ var acq={fs:fsm,tr:TR,gre:false,te:TE,epi:{nfull:Math.round(p.ny/Math.max(1,(ctx.info&&ctx.info.R)||p.r||1)),lines:lines,esp:esp},bloch:{type:'epi',gre:false,te:TE,tr:TR,esp:esp,R:R},train:{type:'epi',etl:lines,esp:esp,te:TE},sig:function(tp,df,b1){
       var M=1-E(-TR/tp.T1), Mf=1-E(-TR/tp.fT1); if(stir){ var ti=p.ti||(st.B0>=3?220:170); M=Math.abs(MS.sig.ir(tp.T1,ti,TR-ti)); Mf=Math.abs(MS.sig.ir(tp.fT1,ti,TR-ti)); }
       var ivim=tp.v?E(-b*0.02):1; var e=excF(b1)*refF(b1);
       return {w:tp.PD*(1-tp.ff)*M*E(-TE/tp.T2)*E(-b*tp.ADC/1000)*ivim*e, f:tp.PD*tp.ff*Mf*E(-TE/tp.fT2)*E(-b*0.02/1000)*e, T2b:tp.T2s*1.4, fT2b:tp.fT2s}; }};
@@ -302,7 +302,7 @@ K.dti=function(ctx,p,sq,st){ var o=K.dwi(ctx,p,sq,st); var b0=o[0].data, n=b0.le
   for(var r=0;r<S;r++) for(var c=0;c<S;c++){ var q=r*S+c, oo=((q)*G.ns)*G.K; var li=G.lab[oo]; var v=li>0?tps[li].fa:0; if(b0[q]<0.02*maxOf(b0)) v=0; fa[q]=Math.max(0,Math.min(1,v+MS.gauss()*sig*2)); }
   return [{name:'FAマップ',data:fa,kind:'map',unit:'FA',range:[0,1]}].concat(o); };
 K.bold=function(ctx,p,sq,st){ var TR=p.tr,TE=p.te,R=ctx.info.R, lines=Math.round(p.ny*(p.pf||1)/R);
-  var acq={fs:'none',tr:TR,gre:true,te:TE,epi:{lines:lines,esp:p.esp_epi},train:{type:'epi',etl:lines,esp:p.esp_epi,te:TE},sig:function(tp,df,b1){ var M=MS.sig.spgr(tp.T1,1e9,TR,0,p.fa*D*b1); return {w:tp.PD*(1-tp.ff)*M*E(-TE/tp.T2s), f:tp.PD*tp.ff*MS.sig.spgr(tp.fT1,1e9,TR,0,p.fa*D)*E(-TE/tp.fT2s), T2b:tp.T2s, fT2b:tp.fT2s}; }};
+  var acq={fs:'none',tr:TR,gre:true,te:TE,epi:{nfull:Math.round(p.ny/Math.max(1,(ctx.info&&ctx.info.R)||p.r||1)),lines:lines,esp:p.esp_epi},bloch:{type:'epi',gre:true,te:TE,tr:TR,esp:p.esp_epi,R:R},train:{type:'epi',etl:lines,esp:p.esp_epi,te:TE},sig:function(tp,df,b1){ var M=MS.sig.spgr(tp.T1,1e9,TR,0,p.fa*D*b1); return {w:tp.PD*(1-tp.ff)*M*E(-TE/tp.T2s), f:tp.PD*tp.ff*MS.sig.spgr(tp.fT1,1e9,TR,0,p.fa*D)*E(-TE/tp.fT2s), T2b:tp.T2s, fT2b:tp.fT2s}; }};
   var im=MS.form(ctx,acq), f=MS.finish(ctx,im), m=MS.mag(f); var G=ctx.geo, S=G.S, n=S*S; var ov=new Float32Array(n);
   var dR2=0.6*st.B0/1.5; var sigma=1/ctx.info.snr0; var nv=p.nvol||150;
   for(var r=0;r<S;r++) for(var c=0;c<S;c++){ var q=r*S+c, o=(q*G.ns)*G.K; var li=G.lab[o]; if(li<=0) continue; var k=ctx.tps[li].key; var x=G.xs[o], y=G.ys[o];

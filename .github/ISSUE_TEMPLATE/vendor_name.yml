@@ -1,0 +1,68 @@
+name: メーカー名称の修正 / Vendor name correction
+description: シーケンス名・機能名のメーカー別対応の修正・追加を提案する / Propose a correction or addition to the vendor name table
+labels: [vendor-name]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        出典（公開されている資料）を必ず書いてください。社外秘の資料は出典にしないでください。名称はソフトウェアのバージョン・地域で異なることがあります。
+        Please always give a public source. Do not cite confidential documents. Names can differ by software version and region.
+  - type: input
+    id: sequence
+    attributes:
+      label: シーケンス・機能 / Sequence or feature
+      placeholder: "例 / e.g. シングルショットFSE / single-shot FSE (ssfse)"
+    validations:
+      required: true
+  - type: dropdown
+    id: vendor
+    attributes:
+      label: メーカー / Vendor
+      options:
+        - Siemens Healthineers
+        - GE HealthCare
+        - Philips
+        - Canon Medical Systems
+        - Fujifilm
+        - United Imaging Healthcare
+    validations:
+      required: true
+  - type: input
+    id: current
+    attributes:
+      label: 現在の表示 / Current name
+      description: 「—」（未確認）なら「—」と / Write "—" if currently shown as unverified
+    validations:
+      required: true
+  - type: input
+    id: proposed
+    attributes:
+      label: 提案する名称 / Proposed name
+    validations:
+      required: true
+  - type: input
+    id: evidence
+    attributes:
+      label: 出典の URL・文献 / Evidence (URL or publication)
+      placeholder: "https://..."
+    validations:
+      required: true
+  - type: dropdown
+    id: confidence
+    attributes:
+      label: 確認度 / Confidence
+      options:
+        - "o: メーカーの公開資料で確認 / vendor's public documentation"
+        - "c: 第三者の比較表で確認 / third-party comparison table"
+        - "x: 未確認 / unverified"
+    validations:
+      required: true
+  - type: input
+    id: scope
+    attributes:
+      label: バージョン・地域（分かれば） / Software version and region (if known)
+      placeholder: "例 / e.g. syngo MR XA60, Japan"
+  - type: textarea
+    id: notes
+    attributes:
+      label: 補足 / Notes

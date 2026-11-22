@@ -91,3 +91,28 @@ node tests/learn_chk.js    # 勉強用の設定の整合
 node tests/img1.js head se_t2,se_dual 1.5 '{}' none && python3 tests/topng.py tests/out/head_img.pgm   # 画像を目で見る
 ```
 画面の配色は `src/themes.css`（`html[data-theme=…]` ごとに CSS 変数を上書き）で足せます。
+
+## 課題（自動判定）を追加する — `MS.addMission`
+
+`src/missions.js` と同じ形のオブジェクトを渡します。`crit` の各 `f(E)` は `{v: 表示する今の値, ok: 達成したか}` を返します。
+
+```js
+MS.addMission({ id:'my_t1', lv:'基礎', title:'T1強調像をつくる', ph:'head', seq:'se_t1', B0:1.5,
+  init:{p:{tr:2500, te:90}},                 // 出発時の条件（st.p と st）
+  goal:'T2 強調に近い条件です。T1 強調像にしてください。',
+  crit:[ {label:'白質 ＞ 灰白質', f:function(E){ return {v:'', ok:E.sig('wm')>E.sig('gm')}; }} ],
+  hints:['TR と TE を短くします。'], expl:'短い TR で T1 の差が、短い TE で T2 の影響の少なさが効きます。' });
+```
+
+`E` には `sig(組織キー)`（画像上の中央値）、`cnr(a,b)`、`snr`（既定条件を 100 とした %）、`T`（秒）、`sar`、`wrap`（折り返しの割合）、`csPix`（化学シフトの画素数）、`readEPI`（ms）、`p`（補正後のパラメータ）、`st` が入っています。
+
+## 「〜を優先して最適化」の目的を追加する — `MS.addOptGoal`
+
+```js
+MS.addOptGoal({ id:'quiet', n:'静かに（読出しを遅く）', d:'説明文',
+  keys:['bw','nex'],          // 動かしてよいパラメータ
+  c:{T:1.2, snr:0.9},         // 制約：時間は 1.2 倍まで、SNR は 0.9 倍以上
+  f:function(m,m0){ return m0.p.bw/m.p.bw; } });   // 大きいほど良い値
+```
+
+`m`・`m0` は候補といまの条件の `{T, snr, sar, vox, cnr, cs, p}` です。SAR の上限・分解能の維持・新しい警告を出さないことは、どの目的でも共通の制約として守られます。

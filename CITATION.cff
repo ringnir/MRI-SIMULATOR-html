@@ -1,0 +1,41 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it using the metadata in this file."
+type: software
+title: "MRI Parameter Simulator Pro (whole-body edition)"
+authors:
+  - family-names: Ito
+    given-names: Rintaro
+    affiliation: "Department of Innovative Biomedical Visualization, Nagoya University Graduate School of Medicine"
+    # orcid: "https://orcid.org/0000-0000-0000-0000"  # TODO: author's ORCID iD
+version: "1.0.0"
+date-released: 2026-11-22
+license: MIT
+repository-code: "https://github.com/ringnir/MRI-SIMULATOR-html"
+url: "https://ringnir.github.io/MRI-SIMULATOR-html/"
+# TODO: add the concept DOI after the first Zenodo release, e.g.
+# identifiers:
+#   - type: doi
+#     value: "10.5281/zenodo.XXXXXXX"
+#     description: "Concept DOI (all versions)"
+keywords:
+  - MRI
+  - magnetic resonance imaging
+  - education
+  - simulator
+  - pulse sequences
+  - image contrast
+  - k-space
+  - extended phase graphs
+  - Bloch equations
+  - radiology
+abstract: >-
+  An educational MRI simulator distributed as a single HTML file that runs
+  offline in a web browser. Changing the acquisition parameters of 60
+  sequences on 12 analytic virtual phantoms updates the simulated image, scan
+  time, SNR, SAR, tissue-contrast curves and k-space filling in real time;
+  tissue signals can optionally be computed with extended phase graphs (EPG)
+  or a Bloch-equivalent per-pixel mode. It also maps sequence and option names
+  across six scanner vendors with confidence flags, offers a learning mode, and
+  is available in Japanese, English and Simplified Chinese. It is an
+  educational approximation, not a medical device, and is not intended for
+  clinical use.

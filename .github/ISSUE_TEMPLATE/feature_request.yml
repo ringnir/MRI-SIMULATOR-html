@@ -1,0 +1,41 @@
+name: 機能の提案 / Feature request
+description: シーケンス・ファントム・パラメータ・学習項目・翻訳などの追加を提案する / Suggest a new sequence, phantom, parameter, learning item, translation or other feature
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        教育用のツールです。診療・装置の設定に使うための機能は対象外です。追加のしかたは docs/EXTENDING.md を参照してください。
+        This is an educational tool; features for clinical use or scanner configuration are out of scope. See docs/EXTENDING.md for how to add things.
+  - type: dropdown
+    id: kind
+    attributes:
+      label: 種類 / Kind
+      options:
+        - シーケンス / Sequence
+        - ファントム・病変 / Phantom or lesion
+        - パラメータ / Parameter
+        - 勉強用 / Learning mode
+        - 翻訳 / Translation
+        - 画面・操作 / UI
+        - その他 / Other
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: 提案 / Proposal
+      description: 何を、なぜ（どんな学習に役立つか） / What, and why (what it helps learners understand)
+    validations:
+      required: true
+  - type: textarea
+    id: references
+    attributes:
+      label: 参考文献・資料 / References
+      description: 信号式・組織値・名称の出典など / Sources for signal equations, tissue values or names
+  - type: checkboxes
+    id: contribute
+    attributes:
+      label: 協力 / Contribution
+      options:
+        - label: PR を送るつもりです / I plan to open a pull request

@@ -179,15 +179,16 @@ MS.geometry=function(ph,st,S){
   var N=ph.N, fn=ph.fn, field=ph.field;
   /* 磁場勾配 */
   var gx=new Float32Array(fn*fn); var hmm=P/fn; for(var j=0;j<fn;j++) for(var i=0;i<fn;i++){ var a=field[j*fn+Math.min(fn-1,i+1)]-field[j*fn+Math.max(0,i-1)], b=field[Math.min(fn-1,j+1)*fn+i]-field[Math.max(0,j-1)*fn+i]; gx[j*fn+i]=Math.sqrt(a*a+b*b)/(2*hmm); }
-  var ox=st.offX||0, oy=st.offY||0;
+  var ox=st.offX||0, oy=st.offY||0, nMain=0, nWrap=0;
   for(var r=0;r<S;r++) for(var c=0;c<S;c++){ for(var sy=0;sy<sub;sy++) for(var sx=0;sx<sub;sx++){
       var u=(c+(sx+0.5)/sub)/S*fov-fov/2; /* RO */ var v=(r+(sy+0.5)/sub)/S*fovpe-fovpe/2; /* PE */
       for(var kk=0;kk<K;kk++){ var w=v+(kk===0?0:(kk===1?-fovAcq:fovAcq)); var x,y; if(peV){ x=u; y=w; } else { x=w; y=u; } x+=ox; y+=oy;
         var o=((r*S+c)*ns+sy*sub+sx)*K+kk;
         if(Math.abs(x)>=P/2||Math.abs(y)>=P/2){ continue; }
         var li=ph.lab[Math.floor((y+P/2)/P*N)*N+Math.floor((x+P/2)/P*N)]; if(kk>0 && li===0) continue;
+        if(li>0){ if(kk===0) nMain++; else nWrap++; }
         lab[o]=li; ta[o]=bilin(ph.t1,ph.tn,P,x,y); tb[o]=bilin(ph.t2,ph.tn,P,x,y); tc[o]=bilin(ph.t3,ph.tn,P,x,y); fld[o]=bilin(field,fn,P,x,y); grd[o]=bilin(gx,fn,P,x,y); xs[o]=x; ys[o]=y; } } }
-  return {S:S,sub:sub,ns:ns,K:K,lab:lab,ta:ta,tb:tb,tc:tc,fld:fld,grd:grd,xs:xs,ys:ys,peV:peV,fov:fov,fovpe:fovpe,fovAcq:fovAcq};
+  return {wrap:nMain?nWrap/nMain:0,S:S,sub:sub,ns:ns,K:K,lab:lab,ta:ta,tb:tb,tc:tc,fld:fld,grd:grd,xs:xs,ys:ys,peV:peV,fov:fov,fovpe:fovpe,fovAcq:fovAcq};
 };
 
 /* B1（送信）不均一 */
@@ -205,6 +206,8 @@ function coilAt(ph,x,y){ var P=ph.P, c=ph.ph.coil, ce=ph.ph.coilC||[0,0];
   if(c==='breast'){ var dl=Math.hypot(x+75,y+40), dr=Math.hypot(x-75,y+40); return 0.5+0.9*E(-Math.min(dl,dr)/70); }
   var rx=x/170, ry=y/125; var r3=Math.sqrt(rx*rx+ry*ry); return 0.55+0.85*Math.pow(r3,2.2); }
 MS.b1At=b1At; MS.coilAt=coilAt;
+/* 拍動する血管の流れの波形（通常計算の信号変調と Bloch 準拠モードの流速に共通） */
+MS.pulsWave=function(t,rr){ return 1+0.6*Math.sin(2*PI*t/rr); };
 
 /* ---------- 1回の収集から画像を作る ----------
  acq: { sig(tp,df) -> {w, wph, f, fph, T2b, fT2b}, gre(bool), te(ms), perPixel(bool), fs, epi, train:{type,etl,esp,te}, nlines, timing, noise }
@@ -231,7 +234,7 @@ MS.form=function(ctx,acq){
   var nB1=7, b1v=[0.6,0.7,0.8,0.9,1.0,1.1,1.2];
   var tab={};
   function look(li,b1){ var bi=Math.max(0,Math.min(nB1-1,Math.round((b1-0.6)/0.1))); var key=li*8+bi; var r=tab[key]; if(!r){ r=tab[key]=acq.sig(tps[li],0,b1v[bi]); } return r; }
-  var epiShift=acq.epi? (acq.epi.lines*acq.epi.esp/1000) : 0; /* Hz → 取得画素 */
+  var epiShift=acq.epi? ((acq.epi.nfull||acq.epi.lines)*acq.epi.esp/1000) : 0; /* 画素ずれは位相方向の全ライン数（ny/R）で決まり、部分フーリエでは変わらない */ /* Hz → 取得画素 */
   var wsc=1/ns;
   var semac=st.semac||0, excBW=1200*(1+semac*0.6);
   var heartC=ph.ph.region==='chest'; var texs=tps.map(function(t){ return t?MS.texOf(t.key):null; });
@@ -297,7 +300,7 @@ MS.form=function(ctx,acq){
       var mr=1, mi=0;
       if(C.c===1||C.c===2||C.c===3){ var nav=Math.max(1,Math.round(p.nex||1)); var sr_=0, si_=0;
         for(var a=0;a<nav;a++){ var t=lineT[j3]+a*(ctx.info.T/nav)+a*0.37; var d=0, am=1;
-          if(C.c===1){ d=mot.resp*Math.sin(2*PI*t/3.7+0.3); } else if(C.c===2){ d=mot.card*Math.sin(2*PI*t/(pulsP)+1.1); } else { am=1+0.6*Math.sin(2*PI*t/pulsP); }
+          if(C.c===1){ d=mot.resp*Math.sin(2*PI*t/3.7+0.3); } else if(C.c===2){ d=mot.card*Math.sin(2*PI*t/(pulsP)+1.1); } else { am=MS.pulsWave(t,pulsP); }
           if(mot.radial && C.c!==3){ d*=0.25*((rnd()*2-1)); }
           var phs=-2*PI*(ky3*d*(mot.dirPE||1)/G.fovAcq);
           sr_+=am*cos(phs); si_+=am*sin(phs); }

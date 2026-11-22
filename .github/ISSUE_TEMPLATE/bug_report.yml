@@ -1,0 +1,56 @@
+name: 不具合の報告 / Bug report
+description: 表示・計算・操作の不具合を報告する / Report a display, calculation or usability problem
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        教育用の近似モデルです。実機の表示値と一致しないこと自体は不具合ではありません。患者の画像・情報は貼らないでください。
+        This is an educational approximation; differences from a real scanner's displayed values are not bugs by themselves. Do not post patient images or data.
+  - type: dropdown
+    id: version
+    attributes:
+      label: 版 / Version
+      options:
+        - 日本語 (index.html)
+        - English (en.html)
+        - 中文 (zh.html)
+      multiple: true
+    validations:
+      required: true
+  - type: input
+    id: env
+    attributes:
+      label: ブラウザ・OS・開き方 / Browser, OS and how it was opened
+      placeholder: "例 / e.g. Chrome 131, Windows 11, GitHub Pages (URL) or downloaded file"
+    validations:
+      required: true
+  - type: textarea
+    id: setting
+    attributes:
+      label: 設定 / Settings
+      description: 部位・病変・静磁場・シーケンス・変えたパラメータ（URL があれば貼ってください） / Anatomy, lesion, field strength, sequence and changed parameters (paste the URL if possible)
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: 再現の手順 / Steps to reproduce
+      placeholder: |
+        1.
+        2.
+        3.
+  - type: textarea
+    id: expected
+    attributes:
+      label: 期待した結果 / Expected behaviour
+      description: 物理的な誤りと考える場合は根拠（文献）も / If you think the physics is wrong, please give a reference
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: 実際の結果 / Actual behaviour
+      description: スクリーンショット・コンソールのエラーがあれば / Screenshots or console errors if any
+    validations:
+      required: true

@@ -40,6 +40,12 @@
 | 📱 **Smartphone layout** | Image and estimates stay pinned at the top; tabs at the bottom switch between anatomy, parameters, chart and details |
 | 🎨 **Themes** | Standard, Light, Dark (for reading rooms) and Warm (default), switchable at the top right |
 | 🎓 **Learning mode** | 15 common sequences with only the parameters that matter for learning, teaching points and presets |
+| 🎯 **Optimize for a goal** | One-click buttons — shorter scan, higher SNR, finer resolution, higher CNR, lower SAR — adjust parameters while respecting constraints (time, SNR, SAR, resolution). Review the before/after table, then apply or undo |
+| 🏆 **Tasks with auto-grading** | 11 tasks such as *Make a T2-weighted image*, *Remove aliasing* and *Reduce metal artifacts*. Automatic pass/fail, graded hints, and CSV export of time, hints used and changes made (usable for education research) |
+| 🔗 **Share by link** | Region, sequence, parameters and chart settings are encoded in the URL; opening the link restores the same conditions |
+| ⚖️ **Compare two conditions** | Compare a pinned image with the current one side by side, with a slider, or as a difference image, plus a table of changed parameters and time/SNR/SAR |
+| 📐 **Pulse sequence diagram** | RF, slice, phase, readout, ADC and signal timing drawn from the current parameters (TE, TR, ETL, TI, EPI…) |
+| ♿ **Accessibility** | Chart lines differ by dash pattern as well as color, keyboard operation (arrow keys read chart values), text descriptions for images and charts |
 
 ## Use
 
@@ -60,6 +66,14 @@ Translations are in `i18n/` (Japanese source string → translation); the build 
 ## Extending
 
 New sequences, techniques and phantoms are added by **dropping a file** into `src/seq/` (sequences, via `MS.addSeq`) or `src/ph/` (phantoms); the build picks them up automatically. Reuse an existing signal model in a few lines (`src/seq/se_t2.js`) or write a new one in `run` (`src/seq/se_dual.js`). Parameters: `MS.addParam`; learning items: `MS.addLearn`. Untranslated strings are listed in `i18n/missing_*.json` after a build. Details (Japanese): [docs/EXTENDING.md](docs/EXTENDING.md).
+
+## Contributing
+
+For bug reports, vendor-name corrections and proposals, see [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## Citation
+
+Please cite this software using the metadata in [CITATION.cff](CITATION.cff) ("Cite this repository" on GitHub gives APA and BibTeX). A DOI will be added after the first Zenodo release.
 
 ## License
 

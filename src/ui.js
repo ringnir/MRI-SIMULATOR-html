@@ -41,7 +41,10 @@ function buildLesions(){ var box=$('#les'); box.innerHTML=''; var ph=MS.PHANTOMS
 function vname(s){ if(vendor==='sie') return s.sie; if(vendor==='can') return s.can; if(vendor==='gen') return s.gen; return s.sie+' ／ '+s.can; }
 function buildSeqList(){ var box=$('#navigation'), q=($('#seqq').value||'').toLowerCase(); box.innerHTML='';
   function nb(label,small,active,fn){ var b=el('button',{type:'button',class:'nav-btn'+(active?' active':'')}); b.appendChild(document.createTextNode(label)); if(small) b.appendChild(el('small',{},small)); b.onclick=function(){ fn(); closeMenu(); }; if(active) b.setAttribute('aria-current','page'); return b; }
-  if(!q){ box.appendChild(el('div',{class:'nav-group'},'はじめに')); box.appendChild(nb('このツールの使い方','',view==='about',function(){ setView('about'); }));
+  if(!q){ var sw=el('div',{class:'modesw',role:'group','aria-label':'モードの切り替え'}); var cm=view==='sim'?mode:'';
+    [['learn','勉強用'],['mission','課題'],['expert','エキスパート']].forEach(function(m){ var b=el('button',{type:'button',class:cm===m[0]?'on':'','aria-pressed':String(cm===m[0])},m[1]); b.onclick=function(){ goMode(m[0]); closeMenu(); }; sw.appendChild(b); });
+    box.appendChild(sw);
+    box.appendChild(el('div',{class:'nav-group'},'はじめに')); box.appendChild(nb('このツールの使い方','',view==='about',function(){ setView('about'); }));
     box.appendChild(el('div',{class:'nav-group'},'勉強用（よく使うシーケンス）'));
     MS.LEARN.forEach(function(L){ var s=MS.SEQ[L.seq]; box.appendChild(nb(s.n,'',view==='sim'&&mode==='learn'&&st&&st.seq===L.seq,function(){ setView('sim'); startLearn(L.seq); })); });
     if(MS.MISSIONS){ var sv=solvedSet(); box.appendChild(el('div',{class:'nav-group'},'課題（自動判定）')); MS.MISSIONS.forEach(function(M){ box.appendChild(nb((sv[M.id]?'✓ ':'')+M.title,M.lv,view==='sim'&&mode==='mission'&&mission&&mission.id===M.id,function(){ setView('sim'); startMission(M.id); })); }); }
@@ -51,6 +54,12 @@ function buildSeqList(){ var box=$('#navigation'), q=($('#seqq').value||'').toLo
   MS.CATS.forEach(function(c){ var items=MS.SEQS.filter(function(s){ return s.cat===c[0] && (!q || (s.n+s.gen+s.sie+s.can+(s.ge||'')+(s.phi||'')+(s.fuji||'')+(s.uih||'')+s.d).toLowerCase().indexOf(q)>=0); }); if(!items.length) return; hit+=items.length;
     box.appendChild(el('div',{class:'nav-group'},c[1])); items.forEach(function(s){ box.appendChild(nb(s.n,'',view==='sim'&&mode==='expert'&&st&&st.seq===s.id,function(){ setView('sim'); endAttempt(); mode='expert'; newState(st.phantom,s.id,true); setHash('expert'); })); }); });
   if(q && !hit) box.appendChild(el('div',{class:'nav-group'},'該当なし')); }
+/* モードの切り替え（サイドバー上部） */
+function goMode(m){ setView('sim');
+  if(m==='learn'){ if(mode!=='learn') startLearn(MS.LEARN[0].seq); setHash('learn'); return; }
+  if(m==='mission'){ if(mode!=='mission'){ var sv=solvedSet(), M=MS.MISSIONS.filter(function(x){ return !sv[x.id]; })[0]||MS.MISSIONS[0]; startMission(M.id); } setHash('mission'); return; }
+  if(mode!=='expert'){ endAttempt(); mode='expert'; newState(st?st.phantom:'head',(st&&MS.SEQ[st.seq])?st.seq:'fse_t2',true); } setHash('expert'); }
+
 function setHash(h){ try{ history.replaceState(null,'','#'+h); }catch(e){} }
 function startLearn(seq){ endAttempt(); var L=MS.LEARN_MAP[seq]; mode='learn'; st=MS.defaultState(L.ph,seq,null); st.B0=B0pref; st.les={}; if(L.popt) Object.keys(L.popt).forEach(function(k){ st.popt[k]=L.popt[k]; }); (L.les||[]).forEach(function(k){ st.les[k]=true; }); if(L.agent){ st.agent=L.agent; st.cphase=L.cphase||0; }
   chart.mode='curve'; chart.xk=L.x; chart.metric=L.m; chart.A=L.A; chart.B=L.B; chart.hide={}; chart.follow=true; lastChanged=null; prevRes=null; manualW=null; cur=(seq==='dwi')?1:0; snrRef=null; refInfo();

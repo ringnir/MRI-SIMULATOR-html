@@ -105,6 +105,8 @@
 | `#mission` | Tasks (auto-graded) |
 | `#expert&c=…` | A link made with *Share link* that restores its conditions |
 
+**Switching modes.** Use the *Learning / Task / Expert* switch at the top of the sidebar (on phones, open it with the menu button at the top left). *Task* starts with the first task you have not solved yet.
+
 **Basics.** Choose the anatomy, lesions and field strength at the top, then move the parameters on the left; the image in the middle and the chart on the right update. The dashed vertical line in the chart is the current value. Drag on the image to change window width/level; double-click to reset. Click a parameter group heading to open or close it.
 
 **Optimizer.** The buttons above the parameters start from the current settings and propose changes that improve the chosen goal. To keep the type of weighting, TE, TR, TI and flip angle move only near their current values. Parallel imaging is limited to ×4, and compressed sensing to ×3 in 2D and ×8 in 3D. Suggestions come from an approximate model, so check the image (blurring, aliasing, uneven noise) before relying on them.

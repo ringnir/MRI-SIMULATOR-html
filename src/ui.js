@@ -24,7 +24,7 @@ var tmr=null; function schedule(){ if(mode==='mission'&&mrec&&!mrec.solved) mrec
 
 /* ---------- 部位・病変 ---------- */
 function buildPhantomSel(){ var box=$('#phantoms'); box.innerHTML=''; var used={};
-  function chip(k){ used[k]=1; var nm=MS.PHANTOMS[k].n; var b=el('button',{type:'button',class:'chipbtn','aria-pressed':String(!!st&&st.phantom===k),title:nm},nm); b.onclick=function(){ newState(k, st.seq); }; return b; }
+  function chip(k){ used[k]=1; var nm=MS.PHANTOMS[k].n; var b=el('button',{type:'button',class:'chipbtn','aria-pressed':String(!!st&&st.phantom===k),title:nm},nm); b.onclick=function(){ if(mode==='mission') quitMission(true); newState(k, st.seq); }; return b; }
   (MS.PH_GROUPS||[]).forEach(function(g){ var ks=g[1].filter(function(k){ return MS.PHANTOMS[k]; }); if(!ks.length) return; var row=el('div',{class:'phrow'}); row.appendChild(el('span',{class:'phlab'},g[0])); ks.forEach(function(k){ row.appendChild(chip(k)); }); box.appendChild(row); });
   var rest=Object.keys(MS.PHANTOMS).filter(function(k){ return !used[k]; }); if(rest.length){ var row=el('div',{class:'phrow'}); row.appendChild(el('span',{class:'phlab'},'その他')); rest.forEach(function(k){ row.appendChild(chip(k)); }); box.appendChild(row); } }
 function buildLesions(){ var box=$('#les'); box.innerHTML=''; var ph=MS.PHANTOMS[st.phantom];
@@ -174,7 +174,7 @@ function render(o,canvas,win,opts){ var S=res.S, peV=res.geo.peV; canvas.width=S
     if(edge){ var q2=peV? Y*S+Math.min(S-1,X+1) : Math.min(S-1,X+1)*S+Y, q3=peV? Math.min(S-1,Y+1)*S+X : X*S+Math.min(S-1,Y+1); if(lab[q]!==lab[q2]||lab[q]!==lab[q3]){ r=255; g=210; b=60; } }
     D[p]=r; D[p+1]=g; D[p+2]=b; D[p+3]=255; }
   ctx.putImageData(img,0,0); }
-function cssSize(){ var g=res.geo, wide=Math.min(($('#stage').clientWidth||480)/(pinned&&$('#stage').clientWidth>700?2.05:1),900); var ar=g.fovpe/g.fov; var w,h; if(g.peV){ w=wide; h=wide*ar; } else { w=wide*ar; h=wide;  } var mh=document.body.classList.contains('mob')? Math.max(160,Math.round(window.innerHeight*0.29)) : Math.max(260,Math.min(900,Math.round(window.innerWidth>=1200?window.innerHeight-330:(window.innerWidth>900?window.innerHeight*0.45:window.innerHeight-200)))); if(h>mh){ var k=mh/h; h=mh; w=w*k; } return [w,h]; }
+function cssSize(){ var g=res.geo; if(document.body.classList.contains('mob')){ var ar0=g.fovpe/g.fov, S=Math.min(200,Math.round(window.innerWidth*0.5)), w0,h0; if(g.peV){ w0=S; h0=S*ar0; } else { w0=S*ar0; h0=S; } var k0=S/Math.max(w0,h0); return [Math.round(w0*k0),Math.round(h0*k0)]; } var wide=Math.min(($('#stage').clientWidth||480)/(pinned&&$('#stage').clientWidth>700?2.05:1),900); var ar=g.fovpe/g.fov; var w,h; if(g.peV){ w=wide; h=wide*ar; } else { w=wide*ar; h=wide;  } var mh=document.body.classList.contains('mob')? Math.max(160,Math.round(window.innerHeight*0.29)) : Math.max(260,Math.min(900,Math.round(window.innerWidth>=1200?window.innerHeight-330:(window.innerWidth>900?window.innerHeight*0.45:window.innerHeight-200)))); if(h>mh){ var k=mh/h; h=mh; w=w*k; } return [w,h]; }
 function panel(o,title,sub,win,isPin){ var wrap=el('div',{class:'cv'}); var c=el('canvas'); render(o,c,win,{k:!isPin&&$('#showK').checked}); var sz=cssSize(); c.style.width=sz[0]+'px'; c.style.height=sz[1]+'px'; wrap.appendChild(c); c.setAttribute('role','img'); c.setAttribute('tabindex','0'); c.setAttribute('aria-label',String(title).replace(/<br>/g,'、').replace(/<[^>]+>/g,'')+'、'+String(o.name||'')+'。'+String(sub).replace(/<br>/g,'、').replace(/<[^>]+>/g,''));
   wrap.appendChild(el('div',{class:'lab',html:title})); wrap.appendChild(el('div',{class:'lab2',html:sub}));
   var pl=MS.PHANTOMS[st.phantom].plane; var L=pl==='sag'?['S','I','A','P']:(pl==='cor'?['S','I','R','L']:['A','P','R','L']); [['top:4px;left:50%',L[0]],['bottom:4px;left:50%',L[1]],['left:4px;top:50%',L[2]],['right:4px;top:50%',L[3]]].forEach(function(a){ var d=el('div',{class:'ori',style:a[0]},a[1]); wrap.appendChild(d); });
@@ -188,7 +188,7 @@ function show(r){ res=r; var o=res.outs[cur]||res.outs[0]; if(!res.outs[cur]) cu
   cmpTable();
   /* サムネイル */
   var th=$('#thumbs'); th.innerHTML=''; if(res.outs.length>1) res.outs.forEach(function(oo,i){ if(oo.kind==='spectrum') return; var b=el('button',{'aria-pressed':String(i===cur),title:oo.name}); var c=el('canvas'); render(oo,c,autoWin(oo),{}); c.style.width='96px'; c.style.height=Math.round(96*(res.geo.peV?res.geo.fovpe/res.geo.fov:res.geo.fov/res.geo.fovpe))+'px'; b.appendChild(c); b.appendChild(el('span',{},oo.name)); b.onclick=function(){ cur=i; manualW=null; show(res); }; th.appendChild(b); });
-  buildChartUI(); metrics(); kfill(); psdDraw(); bars(o); markAdjusted(); missionEval(); syncHash();
+  buildChartUI(); metrics(); kfill(); psdDraw(); bars(o); markAdjusted(); missionEval(); if(mode!=='mission') mstatHide(); syncHash();
   if(fresh&&chart.follow&&lastChanged&&chartKeys().indexOf(lastChanged)>=0&&chart.mode==='curve'&&chart.xk!==lastChanged){ chart.xk=lastChanged; } fresh=false;
   buildChartUI(); reqChart(); }
 function attachMouse(c,o,win){ var drag=null; c.onpointerdown=function(e){ drag={x:e.clientX,y:e.clientY,w:Object.assign({},win)}; c.setPointerCapture(e.pointerId); };
@@ -381,6 +381,8 @@ function init(){ tables(); try{ if(window.top!==window) $('#save').hidden=true; 
   $('#auto').onclick=function(){ manualW=null; if(res) show(res); };
   $('#pin').onclick=function(){ if(!res) return; if(pinned){ pinned=null; $('#pin').textContent='比較用に固定'; show(res); return; } var c=$('#stage canvas'); var cc=el('canvas'); cc.width=c.width; cc.height=c.height; cc.getContext('2d').drawImage(c,0,0); pinned={c:cc,t:MS.SEQ[st.seq].n+'（'+res.outs[cur].name+'）',seq:st.seq,B0:st.B0,fs:st.fs,p:JSON.parse(JSON.stringify(st.p)),i:{T:res.info.T,snr:res.info.snr0,sar:res.info.sar,dx:res.info.dx,dy:res.info.dy,dz:res.info.dz}}; $('#pin').textContent='固定を解除'; show(res); };
   (function(){ var d=$('#psdbox'); if(d) d.addEventListener('toggle',function(){ if(d.open) psdDraw(); }); })();
+  (function(){ var vt=document.querySelector('.pro-out .vtools'); if(!vt) return; var b=el('button',{type:'button',id:'vmore','aria-expanded':'false'},'表示…'); b.onclick=function(){ var on=vt.classList.toggle('more'); b.setAttribute('aria-expanded',String(on)); }; vt.appendChild(b); })();
+  (function(){ var w=$('#warns'); if(w) w.addEventListener('click',function(){ if(document.body.classList.contains('mob')) w.classList.toggle('open'); }); })();
   $('#share').onclick=function(){ syncHash(); var u=location.href; function done(){ toast('条件つきのリンクをコピーしました'); } try{ if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(u).then(done,function(){ window.prompt('このリンクをコピーしてください',u); }); else window.prompt('このリンクをコピーしてください',u); }catch(e){ window.prompt('このリンクをコピーしてください',u); } };
   $('#save').onclick=function(){ var c=$('#stage canvas'); if(!c) return; var a=el('a',{href:c.toDataURL('image/png'),download:'mrisim_'+st.seq+'.png'}); document.body.appendChild(a); a.click(); a.remove(); };
   $('#menu').onclick=function(){ var v=$('#sidebar').classList.toggle('open'); $('#shade').classList.toggle('visible',v); $('#menu').setAttribute('aria-expanded',String(v)); };
@@ -510,7 +512,7 @@ function missionCard(box){ var M=mission; $('#protop').classList.remove('one'); 
   var hb=el('div',{id:'mhints',class:'mhints'}); box.appendChild(hb);
   var row=el('div',{class:'sim-presets'}); var b1=el('button',{type:'button',id:'mhintbtn'},'ヒントを見る（0/'+M.hints.length+'）'); b1.onclick=function(){ if(mhint>=M.hints.length) return; mhint++; if(mrec&&!mrec.solved) mrec.hints++; renderHints(); };
   var b2=el('button',{type:'button'},'最初からやり直す'); b2.onclick=function(){ startMission(M.id); };
-  var b3=el('button',{type:'button'},'記録を書き出す（CSV）'); b3.onclick=exportRecs; row.appendChild(b1); row.appendChild(b2); row.appendChild(b3); box.appendChild(row);
+  var b3=el('button',{type:'button'},'記録を書き出す（CSV）'); b3.onclick=exportRecs; var b4=el('button',{type:'button',class:'mquit'},'課題をやめる'); b4.onclick=function(){ quitMission(); }; row.appendChild(b1); row.appendChild(b2); row.appendChild(b3); row.appendChild(b4); box.appendChild(row);
   box.appendChild(el('div',{id:'mresult'})); renderHints(); }
 function renderHints(){ var M=mission, hb=$('#mhints'); if(!hb||!M) return; hb.innerHTML=''; for(var i=0;i<mhint;i++) hb.appendChild(el('p',{class:'mhint'},'ヒント '+(i+1)+'：'+M.hints[i])); var b=$('#mhintbtn'); if(b){ b.textContent='ヒントを見る（'+mhint+'/'+M.hints.length+'）'; b.disabled=mhint>=M.hints.length; } }
 function missionEval(){ if(mode!=='mission'||!mission||!res||!res.outs||!res.outs[0]||!res.outs[0].data) return; var M=mission, i=res.info, cm=medians(res,res.outs[0]);
@@ -524,8 +526,13 @@ function missionEval(){ if(mode!=='mission'||!mission||!res||!res.outs||!res.out
     var t=mrec?Math.round((mrec.tSolve-mrec.start)/1000):0; rb.innerHTML=''; var d=el('div',{class:'mdone'}); d.appendChild(el('b',{},'クリア！')); d.appendChild(el('span',{},'　所要時間 '+Math.floor(t/60)+':'+('0'+t%60).slice(-2)+'・ヒント '+(mrec?mrec.hints:0)+' 回・変更 '+(mrec?Math.max(0,mrec.changes):0)+' 回'));
     d.appendChild(el('p',{},M.expl)); var idx=MS.MISSIONS.indexOf(M), nx=MS.MISSIONS[idx+1]; if(nx){ var bn=el('button',{type:'button'},'次の課題へ：'+nx.title); bn.onclick=function(){ startMission(nx.id); }; d.appendChild(bn); } rb.appendChild(d); }
   else rb.innerHTML=''; }
+/* 課題を終えて、いまの条件のままエキスパート用へ */
+function quitMission(silent){ if(mode!=='mission') return; endAttempt(); mode='expert'; mission=null; mrec=null; mhint=0; mstatHide();
+  var c=$('#learncard'); if(c){ c.hidden=true; c.innerHTML=''; } $('#protop').classList.add('one');
+  if(!silent){ seqCard(); learnCard(); buildSeqList(); buildParams(); schedule(); toast('課題を終了しました'); } setHash('expert'); }
+
 function mstat(ok,n,all){ var b=$('#mstat'); if(!b){ var host=$('#metrics'); if(!host) return; b=el('button',{type:'button',id:'mstat',class:'mstat'}); b.onclick=function(){ if(document.body.classList.contains('mob')) setMtab('params'); var c=$('#learncard'); if(c) c.scrollIntoView({behavior:'smooth',block:'start'}); }; host.parentNode.insertBefore(b,host); }
-  b.hidden=false; b.className='mstat'+(all?' done':''); b.textContent=(all?'✓ 課題クリア：':'課題 ')+ok+'/'+n+' 達成'+(all?'':' — 条件を見る'); }
+  b.hidden=false; b.className='mstat'+(all?' done':''); b.textContent=(all?'✓ 課題クリア：':'課題 ')+ok+'/'+n+' 達成'; b.title='課題の条件を見る'; }
 function mstatHide(){ var b=$('#mstat'); if(b) b.hidden=true; }
 
 function exportRecs(){ var a=loadRecs(); var rows=[['id','title','start','solved','time_s','hints','changes','B0']]; a.forEach(function(r){ var M=MS.MISSION_MAP[r.id]; rows.push([r.id,M?M.title:'',r.start,r.solved?1:0,r.time,r.hints,r.changes,r.B0||'']); });

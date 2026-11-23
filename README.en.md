@@ -67,7 +67,7 @@
 
 | | |
 |---|---|
-| 💻📱 **Desktop and phone** | Laid out to fit a Full HD (1920×1080) screen. On phones (~390 px wide) the image and estimates stay pinned at the top and tabs at the bottom switch between anatomy, parameters, chart and details |
+| 💻📱 **Desktop and phone** | Laid out to fit a Full HD (1920×1080) screen. On phones (~390 px wide) a fixed-size image and key figures (scan time, SNR…) stay pinned at the top, parameters are laid out in two columns so several can be adjusted at once, and tabs at the bottom switch between anatomy, parameters, chart and details |
 | 🎨 **Themes** | Standard, Light, Dark (for reading rooms) and Warm (default), switchable at the top right |
 | ♿ **Accessibility** | Chart lines differ by dash pattern as well as color, keyboard operation (arrow keys read chart values), text descriptions for images and charts, visible focus |
 | 🌐 **Three languages, offline** | Japanese, English and Simplified Chinese. One HTML file; no installation or network needed, and nothing you enter is sent anywhere |

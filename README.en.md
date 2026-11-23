@@ -59,7 +59,7 @@
 | | |
 |---|---|
 | 🎯 **Optimize for a goal** | One-click buttons — Shorter scan, Higher SNR, Finer resolution, Higher contrast (CNR), Lower SAR — adjust parameters while respecting constraints (time, SNR, SAR, resolution). Review the before/after table, then apply or undo |
-| 🏆 **Tasks with auto-grading** | 24 tasks in four levels — Student, Basic, Advanced and Expert, six each — from *Make a T1-weighted image* to *High-resolution fat-suppressed PD of the knee at 3 T* and *Raise grey–white CNR in MPRAGE*. Automatic pass/fail, graded hints (the first names the parameters to change and marks them on screen), and CSV export of time, hints used and changes made (usable for teaching and education research) |
+| 🏆 **Tasks with auto-grading** | 28 tasks in four levels — Student, Basic, Advanced and Expert, seven each — from *Make a T1-weighted image* to *High-resolution fat-suppressed PD of the knee at 3 T* and *Raise grey–white CNR in MPRAGE*. Eight (⚠) are artifact tasks: they start from an image with deliberately introduced noise, respiratory ghosts, parallel-imaging noise, aliasing, chemical shift, metal, EPI distortion or several overlapping artifacts; you first identify the cause (multiple choice), then change the settings to reduce it (graded from the image background). Automatic pass/fail, graded hints (the first names the parameters to change and marks them on screen), and CSV export of time, hints used and changes made (usable for teaching and education research) |
 | 🎓 **Learning mode** | 15 common sequences with only the parameters that matter for learning, teaching points and presets |
 | 🔗 **Share by link** | Region, sequence, parameters and chart settings are encoded in the URL; opening the link restores the same conditions (handy for slides or answering questions) |
 
@@ -166,7 +166,7 @@ node tests/all.js              # all phantoms × all sequences × 1.5/3 T (a few
 node tests/learn_chk.js        # learning-mode settings
 node tests/optim_test.js       # optimizer never makes things worse
 node tests/mission_chk.js      # tasks evaluate and are solvable
-python3 tests/ui_missions.py en.html     # in the browser: all 24 tasks start unsolved and clear with a known solution (needs playwright)
+python3 tests/ui_missions.py en.html     # in the browser: all 28 tasks start unsolved and clear with a known solution (needs playwright)
 node tests/psd_test.js         # pulse sequence diagrams for every sequence
 node tests/epg_validate.js     # EPG vs isochromat Bloch simulation
 node tests/modes.js epg        # precise mode, all phantoms × all sequences

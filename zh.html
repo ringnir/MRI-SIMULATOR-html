@@ -725,6 +725,16 @@ body.mob.simview.minichart #v-sim>.pro-out .sim-image h3::after{content:attr(dat
 .mlvdone{font-weight:700;color:var(--rt-ok,#17804a)}
 body.mob .mlvsel button{font-size:11.5px;padding:3px 8px}
 .modesw .swn{font-size:10px;font-weight:500;opacity:.8}
+
+/* 課題：アーチファクトの種類を答える */
+.mquiz{margin:8px 0 6px;padding:8px 10px;border:1px solid var(--rt-line);border-radius:8px;background:var(--rt-surface-2)}
+.mquiz .mq{font-size:13.5px;font-weight:700;margin:2px 0 6px}
+.mqopts{display:flex;flex-wrap:wrap;gap:5px}
+.mqopts button{border:1px solid var(--rt-line-strong);background:var(--rt-surface);border-radius:999px;padding:4px 11px;font-size:12.5px;cursor:pointer}
+.mqopts button.ok{background:var(--rt-ok-soft,#eaf7ef);border-color:var(--rt-ok,#17804a);color:var(--rt-ok,#17804a);font-weight:700}
+.mqopts button.ng{text-decoration:line-through;opacity:.55}
+.mqfb{font-size:12.5px;margin:6px 0 2px} .mqfb.ok{color:var(--rt-ok,#17804a)} .mqfb.ng{color:var(--rt-danger,#b42318)}
+.sidebar .nav-btn .art{font-size:11px;margin-right:3px}
 #toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);background:var(--rt-ink,#1b2430);color:#fff;padding:9px 16px;border-radius:999px;font-size:13.5px;opacity:0;pointer-events:none;transition:all .2s;z-index:100}
 #toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
 body.mob #toast{bottom:84px}
@@ -4655,12 +4665,48 @@ MS.drawPSD=function(canvas,sq,p,st,opts){
      E.csPix       … 化学シフト（読出し方向、画素）
      E.readEPI     … EPI の読出し時間（ms）
      E.p / E.st    … 補正後のパラメータ／状態
+   art:true はアーチファクト対策の課題（quiz：最初に原因を選ぶ問題。正解すると達成条件の 1 つになる）。ui:true は画像で判定する（E.bg：体の外の平均信号 ÷ 組織の中央値 ×100、雑音とゴーストで上がる）ため Node の試験では解の確認を省く。
    各課題の lv は '学生' '基礎' '応用' 'エキスパート' のいずれか、keys はヒント 1 で示す「動かすパラメータ」（PDEF のキー、または fs・vat・semac）。
    追加するときは MS.addMission({...}) を src/seq/*.js などから呼ぶ。 */
 (function(){
 var MS=window.MS;
 function rng(v,a,b){ return v>=a&&v<=b; }
 MS.MISSIONS=[
+ { id:'art_noise', art:true, ui:true, keys:['thk','nx','ny','bw','nex'], lv:'学生', title:'减少颗粒感（噪声）', ph:'head', seq:'fse_t2', B0:1.5,
+   init:{p:{thk:2,nx:384,ny:384,bw:400}},
+   quiz:{q:'这张图像最明显的问题是什么？', opts:['噪声（SNR 不足）','运动伪影','卷褶','化学位移'], a:0, why:'2 mm 薄层、384 的细矩阵和宽带宽，使噪声相对于每个体素的信号偏大。'},
+   goal:'图像颗粒感明显。请使背景噪声不超过白质的 6%，扫描时间 3 分钟以内。',
+   crit:[ {label:'背景噪声 ≤ 白质的 6%', f:function(E){ var b=E.bg('wm'); return {v:b.toFixed(1)+'%', ok:b<=6}; }},
+          {label:'扫描时间 ≤ 3:00', f:function(E){ return {v:mmss(E.T), ok:E.T<=180}; }} ],
+   hints:['SNR 与体素体积、√（平均次数）和 1/√（带宽）成正比。','只靠平均来补偿会使时间过长。请重新考虑层厚、矩阵和带宽。'],
+   expl:'减少噪声有三种方法：增大体素、增加平均次数、缩窄带宽。每种都要以分辨率、时间或化学位移为代价，需根据目的取得平衡。' },
+ { id:'art_resp', art:true, ui:true, keys:['resp'], lv:'基础', title:'消除呼吸伪影', ph:'abdomen', seq:'fse_t2', B0:1.5,
+   init:{st:{resp:'none'}},
+   quiz:{q:'沿相位方向排列的肝脏和皮下脂肪的重影，原因是什么？', opts:['噪声','呼吸运动伪影','金属','卷褶'], a:1, why:'呼吸使腹壁和肝脏在每次编码间移动时，会沿相位方向出现错位的“鬼影”。'},
+   goal:'这个自由呼吸 FSE T2 出现了呼吸伪影。请使背景伪影不超过肝脏的 17%。',
+   crit:[ {label:'背景伪影 ≤ 肝脏的 17%', f:function(E){ var b=E.bg('liver'); return {v:b.toFixed(1)+'%', ok:b<=17}; }},
+          {label:'若屏气：扫描时间 ≤ 20 秒', f:function(E){ return {v:E.st.resp==='bh'?mmss(E.T):'', ok:E.st.resp!=='bh'||E.T<=20}; }} ],
+   hints:['在“呼吸”设置中选择应对运动的方法。','这个扫描接近 2 分钟，屏气无法完成。考虑呼吸门控或放射状采集。'],
+   expl:'运动伪影可通过“停止运动（屏气）”“配合运动（呼吸门控、导航）”“抗运动采集（放射状、单次激发）”来减少。关键是选择与扫描时间相适应的方法。' },
+ { id:'art_gfac', art:true, ui:true, keys:['r','rz','pf','pfz'], lv:'进阶', title:'减少并行成像的噪声不均', ph:'abdomen', seq:'vibe', B0:1.5,
+   init:{p:{r:4}, st:{resp:'bh'}},
+   quiz:{q:'为什么图像越靠中心颗粒感越强？', opts:['并行成像加速过度（g 因子）','呼吸伪影','化学位移','磁化率'], a:0, why:'并行成像利用线圈灵敏度差异解卷褶。加速越高，在灵敏度差异小的中心附近噪声被放大（g 因子）。'},
+   goal:'这个屏气 3D T1 使用了 4 倍并行成像，噪声增加。请使背景不超过肝脏的 6.5%，扫描时间 15 秒以内，SNR 80% 以上。',
+   crit:[ {label:'背景噪声 ≤ 肝脏的 6.5%', f:function(E){ var b=E.bg('liver'); return {v:b.toFixed(1)+'%', ok:b<=6.5}; }},
+          {label:'扫描时间 ≤ 15 秒', f:function(E){ return {v:E.T.toFixed(1)+' 秒', ok:E.T<=15}; }},
+          {label:'SNR ≥ 80%', f:function(E){ return {v:Math.round(E.snr)+'%', ok:E.snr>=80}; }} ],
+   hints:['降低加速可减少噪声，但时间会延长。','不要只依赖并行成像，可结合层面方向部分傅里叶等其他缩时方法。'],
+   expl:'并行成像使 SNR 降为 1/(g√R)，且 R 越大 g 增加越快。把缩时分配给并行成像、部分傅里叶和层面方向加速，可在相同时间内抑制噪声。' },
+ { id:'art_combo', art:true, ui:true, keys:['resp','pfov','pos','r'], lv:'专家', title:'腹部 3D T1：消除所有叠加的伪影', ph:'abdomen', seq:'vibe', B0:1.5,
+   init:{p:{pfov:60}, st:{resp:'none'}},
+   quiz:{q:'这张图像中叠加了哪些问题？', opts:['呼吸伪影和卷褶','噪声与化学位移','金属与磁化率','条带伪影和噪声'], a:0, why:'自由呼吸导致沿相位方向出现鬼影，且相位方向 FOV 小于身体，身体卷褶到对侧。'},
+   goal:'这是自由呼吸、相位 FOV 60% 的 3D T1。请同时消除鬼影和卷褶，扫描时间 20 秒以内，SNR 70% 以上。',
+   crit:[ {label:'卷褶 ＜ 1%', f:function(E){ return {v:(E.wrap*100).toFixed(1)+'%', ok:E.wrap<0.01}; }},
+          {label:'背景伪影 ≤ 肝脏的 5%', f:function(E){ var b=E.bg('liver'); return {v:b.toFixed(1)+'%', ok:b<=5}; }},
+          {label:'扫描时间 ≤ 20 秒', f:function(E){ return {v:E.T.toFixed(1)+' 秒', ok:E.T<=20}; }},
+          {label:'SNR ≥ 70%', f:function(E){ return {v:Math.round(E.snr)+'%', ok:E.snr>=70}; }} ],
+   hints:['原因有两个，请逐一确认（只修正一个不会通过）。','3D T1 在 20 秒以内可屏气完成。增大 FOV 延长的时间用并行成像补回。'],
+   expl:'实际图像中常有多种伪影叠加。要分辨沿相位方向的像是“运动（模糊的鬼影）”还是“卷褶（清晰的身体部分）”，并针对各原因处理。' },
  { id:'s_t1w', keys:['tr','te'], lv:'学生', title:'做出 T1 加权像', ph:'head', seq:'se_t1', B0:1.5,
    init:{p:{tr:2500,te:90}},
    goal:'当前条件接近 T2 加权。请做出白质比灰质亮、脑脊液暗的 T1 加权像。',
@@ -4781,7 +4827,7 @@ MS.MISSIONS=[
           {label:'扫描时间 ≤ 4 分钟', f:function(E){ return {v:mmss(E.T), ok:E.T<=240}; }} ],
    hints:['T1 加权需要短 TR 和短 TE。','提高 SNR 的方法：增加层厚或 FOV、减小矩阵、增加平均次数、缩窄带宽。','时间 = TR × 相位矩阵 × 平均次数。降低 TR 并把省下的时间用于平均也是一个办法。'],
    expl:'CNR 由信号差 × SNR 决定。把 TR 设在两种组织的 T1 之间可增大差异，把节省的时间用于平均可使 SNR 提高 √NEX 倍。也要注意与分辨率（体素体积）的权衡。' },
- { id:'alias', keys:['pfov','pos','r','pf'], lv:'基础', title:'消除卷褶', ph:'abdomen', seq:'vibe', B0:1.5,
+ { id:'alias', art:true, quiz:{q:'为什么图像边缘会叠加出身体另一侧的影像？', opts:['卷褶（相位方向 FOV 不足）','运动伪影','化学位移','噪声'], a:0, why:'当身体大于相位方向 FOV 时，FOV 外的部分会卷褶到对侧并重叠。'}, keys:['pfov','pos','r','pf'], lv:'基础', title:'消除卷褶', ph:'abdomen', seq:'vibe', B0:1.5,
    init:{p:{pfov:50}},
    goal:'相位方向 FOV 小于身体，身体卷褶到对侧。请消除卷褶（屏气保持在 20 秒以内）。',
    crit:[ {label:'卷褶 ＜ 1%', f:function(E){ return {v:(E.wrap*100).toFixed(1)+'%', ok:E.wrap<0.01}; }},
@@ -4802,13 +4848,13 @@ MS.MISSIONS=[
           {label:'TE2 为同相位（±0.3 ms）', f:function(E){ var t=E.st.B0>=2.5?2.3:4.6; return {v:E.p.te2+' ms', ok:Math.abs(E.p.te2-t)<=0.3*(E.st.B0>=2.5?0.5:1)}; }} ],
    hints:['水与脂肪的频率差约 3.4 ppm，1.5T 时约 220 Hz，因此相位转一周约需 4.6 ms。','半周（反相位）为 2.3 ms，一周（同相位）为 4.6 ms。3T 时减半。'],
    expl:'水与脂肪相差 3.4 ppm，1.5T 下一周 ≈ 4.6 ms。反相位时同一体素内的水与脂肪相互抵消，含脂病变（腺瘤、脂肪肝）的信号下降。' },
- { id:'chemshift', keys:['bw'], lv:'基础', title:'使化学位移 ≤ 1 像素', ph:'knee', seq:'fse_pd', B0:3,
+ { id:'chemshift', art:true, quiz:{q:'脂肪与水的交界处一侧出现亮带、另一侧出现暗带，原因是什么？', opts:['化学位移（读出方向的偏移）','卷褶','运动伪影','磁化率'], a:0, why:'脂肪的共振频率比水低 3.4 ppm，因此在读出方向上偏移几个像素，在交界处形成明暗带。'}, keys:['bw'], lv:'基础', title:'使化学位移 ≤ 1 像素', ph:'knee', seq:'fse_pd', B0:3,
    init:{p:{bw:80}},
    goal:'3T 下接收带宽过窄，脂肪与水的边界发生错位。请将化学位移降到 1 个像素以内。',
    crit:[ {label:'化学位移 ≤ 1 像素', f:function(E){ return {v:E.csPix.toFixed(2)+' 像素', ok:E.csPix<=1}; }} ],
    hints:['化学位移（像素）＝ 水脂频率差（Hz）÷ 每像素带宽（Hz/像素）。','3T 时水脂频率差约 440 Hz。将带宽设为 440 Hz/像素 以上（SNR 会下降）。'],
    expl:'增宽带宽会增大每像素的频率范围，位移（像素数）随之减小。代价是噪声增加，SNR 与 √(BW) 成反比下降。' },
- { id:'metal', keys:['bw','fs','vat','semac'], lv:'进阶', title:'减少金属伪影', ph:'knee', seq:'metal', B0:1.5, les:{metal:true},
+ { id:'metal', art:true, quiz:{q:'金属周围的信号缺失和脂肪抑制不均，原因是什么？', opts:['磁化率（金属引起的磁场紊乱）','噪声','运动伪影','卷褶'], a:0, why:'金属会严重扰乱周围磁场，依赖频率的方法（读出、层面选择、脂肪抑制）都会受干扰。'}, keys:['bw','fs','vat','semac'], lv:'进阶', title:'减少金属伪影', ph:'knee', seq:'metal', B0:1.5, les:{metal:true},
    init:{p:{bw:130}, st:{fs:'chess',vat:false,semac:0}},
    goal:'金属周围信号缺失，脂肪抑制也不均匀。请设置能减少金属伪影的参数。',
    crit:[ {label:'接收带宽 ≥ 400 Hz/像素', f:function(E){ return {v:E.p.bw+' Hz/像素', ok:E.p.bw>=400}; }},
@@ -4816,7 +4862,7 @@ MS.MISSIONS=[
           {label:'不使用频率选择性脂肪抑制（CHESS/SPAIR）', f:function(E){ return {v:E.st.fs||'无', ok:E.st.fs!=='chess'&&E.st.fs!=='spair'}; }} ],
    hints:['金属附近磁场偏差很大，依赖频率的方法（脂肪抑制、层面选择、读出）都会受干扰。','增宽带宽、视角倾斜（VAT）和层面方向校正（SEMAC）都有效。','金属附近的脂肪抑制宜用 STIR（反转恢复）或 Dixon。'],
    expl:'金属会造成较大的局部频率偏移，引起读出方向偏移、层面变形与脂肪抑制失败。基本对策是组合使用高带宽、VAT、SEMAC 与 STIR/Dixon。' },
- { id:'epi', keys:['r','pf','ny'], lv:'进阶', title:'减少 DWI 变形', ph:'head', seq:'dwi', B0:3,
+ { id:'epi', art:true, quiz:{q:'额叶底部和颞叶看起来被拉伸或压缩，原因是什么？', opts:['磁化率引起的 EPI 变形','化学位移','噪声','卷褶'], a:0, why:'EPI 在相位方向每像素带宽很窄，空气与组织交界处的磁场偏差会直接变成位置偏移（变形）。'}, keys:['r','pf','ny'], lv:'进阶', title:'减少 DWI 变形', ph:'head', seq:'dwi', B0:3,
    init:{p:{r:1,pf:1,ny:192,nx:192}},
    goal:'3T 的 EPI 读出时间过长，变形明显。请将 EPI 读出时间缩短到 30 ms 以内。',
    crit:[ {label:'EPI 读出时间 ≤ 30 ms', f:function(E){ var r=E.readEPI||0; return {v:r?r.toFixed(1)+' ms':'—', ok:r>0&&r<=30}; }} ],
@@ -4832,7 +4878,7 @@ MS.MISSIONS=[
 ];
 function mmss(s){ s=Math.round(s); return Math.floor(s/60)+':'+('0'+(s%60)).slice(-2); }
 MS.MISSION_LEVELS=['学生','基础','进阶','专家'];
-var ORDER=['s_t1w','t2w','s_pd','flair','s_thin','s_half','b_fatsat','stir','inopp','chemshift','alias','b_hem','cnr_time','fast_t2','breathhold','a_sar','epi','metal','x_mprage','x_flair3','x_knee3','x_dwi3','x_vibe','x_mrcp'];
+var ORDER=['s_t1w','t2w','s_pd','flair','s_thin','s_half','art_noise','b_fatsat','stir','inopp','chemshift','alias','b_hem','art_resp','cnr_time','fast_t2','breathhold','a_sar','epi','metal','art_gfac','x_mprage','x_flair3','x_knee3','x_dwi3','x_vibe','x_mrcp','art_combo'];
 function ord(M){ var i=ORDER.indexOf(M.id); return i<0?999:i; }
 MS.MISSIONS.sort(function(a,b){ return (MS.MISSION_LEVELS.indexOf(a.lv)-MS.MISSION_LEVELS.indexOf(b.lv))||(ord(a)-ord(b)); });
 MS.MISSION_MAP={}; MS.MISSIONS.forEach(function(M){ MS.MISSION_MAP[M.id]=M; });
@@ -8775,12 +8821,48 @@ MS.drawPSD=function(canvas,sq,p,st,opts){
      E.csPix       … 化学シフト（読出し方向、画素）
      E.readEPI     … EPI の読出し時間（ms）
      E.p / E.st    … 補正後のパラメータ／状態
+   art:true はアーチファクト対策の課題（quiz：最初に原因を選ぶ問題。正解すると達成条件の 1 つになる）。ui:true は画像で判定する（E.bg：体の外の平均信号 ÷ 組織の中央値 ×100、雑音とゴーストで上がる）ため Node の試験では解の確認を省く。
    各課題の lv は '学生' '基礎' '応用' 'エキスパート' のいずれか、keys はヒント 1 で示す「動かすパラメータ」（PDEF のキー、または fs・vat・semac）。
    追加するときは MS.addMission({...}) を src/seq/*.js などから呼ぶ。 */
 (function(){
 var MS=window.MS;
 function rng(v,a,b){ return v>=a&&v<=b; }
 MS.MISSIONS=[
+ { id:'art_noise', art:true, ui:true, keys:['thk','nx','ny','bw','nex'], lv:'学生', title:'减少颗粒感（噪声）', ph:'head', seq:'fse_t2', B0:1.5,
+   init:{p:{thk:2,nx:384,ny:384,bw:400}},
+   quiz:{q:'这张图像最明显的问题是什么？', opts:['噪声（SNR 不足）','运动伪影','卷褶','化学位移'], a:0, why:'2 mm 薄层、384 的细矩阵和宽带宽，使噪声相对于每个体素的信号偏大。'},
+   goal:'图像颗粒感明显。请使背景噪声不超过白质的 6%，扫描时间 3 分钟以内。',
+   crit:[ {label:'背景噪声 ≤ 白质的 6%', f:function(E){ var b=E.bg('wm'); return {v:b.toFixed(1)+'%', ok:b<=6}; }},
+          {label:'扫描时间 ≤ 3:00', f:function(E){ return {v:mmss(E.T), ok:E.T<=180}; }} ],
+   hints:['SNR 与体素体积、√（平均次数）和 1/√（带宽）成正比。','只靠平均来补偿会使时间过长。请重新考虑层厚、矩阵和带宽。'],
+   expl:'减少噪声有三种方法：增大体素、增加平均次数、缩窄带宽。每种都要以分辨率、时间或化学位移为代价，需根据目的取得平衡。' },
+ { id:'art_resp', art:true, ui:true, keys:['resp'], lv:'基础', title:'消除呼吸伪影', ph:'abdomen', seq:'fse_t2', B0:1.5,
+   init:{st:{resp:'none'}},
+   quiz:{q:'沿相位方向排列的肝脏和皮下脂肪的重影，原因是什么？', opts:['噪声','呼吸运动伪影','金属','卷褶'], a:1, why:'呼吸使腹壁和肝脏在每次编码间移动时，会沿相位方向出现错位的“鬼影”。'},
+   goal:'这个自由呼吸 FSE T2 出现了呼吸伪影。请使背景伪影不超过肝脏的 17%。',
+   crit:[ {label:'背景伪影 ≤ 肝脏的 17%', f:function(E){ var b=E.bg('liver'); return {v:b.toFixed(1)+'%', ok:b<=17}; }},
+          {label:'若屏气：扫描时间 ≤ 20 秒', f:function(E){ return {v:E.st.resp==='bh'?mmss(E.T):'', ok:E.st.resp!=='bh'||E.T<=20}; }} ],
+   hints:['在“呼吸”设置中选择应对运动的方法。','这个扫描接近 2 分钟，屏气无法完成。考虑呼吸门控或放射状采集。'],
+   expl:'运动伪影可通过“停止运动（屏气）”“配合运动（呼吸门控、导航）”“抗运动采集（放射状、单次激发）”来减少。关键是选择与扫描时间相适应的方法。' },
+ { id:'art_gfac', art:true, ui:true, keys:['r','rz','pf','pfz'], lv:'进阶', title:'减少并行成像的噪声不均', ph:'abdomen', seq:'vibe', B0:1.5,
+   init:{p:{r:4}, st:{resp:'bh'}},
+   quiz:{q:'为什么图像越靠中心颗粒感越强？', opts:['并行成像加速过度（g 因子）','呼吸伪影','化学位移','磁化率'], a:0, why:'并行成像利用线圈灵敏度差异解卷褶。加速越高，在灵敏度差异小的中心附近噪声被放大（g 因子）。'},
+   goal:'这个屏气 3D T1 使用了 4 倍并行成像，噪声增加。请使背景不超过肝脏的 6.5%，扫描时间 15 秒以内，SNR 80% 以上。',
+   crit:[ {label:'背景噪声 ≤ 肝脏的 6.5%', f:function(E){ var b=E.bg('liver'); return {v:b.toFixed(1)+'%', ok:b<=6.5}; }},
+          {label:'扫描时间 ≤ 15 秒', f:function(E){ return {v:E.T.toFixed(1)+' 秒', ok:E.T<=15}; }},
+          {label:'SNR ≥ 80%', f:function(E){ return {v:Math.round(E.snr)+'%', ok:E.snr>=80}; }} ],
+   hints:['降低加速可减少噪声，但时间会延长。','不要只依赖并行成像，可结合层面方向部分傅里叶等其他缩时方法。'],
+   expl:'并行成像使 SNR 降为 1/(g√R)，且 R 越大 g 增加越快。把缩时分配给并行成像、部分傅里叶和层面方向加速，可在相同时间内抑制噪声。' },
+ { id:'art_combo', art:true, ui:true, keys:['resp','pfov','pos','r'], lv:'专家', title:'腹部 3D T1：消除所有叠加的伪影', ph:'abdomen', seq:'vibe', B0:1.5,
+   init:{p:{pfov:60}, st:{resp:'none'}},
+   quiz:{q:'这张图像中叠加了哪些问题？', opts:['呼吸伪影和卷褶','噪声与化学位移','金属与磁化率','条带伪影和噪声'], a:0, why:'自由呼吸导致沿相位方向出现鬼影，且相位方向 FOV 小于身体，身体卷褶到对侧。'},
+   goal:'这是自由呼吸、相位 FOV 60% 的 3D T1。请同时消除鬼影和卷褶，扫描时间 20 秒以内，SNR 70% 以上。',
+   crit:[ {label:'卷褶 ＜ 1%', f:function(E){ return {v:(E.wrap*100).toFixed(1)+'%', ok:E.wrap<0.01}; }},
+          {label:'背景伪影 ≤ 肝脏的 5%', f:function(E){ var b=E.bg('liver'); return {v:b.toFixed(1)+'%', ok:b<=5}; }},
+          {label:'扫描时间 ≤ 20 秒', f:function(E){ return {v:E.T.toFixed(1)+' 秒', ok:E.T<=20}; }},
+          {label:'SNR ≥ 70%', f:function(E){ return {v:Math.round(E.snr)+'%', ok:E.snr>=70}; }} ],
+   hints:['原因有两个，请逐一确认（只修正一个不会通过）。','3D T1 在 20 秒以内可屏气完成。增大 FOV 延长的时间用并行成像补回。'],
+   expl:'实际图像中常有多种伪影叠加。要分辨沿相位方向的像是“运动（模糊的鬼影）”还是“卷褶（清晰的身体部分）”，并针对各原因处理。' },
  { id:'s_t1w', keys:['tr','te'], lv:'学生', title:'做出 T1 加权像', ph:'head', seq:'se_t1', B0:1.5,
    init:{p:{tr:2500,te:90}},
    goal:'当前条件接近 T2 加权。请做出白质比灰质亮、脑脊液暗的 T1 加权像。',
@@ -8901,7 +8983,7 @@ MS.MISSIONS=[
           {label:'扫描时间 ≤ 4 分钟', f:function(E){ return {v:mmss(E.T), ok:E.T<=240}; }} ],
    hints:['T1 加权需要短 TR 和短 TE。','提高 SNR 的方法：增加层厚或 FOV、减小矩阵、增加平均次数、缩窄带宽。','时间 = TR × 相位矩阵 × 平均次数。降低 TR 并把省下的时间用于平均也是一个办法。'],
    expl:'CNR 由信号差 × SNR 决定。把 TR 设在两种组织的 T1 之间可增大差异，把节省的时间用于平均可使 SNR 提高 √NEX 倍。也要注意与分辨率（体素体积）的权衡。' },
- { id:'alias', keys:['pfov','pos','r','pf'], lv:'基础', title:'消除卷褶', ph:'abdomen', seq:'vibe', B0:1.5,
+ { id:'alias', art:true, quiz:{q:'为什么图像边缘会叠加出身体另一侧的影像？', opts:['卷褶（相位方向 FOV 不足）','运动伪影','化学位移','噪声'], a:0, why:'当身体大于相位方向 FOV 时，FOV 外的部分会卷褶到对侧并重叠。'}, keys:['pfov','pos','r','pf'], lv:'基础', title:'消除卷褶', ph:'abdomen', seq:'vibe', B0:1.5,
    init:{p:{pfov:50}},
    goal:'相位方向 FOV 小于身体，身体卷褶到对侧。请消除卷褶（屏气保持在 20 秒以内）。',
    crit:[ {label:'卷褶 ＜ 1%', f:function(E){ return {v:(E.wrap*100).toFixed(1)+'%', ok:E.wrap<0.01}; }},
@@ -8922,13 +9004,13 @@ MS.MISSIONS=[
           {label:'TE2 为同相位（±0.3 ms）', f:function(E){ var t=E.st.B0>=2.5?2.3:4.6; return {v:E.p.te2+' ms', ok:Math.abs(E.p.te2-t)<=0.3*(E.st.B0>=2.5?0.5:1)}; }} ],
    hints:['水与脂肪的频率差约 3.4 ppm，1.5T 时约 220 Hz，因此相位转一周约需 4.6 ms。','半周（反相位）为 2.3 ms，一周（同相位）为 4.6 ms。3T 时减半。'],
    expl:'水与脂肪相差 3.4 ppm，1.5T 下一周 ≈ 4.6 ms。反相位时同一体素内的水与脂肪相互抵消，含脂病变（腺瘤、脂肪肝）的信号下降。' },
- { id:'chemshift', keys:['bw'], lv:'基础', title:'使化学位移 ≤ 1 像素', ph:'knee', seq:'fse_pd', B0:3,
+ { id:'chemshift', art:true, quiz:{q:'脂肪与水的交界处一侧出现亮带、另一侧出现暗带，原因是什么？', opts:['化学位移（读出方向的偏移）','卷褶','运动伪影','磁化率'], a:0, why:'脂肪的共振频率比水低 3.4 ppm，因此在读出方向上偏移几个像素，在交界处形成明暗带。'}, keys:['bw'], lv:'基础', title:'使化学位移 ≤ 1 像素', ph:'knee', seq:'fse_pd', B0:3,
    init:{p:{bw:80}},
    goal:'3T 下接收带宽过窄，脂肪与水的边界发生错位。请将化学位移降到 1 个像素以内。',
    crit:[ {label:'化学位移 ≤ 1 像素', f:function(E){ return {v:E.csPix.toFixed(2)+' 像素', ok:E.csPix<=1}; }} ],
    hints:['化学位移（像素）＝ 水脂频率差（Hz）÷ 每像素带宽（Hz/像素）。','3T 时水脂频率差约 440 Hz。将带宽设为 440 Hz/像素 以上（SNR 会下降）。'],
    expl:'增宽带宽会增大每像素的频率范围，位移（像素数）随之减小。代价是噪声增加，SNR 与 √(BW) 成反比下降。' },
- { id:'metal', keys:['bw','fs','vat','semac'], lv:'进阶', title:'减少金属伪影', ph:'knee', seq:'metal', B0:1.5, les:{metal:true},
+ { id:'metal', art:true, quiz:{q:'金属周围的信号缺失和脂肪抑制不均，原因是什么？', opts:['磁化率（金属引起的磁场紊乱）','噪声','运动伪影','卷褶'], a:0, why:'金属会严重扰乱周围磁场，依赖频率的方法（读出、层面选择、脂肪抑制）都会受干扰。'}, keys:['bw','fs','vat','semac'], lv:'进阶', title:'减少金属伪影', ph:'knee', seq:'metal', B0:1.5, les:{metal:true},
    init:{p:{bw:130}, st:{fs:'chess',vat:false,semac:0}},
    goal:'金属周围信号缺失，脂肪抑制也不均匀。请设置能减少金属伪影的参数。',
    crit:[ {label:'接收带宽 ≥ 400 Hz/像素', f:function(E){ return {v:E.p.bw+' Hz/像素', ok:E.p.bw>=400}; }},
@@ -8936,7 +9018,7 @@ MS.MISSIONS=[
           {label:'不使用频率选择性脂肪抑制（CHESS/SPAIR）', f:function(E){ return {v:E.st.fs||'无', ok:E.st.fs!=='chess'&&E.st.fs!=='spair'}; }} ],
    hints:['金属附近磁场偏差很大，依赖频率的方法（脂肪抑制、层面选择、读出）都会受干扰。','增宽带宽、视角倾斜（VAT）和层面方向校正（SEMAC）都有效。','金属附近的脂肪抑制宜用 STIR（反转恢复）或 Dixon。'],
    expl:'金属会造成较大的局部频率偏移，引起读出方向偏移、层面变形与脂肪抑制失败。基本对策是组合使用高带宽、VAT、SEMAC 与 STIR/Dixon。' },
- { id:'epi', keys:['r','pf','ny'], lv:'进阶', title:'减少 DWI 变形', ph:'head', seq:'dwi', B0:3,
+ { id:'epi', art:true, quiz:{q:'额叶底部和颞叶看起来被拉伸或压缩，原因是什么？', opts:['磁化率引起的 EPI 变形','化学位移','噪声','卷褶'], a:0, why:'EPI 在相位方向每像素带宽很窄，空气与组织交界处的磁场偏差会直接变成位置偏移（变形）。'}, keys:['r','pf','ny'], lv:'进阶', title:'减少 DWI 变形', ph:'head', seq:'dwi', B0:3,
    init:{p:{r:1,pf:1,ny:192,nx:192}},
    goal:'3T 的 EPI 读出时间过长，变形明显。请将 EPI 读出时间缩短到 30 ms 以内。',
    crit:[ {label:'EPI 读出时间 ≤ 30 ms', f:function(E){ var r=E.readEPI||0; return {v:r?r.toFixed(1)+' ms':'—', ok:r>0&&r<=30}; }} ],
@@ -8952,7 +9034,7 @@ MS.MISSIONS=[
 ];
 function mmss(s){ s=Math.round(s); return Math.floor(s/60)+':'+('0'+(s%60)).slice(-2); }
 MS.MISSION_LEVELS=['学生','基础','进阶','专家'];
-var ORDER=['s_t1w','t2w','s_pd','flair','s_thin','s_half','b_fatsat','stir','inopp','chemshift','alias','b_hem','cnr_time','fast_t2','breathhold','a_sar','epi','metal','x_mprage','x_flair3','x_knee3','x_dwi3','x_vibe','x_mrcp'];
+var ORDER=['s_t1w','t2w','s_pd','flair','s_thin','s_half','art_noise','b_fatsat','stir','inopp','chemshift','alias','b_hem','art_resp','cnr_time','fast_t2','breathhold','a_sar','epi','metal','art_gfac','x_mprage','x_flair3','x_knee3','x_dwi3','x_vibe','x_mrcp','art_combo'];
 function ord(M){ var i=ORDER.indexOf(M.id); return i<0?999:i; }
 MS.MISSIONS.sort(function(a,b){ return (MS.MISSION_LEVELS.indexOf(a.lv)-MS.MISSION_LEVELS.indexOf(b.lv))||(ord(a)-ord(b)); });
 MS.MISSION_MAP={}; MS.MISSIONS.forEach(function(M){ MS.MISSION_MAP[M.id]=M; });
@@ -9128,7 +9210,7 @@ function buildSeqList(){ var box=$('#navigation'), q=($('#seqq').value||'').toLo
       (MS.MISSION_LEVELS||[]).forEach(function(lv){ var ms=MS.MISSIONS.filter(function(M){ return M.lv===lv; }); if(!ms.length) return; var done=ms.filter(function(M){ return sv[M.id]; }).length;
         var open=openLv[lv]!=null?openLv[lv]:(mode==='mission'&&mission?mission.lv===lv:lv===MS.MISSION_LEVELS[0]);
         var h=el('button',{type:'button',class:'nav-lv'+(open?' open':''),'aria-expanded':String(open)}); h.appendChild(el('span',{class:'chev','aria-hidden':'true'})); h.appendChild(document.createTextNode(LVN[lv]||lv)); h.appendChild(el('small',{},done+'/'+ms.length)); h.onclick=function(){ openLv[lv]=!open; buildSeqList(); }; box.appendChild(h);
-        if(open) ms.forEach(function(M){ box.appendChild(nb((sv[M.id]?'✓ ':'')+M.title,'',view==='sim'&&mode==='mission'&&mission&&mission.id===M.id,function(){ setView('sim'); startMission(M.id); })); }); }); }
+        if(open) ms.forEach(function(M){ box.appendChild(nb((sv[M.id]?'✓ ':'')+(M.art?'⚠ ':'')+M.title,'',view==='sim'&&mode==='mission'&&mission&&mission.id===M.id,function(){ setView('sim'); startMission(M.id); })); }); }); }
     box.appendChild(el('div',{class:'nav-group'},'资料')); box.appendChild(nb('名称对照表','按厂商',view==='names',function(){ setView('names'); })); box.appendChild(nb('组织参数','T1、T2、文献',view==='tissue',function(){ setView('tissue'); }));
     box.appendChild(el('div',{class:'nav-group',style:'color:#fff;font-weight:700;margin-top:26px'},'专家模式（共 '+MS.SEQS.length+' 个序列）')); }
   var hit=0;
@@ -9214,7 +9296,7 @@ function buildParams0(){ var sq=MS.SEQ[st.seq], box=$('#params'); box.innerHTML=
   if(/dwi/.test(sq.k)) det2.appendChild(numRow('cdwi','计算DWI 的 b 值（0=不使用）','s/mm²',0,3000,50,function(){return st.cdwi;},function(v){st.cdwi=v;},'Siemens: Computed b-values、Canon: cDWI'));
   if(sq.k==='mrs') det2.appendChild(sel('体素位置',[['normal','正常白质'],['lesion','病灶（肿瘤）']],function(){return st.mrsVox;},function(v){st.mrsVox=v;}));
   var det3=grp('运动控制、门控与相位方向');
-  det3.appendChild(sel('呼吸',[['none','无（自由呼吸）'],['bh','屏气'],['trig','呼吸门控'],['nav','导航回波'],['radial','径向（BLADE／JET）']],function(){return st.resp;},function(v){st.resp=v;}));
+  det3.appendChild(tagK('resp',sel('呼吸',[['none','无（自由呼吸）'],['bh','屏气'],['trig','呼吸门控'],['nav','导航回波'],['radial','径向（BLADE／JET）']],function(){return st.resp;},function(v){st.resp=v;})));
   det3.appendChild(sel('心电门控',[['none','无'],['pro','前瞻性门控'],['retro','回顾性门控']],function(){return st.ecg;},function(v){st.ecg=v;}));
   det3.appendChild(numRow('hr','心率','bpm',40,140,1,function(){return st.hr;},function(v){st.hr=v;}));
   var plx=MS.PHANTOMS[st.phantom].plane; var peOpts=plx==='sag'?[['AP','前后（AP）'],['SI','上下（SI）']]:(plx==='cor'?[['RL','左右（RL）'],['SI','上下（SI）']]:[['AP','前后（AP）'],['RL','左右（RL）']]);
@@ -9600,34 +9682,36 @@ function lvProgress(lv){ var sv=solvedSet(), ms=MS.MISSIONS.filter(function(M){ 
 function loadRecs(){ try{ return JSON.parse(localStorage.getItem('mrisimMissionLog')||'[]'); }catch(e){ return []; } }
 function saveRecs(a){ try{ localStorage.setItem('mrisimMissionLog',JSON.stringify(a.slice(-1000))); }catch(e){} }
 function solvedSet(){ var s={}; loadRecs().forEach(function(r){ if(r.solved) s[r.id]=true; }); return s; }
-function endAttempt(){ if(mrec&&!mrec.saved){ mrec.saved=true; var a=loadRecs(); a.push({id:mrec.id,start:new Date(mrec.start).toISOString(),solved:!!mrec.solved,time:Math.round(((mrec.solved?mrec.tSolve:Date.now())-mrec.start)/1000),hints:mrec.hints,changes:Math.max(0,mrec.changes),B0:st&&st.B0}); saveRecs(a); } }
+function endAttempt(){ if(mrec&&!mrec.saved){ mrec.saved=true; var a=loadRecs(); a.push({id:mrec.id,start:new Date(mrec.start).toISOString(),solved:!!mrec.solved,time:Math.round(((mrec.solved?mrec.tSolve:Date.now())-mrec.start)/1000),hints:mrec.hints,changes:Math.max(0,mrec.changes),quiz:mrec.quiz||0,B0:st&&st.B0}); saveRecs(a); } }
 function startMission(id){ var M=MS.MISSION_MAP[id]; if(!M) return; endAttempt(); mission=M; mode='mission';
   st=MS.defaultState(M.ph,M.seq,null); st.B0=M.B0||B0pref; st.les={}; if(M.les) Object.keys(M.les).forEach(function(k){ st.les[k]=M.les[k]; }); if(M.popt) Object.keys(M.popt).forEach(function(k){ st.popt[k]=M.popt[k]; });
   if(M.init){ if(M.init.p) Object.keys(M.init.p).forEach(function(k){ st.p[k]=M.init.p[k]; }); if(M.init.st) Object.keys(M.init.st).forEach(function(k){ st[k]=M.init.st[k]; }); }
-  mrec={id:M.id,start:Date.now(),hints:0,changes:-1,solved:false}; mhint=0; if(document.body.classList.contains('mob')&&typeof setMtab==='function') setMtab('params',true);
+  mrec={id:M.id,start:Date.now(),hints:0,changes:-1,solved:false,quiz:0}; mhint=0; quizOK=false; quizTry=0; if(document.body.classList.contains('mob')&&typeof setMtab==='function') setMtab('params',true);
   chart.follow=true; chart.hide={}; lastChanged=null; prevRes=null; manualW=null; cur=0; refInfo(); defaultAB();
   buildPhantomSel(); buildSys(); buildLesions(); buildSeqList(); buildParams(); seqCard(); learnCard(); schedule(); }
 function missionCard(box){ var M=mission; $('#protop').classList.remove('one'); box.hidden=false; box.innerHTML='';
   var lvb=el('div',{class:'mlvsel',role:'group','aria-label':'任务级别'}); (MS.MISSION_LEVELS||[]).forEach(function(lv){ var pr=lvProgress(lv); if(!pr.n) return; var b=el('button',{type:'button',class:lv===M.lv?'on':'','aria-pressed':String(lv===M.lv)}); b.appendChild(document.createTextNode(LVN[lv]||lv)); b.appendChild(el('small',{},pr.done+'/'+pr.n)); b.onclick=function(){ if(lv!==M.lv) startMission(lvProgress(lv).next.id); }; lvb.appendChild(b); }); box.appendChild(lvb);
   var ms_=MS.MISSIONS.filter(function(x){ return x.lv===M.lv; }), qi=ms_.indexOf(M)+1;
   var h=el('h2',{},'任务：'+M.title); box.appendChild(h); box.appendChild(el('p',{class:'mlv'},(LVN[M.lv]||M.lv)+' '+qi+'/'+ms_.length+'　·　'+MS.SEQ[M.seq].n+'　·　'+(st.B0)+' T'));
-  box.appendChild(el('p',{},M.goal)); var ul=el('ul',{id:'mcrit',class:'mcrit','aria-live':'polite'}); M.crit.forEach(function(c){ ul.appendChild(el('li',{},c.label)); }); box.appendChild(ul);
+  box.appendChild(el('p',{},M.goal)); quizBox(box,M); var ul=el('ul',{id:'mcrit',class:'mcrit','aria-live':'polite'}); critsOf(M).forEach(function(c){ ul.appendChild(el('li',{},c.label)); }); box.appendChild(ul);
   var hb=el('div',{id:'mhints',class:'mhints'}); box.appendChild(hb);
   var row=el('div',{class:'sim-presets'}); var b1=el('button',{type:'button',id:'mhintbtn'},'查看提示（0/'+mHints(M).length+'）'); b1.onclick=function(){ if(mhint>=mHints(M).length) return; mhint++; if(mrec&&!mrec.solved) mrec.hints++; renderHints(); if(mhint===1&&M.keys){ var f=document.querySelector('#params .mhl'); if(f&&document.body.classList.contains('mob')) setTimeout(function(){ f.scrollIntoView({behavior:'smooth',block:'center'}); },350); } };
   var b2=el('button',{type:'button'},'重新开始'); b2.onclick=function(){ startMission(M.id); };
   var b3=el('button',{type:'button'},'导出记录（CSV）'); b3.onclick=exportRecs; var b4=el('button',{type:'button',class:'mquit'},'退出任务'); b4.onclick=function(){ quitMission(); }; row.appendChild(b1); row.appendChild(b2); row.appendChild(b3); row.appendChild(b4); box.appendChild(row);
   box.appendChild(el('div',{id:'mresult'})); renderHints(); }
 function mHints(M){ var ks=M.keys||[]; if(!ks.length) return M.hints; return ['需要调整的参数：'+ks.map(keyName).join('；')+'（已在参数栏中标出）'].concat(M.hints); }
-function keyName(k){ if(k==='fs') return '脂肪抑制'; if(k==='vat') return 'VAT'; if(k==='semac') return 'SEMAC'; var d=MS.PDEF[k]; return d?d.n:k; }
+function keyName(k){ if(k==='fs') return '脂肪抑制'; if(k==='resp') return '呼吸'; if(k==='satband') return '空间饱和脉冲'; if(k==='vat') return 'VAT'; if(k==='semac') return 'SEMAC'; var d=MS.PDEF[k]; return d?d.n:k; }
 function markMissionKeys(){ document.querySelectorAll('.sim-control.mhl,.chk.mhl').forEach(function(e){ e.classList.remove('mhl'); }); if(mode!=='mission'||!mission||mhint<1||!mission.keys) return;
   mission.keys.forEach(function(k){ var e=document.querySelector('#params [data-k="'+k+'"]'); if(!e) return; e.classList.add('mhl'); var sec=e.closest('.pgrp'); if(sec&&sec.classList.contains('closed')) setClosed(sec,false); }); }
 function renderHints(){ var M=mission, hb=$('#mhints'); if(!hb||!M) return; var H=mHints(M); hb.innerHTML=''; for(var i=0;i<mhint;i++) hb.appendChild(el('p',{class:'mhint'+(i===0&&M.keys?' keys':'')},'提示 '+(i+1)+'：'+H[i])); var b=$('#mhintbtn'); if(b){ b.textContent='查看提示（'+mhint+'/'+H.length+'）'; b.disabled=mhint>=H.length; } markMissionKeys(); }
-function missionEval(){ if(mode!=='mission'||!mission||!res||!res.outs||!res.outs[0]||!res.outs[0].data) return; var M=mission, i=res.info, cm=medians(res,res.outs[0]);
+function missionEval(){ if(mode!=='mission'||!mission||!res||!res.outs||!res.outs[0]||!res.outs[0].data) return; var M=mission, i=res.info, cm=medians(res,res.outs[0]), air=airMean(res,res.outs[0]);
   var E={st:st,p:i.p,info:i,T:i.T,sar:i.sar,snr:i.snr0/(snrRef||i.snr0)*100,wrap:i.wrap||0,readEPI:i.readEPI||0,csPix:Math.abs(MS.FAT_PPM*42.577*st.B0/((i.p&&i.p.bw)||st.p.bw)),
-    sig:function(k){ return cm[k]?cm[k].v:0; }, cnr:function(a,b){ return Math.abs((cm[a]?cm[a].v:0)-(cm[b]?cm[b].v:0))*i.snr0; }};
+    sig:function(k){ return cm[k]?cm[k].v:0; }, cnr:function(a,b){ return Math.abs((cm[a]?cm[a].v:0)-(cm[b]?cm[b].v:0))*i.snr0; },
+    bg:function(ref){ var r=cm[ref||'muscle']; return r&&r.v>0? 100*air/r.v : 0; }, quiz:quizOK};
+  lastE=E;
   var all=true, ul=$('#mcrit'); if(!ul) return; ul.innerHTML='';
-  M.crit.forEach(function(c){ var r; try{ r=c.f(E)||{}; }catch(e){ r={ok:false,v:'—'}; } if(!r.ok) all=false; var li=el('li',{class:r.ok?'ok':'ng'}); li.appendChild(el('span',{class:'mk','aria-hidden':'true'},r.ok?'✓':'✗')); li.appendChild(document.createTextNode(c.label+(r.v!==''&&r.v!=null?'（当前 '+r.v+'）':''))); li.setAttribute('aria-label',(r.ok?'已达成：':'未达成：')+c.label); ul.appendChild(li); });
-  mstat(M.crit.length-ul.querySelectorAll('li.ng').length,M.crit.length,all);
+  critsOf(M).forEach(function(c){ var r; try{ r=c.f(E)||{}; }catch(e){ r={ok:false,v:'—'}; } if(!r.ok) all=false; var li=el('li',{class:r.ok?'ok':'ng'}); li.appendChild(el('span',{class:'mk','aria-hidden':'true'},r.ok?'✓':'✗')); li.appendChild(document.createTextNode(c.label+(r.v!==''&&r.v!=null?'（当前 '+r.v+'）':''))); li.setAttribute('aria-label',(r.ok?'已达成：':'未达成：')+c.label); ul.appendChild(li); });
+  mstat(critsOf(M).length-ul.querySelectorAll('li.ng').length,critsOf(M).length,all);
   var rb=$('#mresult'); if(!rb) return;
   if(all){ if(mrec&&!mrec.solved){ mrec.solved=true; mrec.tSolve=Date.now(); endAttempt(); buildSeqList(); toast('任务完成！'); }
     var t=mrec?Math.round((mrec.tSolve-mrec.start)/1000):0; rb.innerHTML=''; var d=el('div',{class:'mdone'}); d.appendChild(el('b',{},'完成！')); d.appendChild(el('span',{},'　用时 '+Math.floor(t/60)+':'+('0'+t%60).slice(-2)+'・提示 '+(mrec?mrec.hints:0)+' 次 · 修改 '+(mrec?Math.max(0,mrec.changes):0)+' 次'));
@@ -9644,7 +9728,17 @@ function mstat(ok,n,all){ var b=$('#mstat'); if(!b){ var host=$('#metrics'); if(
   b.hidden=false; b.className='mstat'+(all?' done':''); b.textContent=(all?'✓ 任务完成：':'任务 ')+ok+'/'+n+' 已达成'; b.title='查看任务条件'; }
 function mstatHide(){ var b=$('#mstat'); if(b) b.hidden=true; }
 
-function exportRecs(){ var a=loadRecs(); var rows=[['id','title','start','solved','time_s','hints','changes','B0']]; a.forEach(function(r){ var M=MS.MISSION_MAP[r.id]; rows.push([r.id,M?M.title:'',r.start,r.solved?1:0,r.time,r.hints,r.changes,r.B0||'']); });
+/* 体の外（空気）の平均信号：ゴーストや雑音が多いほど上がる */
+function airMean(r,o){ var S=r.S, lab=r.labC, s=0, n=0; for(var q=0;q<S*S;q++){ if(lab[q]===0){ s+=o.data[q]; n++; } } return n? s/n : 0; }
+var lastE=null;
+/* 課題の「この画像の問題は？」（選択式） */
+var quizOK=false, quizTry=0;
+function critsOf(M){ return M.quiz? [{label:'回答伪影的种类（①）',f:function(E){ return {v:'',ok:!!E.quiz}; }}].concat(M.crit) : M.crit; }
+function quizBox(box,M){ if(!M.quiz) return; var Q=M.quiz, d=el('div',{class:'mquiz'}); d.appendChild(el('p',{class:'mq'},'① '+Q.q));
+  var row=el('div',{class:'mqopts',role:'group'}); Q.opts.forEach(function(t,i){ var b=el('button',{type:'button',class:quizOK&&i===Q.a?'ok':''},t); b.onclick=function(){ if(quizOK) return; quizTry++; if(mrec) mrec.quiz=quizTry; if(i===Q.a){ quizOK=true; b.classList.add('ok'); fb.textContent='正确：'+Q.why; fb.className='mqfb ok'; missionEval(); } else { b.classList.add('ng'); b.disabled=true; fb.textContent='不对。请再仔细看看图像。'; fb.className='mqfb ng'; } }; row.appendChild(b); });
+  d.appendChild(row); var fb=el('p',{class:'mqfb'+(quizOK?' ok':'')},quizOK?'正确：'+Q.why:''); d.appendChild(fb); d.appendChild(el('p',{class:'mq'},'② 修改条件来减少它。')); box.appendChild(d); }
+
+function exportRecs(){ var a=loadRecs(); var rows=[['id','level','title','start','solved','time_s','hints','changes','quiz_tries','B0']]; a.forEach(function(r){ var M=MS.MISSION_MAP[r.id]; rows.push([r.id,M?M.lv:'',M?M.title:'',r.start,r.solved?1:0,r.time,r.hints,r.changes,r.quiz||'',r.B0||'']); });
   var csv='﻿'+rows.map(function(r){ return r.map(function(x){ x=String(x==null?'':x); var Q=String.fromCharCode(34); return (x.indexOf(Q)>=0||x.indexOf(',')>=0||x.indexOf('\n')>=0)?Q+x.split(Q).join(Q+Q)+Q:x; }).join(','); }).join('\n');
   var url=URL.createObjectURL(new Blob([csv],{type:'text/csv'})); var l=el('a',{href:url,download:'mrisim_missions.csv'}); document.body.appendChild(l); l.click(); l.remove(); setTimeout(function(){ URL.revokeObjectURL(url); },2000); }
 window.addEventListener('pagehide',function(){ endAttempt(); });
@@ -9737,7 +9831,7 @@ function kfill(){ var box=$('#kfill'); if(!box) return; var sq=MS.SEQ[st.seq];
   }
   lines.forEach(function(t,j){ tx.appendChild(el('div',{class:j?'':'kfmain'},t)); }); if(legend) tx.appendChild(el('div',{class:'kfleg'},legend));
 }
-window.__mrisimTest=function(f){ return f({newState:newState,buildParams:buildParams,schedule:schedule,getSt:function(){return st;},setMode:function(m){mode=m;},startMission:startMission}); };
+window.__mrisimTest=function(f){ return f({newState:newState,buildParams:buildParams,schedule:schedule,getSt:function(){return st;},setMode:function(m){mode=m;},startMission:startMission,lastE:function(){ return lastE; },setQuiz:function(v){ quizOK=v; }}); };
 
 })();
 

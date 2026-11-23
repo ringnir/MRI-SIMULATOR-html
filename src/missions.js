@@ -9,12 +9,48 @@
      E.csPix       … 化学シフト（読出し方向、画素）
      E.readEPI     … EPI の読出し時間（ms）
      E.p / E.st    … 補正後のパラメータ／状態
+   art:true はアーチファクト対策の課題（quiz：最初に原因を選ぶ問題。正解すると達成条件の 1 つになる）。ui:true は画像で判定する（E.bg：体の外の平均信号 ÷ 組織の中央値 ×100、雑音とゴーストで上がる）ため Node の試験では解の確認を省く。
    各課題の lv は '学生' '基礎' '応用' 'エキスパート' のいずれか、keys はヒント 1 で示す「動かすパラメータ」（PDEF のキー、または fs・vat・semac）。
    追加するときは MS.addMission({...}) を src/seq/*.js などから呼ぶ。 */
 (function(){
 var MS=window.MS;
 function rng(v,a,b){ return v>=a&&v<=b; }
 MS.MISSIONS=[
+ { id:'art_noise', art:true, ui:true, keys:['thk','nx','ny','bw','nex'], lv:'学生', title:'ざらつき（雑音）を減らす', ph:'head', seq:'fse_t2', B0:1.5,
+   init:{p:{thk:2,nx:384,ny:384,bw:400}},
+   quiz:{q:'この画像でいちばん目立つ問題は？', opts:['雑音（SNR 不足）','動きのゴースト','折り返し','化学シフト'], a:0, why:'2 mm の薄いスライス・384 の細かいマトリクス・広いバンド幅で、ボクセルあたりの信号に対して雑音が大きくなっています。'},
+   goal:'画像がざらついています。背景の雑音を白質の 6% 以下にしてください。撮像時間は 3 分以内です。',
+   crit:[ {label:'背景の雑音 ≤ 白質の 6%', f:function(E){ var b=E.bg('wm'); return {v:b.toFixed(1)+'%', ok:b<=6}; }},
+          {label:'撮像時間 ≤ 3:00', f:function(E){ return {v:mmss(E.T), ok:E.T<=180}; }} ],
+   hints:['SNR はボクセル体積に比例し、√（加算回数）と 1/√（バンド幅）に比例します。','加算だけで補うと時間が延びすぎます。スライス厚・マトリクス・バンド幅を見直しましょう。'],
+   expl:'雑音を減らす方法は「ボクセルを大きくする」「加算を増やす」「バンド幅を狭くする」の 3 つ。どれも分解能・時間・化学シフトとの引き換えなので、目的に合う所で釣り合わせます。' },
+ { id:'art_resp', art:true, ui:true, keys:['resp'], lv:'基礎', title:'呼吸のゴーストを消す', ph:'abdomen', seq:'fse_t2', B0:1.5,
+   init:{st:{resp:'none'}},
+   quiz:{q:'位相方向に並ぶ、肝臓や皮下脂肪の写り込みの原因は？', opts:['雑音','呼吸による動きのゴースト','金属','折り返し'], a:1, why:'呼吸で腹壁や肝臓がエンコードごとに動くと、位相方向にずれた「ゴースト」が並びます。'},
+   goal:'自由呼吸の FSE T2 で、呼吸によるゴーストが出ています。背景のゴーストを肝臓の 17% 以下にしてください。',
+   crit:[ {label:'背景のゴースト ≤ 肝臓の 17%', f:function(E){ var b=E.bg('liver'); return {v:b.toFixed(1)+'%', ok:b<=17}; }},
+          {label:'息止めなら撮像時間 ≤ 20 秒', f:function(E){ return {v:E.st.resp==='bh'?mmss(E.T):'', ok:E.st.resp!=='bh'||E.T<=20}; }} ],
+   hints:['「呼吸」の設定で、動きへの対策を選びます。','この撮像は 2 分近くかかるので、息止めでは収まりません。呼吸同期やラジアル収集を考えましょう。'],
+   expl:'動きのゴーストは「動きを止める（息止め）」「動きに合わせる（呼吸同期・ナビゲータ）」「動きに強い収集（ラジアル・シングルショット）」で減らします。撮像時間に合った方法を選ぶのが大切です。' },
+ { id:'art_gfac', art:true, ui:true, keys:['r','rz','pf','pfz'], lv:'応用', title:'並列画像の雑音むらを減らす', ph:'abdomen', seq:'vibe', B0:1.5,
+   init:{p:{r:4}, st:{resp:'bh'}},
+   quiz:{q:'画像の中央ほどざらつきが強い原因は？', opts:['並列画像の加速しすぎ（g 因子）','呼吸のゴースト','化学シフト','磁化率'], a:0, why:'並列画像はコイル感度の差で折り返しを解きます。加速を上げると、コイル感度の差が小さい中央付近で雑音が増幅されます（g 因子）。'},
+   goal:'息止め 3D T1 で並列画像を 4 倍にしたため、雑音が増えています。背景を肝臓の 6.5% 以下・撮像時間 15 秒以内・SNR 80% 以上にしてください。',
+   crit:[ {label:'背景の雑音 ≤ 肝臓の 6.5%', f:function(E){ var b=E.bg('liver'); return {v:b.toFixed(1)+'%', ok:b<=6.5}; }},
+          {label:'撮像時間 ≤ 15 秒', f:function(E){ return {v:E.T.toFixed(1)+' 秒', ok:E.T<=15}; }},
+          {label:'SNR ≥ 80%', f:function(E){ return {v:Math.round(E.snr)+'%', ok:E.snr>=80}; }} ],
+   hints:['加速を下げると雑音は減りますが、時間が延びます。','並列画像だけに頼らず、スライス方向の部分フーリエなど別の時間短縮と組み合わせましょう。'],
+   expl:'並列画像の SNR は 1/(g√R) で下がり、g は R が大きいほど急に増えます。時間短縮を並列画像・部分フーリエ・スライス方向の加速に分けると、同じ時間でも雑音を抑えられます。' },
+ { id:'art_combo', art:true, ui:true, keys:['resp','pfov','pos','r'], lv:'エキスパート', title:'腹部 3D T1：重なったアーチファクトを全部消す', ph:'abdomen', seq:'vibe', B0:1.5,
+   init:{p:{pfov:60}, st:{resp:'none'}},
+   quiz:{q:'この画像に重なっている問題の組み合わせは？', opts:['呼吸のゴーストと折り返し','雑音と化学シフト','金属と磁化率','バンディングと雑音'], a:0, why:'自由呼吸で位相方向にゴーストが並び、位相方向の FOV が体より狭いため反対側に体が折り返しています。'},
+   goal:'自由呼吸・位相 FOV 60% の 3D T1 です。ゴーストと折り返しを両方なくし、撮像時間 20 秒以内・SNR 70% 以上にしてください。',
+   crit:[ {label:'折り返し ＜ 1%', f:function(E){ return {v:(E.wrap*100).toFixed(1)+'%', ok:E.wrap<0.01}; }},
+          {label:'背景のゴースト ≤ 肝臓の 5%', f:function(E){ var b=E.bg('liver'); return {v:b.toFixed(1)+'%', ok:b<=5}; }},
+          {label:'撮像時間 ≤ 20 秒', f:function(E){ return {v:E.T.toFixed(1)+' 秒', ok:E.T<=20}; }},
+          {label:'SNR ≥ 70%', f:function(E){ return {v:Math.round(E.snr)+'%', ok:E.snr>=70}; }} ],
+   hints:['原因が 2 つあるので、1 つずつ確かめましょう（片方だけ直しても合格しません）。','3D T1 は 20 秒以内なら息止めで撮れます。FOV を広げて延びた時間は並列画像で取り戻します。'],
+   expl:'実際の画像では複数のアーチファクトが重なります。位相方向に並ぶ像が「動き（ぼやけたゴースト）」か「折り返し（くっきりした体の一部）」かを見分け、原因ごとに対策します。' },
  { id:'s_t1w', keys:['tr','te'], lv:'学生', title:'T1強調像をつくる', ph:'head', seq:'se_t1', B0:1.5,
    init:{p:{tr:2500,te:90}},
    goal:'いまは T2 強調に近い条件です。白質が灰白質より明るく、脳脊髄液が暗い T1 強調像にしてください。',
@@ -135,7 +171,7 @@ MS.MISSIONS=[
           {label:'撮像時間 ≤ 4 分', f:function(E){ return {v:mmss(E.T), ok:E.T<=240}; }} ],
    hints:['T1 強調では TR を短く、TE を短くするとコントラストが出ます。','SNR を上げるには、スライス厚・FOV を大きく、マトリクスを小さく、加算を増やす、バンド幅を狭くする方法があります。','時間は TR × 位相マトリクス × 加算回数です。TR を下げて浮いた時間を加算に回すのも手です。'],
    expl:'CNR は信号差 × SNR で決まります。TR を T1 の間に置くと差が大きくなり、空いた時間を加算に回すと SNR が √NEX 倍になります。分解能（ボクセル体積）とのトレードオフも意識しましょう。' },
- { id:'alias', keys:['pfov','pos','r','pf'], lv:'基礎', title:'折り返しを消す', ph:'abdomen', seq:'vibe', B0:1.5,
+ { id:'alias', art:true, quiz:{q:'画像の端に、体の反対側が重なって写っている原因は？', opts:['折り返し（位相方向の FOV 不足）','動きのゴースト','化学シフト','雑音'], a:0, why:'位相方向の FOV より体が大きいと、FOV の外の体が反対側に折り返して重なります。'}, keys:['pfov','pos','r','pf'], lv:'基礎', title:'折り返しを消す', ph:'abdomen', seq:'vibe', B0:1.5,
    init:{p:{pfov:50}},
    goal:'位相方向の FOV が体より小さく、反対側に体が折り返しています。折り返しをなくしてください（息止め 20 秒以内のまま）。',
    crit:[ {label:'折り返し ＜ 1%', f:function(E){ return {v:(E.wrap*100).toFixed(1)+'%', ok:E.wrap<0.01}; }},
@@ -156,13 +192,13 @@ MS.MISSIONS=[
           {label:'TE2 が in-phase（±0.3 ms）', f:function(E){ var t=E.st.B0>=2.5?2.3:4.6; return {v:E.p.te2+' ms', ok:Math.abs(E.p.te2-t)<=0.3*(E.st.B0>=2.5?0.5:1)}; }} ],
    hints:['水と脂肪の周波数差は約 3.4 ppm。1.5T では約 220 Hz なので、位相が一周するのに約 4.6 ms かかります。','半周（逆位相）は 2.3 ms、一周（同位相）は 4.6 ms です。3T ではその半分です。'],
    expl:'水と脂肪は 3.4 ppm 離れており、1.5T で 1 周 ≈ 4.6 ms。opposed-phase では同じボクセル内の水と脂肪が打ち消し合い、脂肪を含む病変（腺腫・脂肪肝）の信号が落ちます。' },
- { id:'chemshift', keys:['bw'], lv:'基礎', title:'化学シフトを 1 画素以下にする', ph:'knee', seq:'fse_pd', B0:3,
+ { id:'chemshift', art:true, quiz:{q:'脂肪と水の境界に、片側が白く反対側が黒い帯が出る原因は？', opts:['化学シフト（読出し方向のずれ）','折り返し','動きのゴースト','磁化率'], a:0, why:'脂肪は水より 3.4 ppm 低い周波数なので、読出し方向に何画素かずれて写り、境界に明暗の帯ができます。'}, keys:['bw'], lv:'基礎', title:'化学シフトを 1 画素以下にする', ph:'knee', seq:'fse_pd', B0:3,
    init:{p:{bw:80}},
    goal:'3T で受信バンド幅が狭く、脂肪と水の境界がずれています。化学シフトを 1 画素以下にしてください。',
    crit:[ {label:'化学シフト ≤ 1 画素', f:function(E){ return {v:E.csPix.toFixed(2)+' 画素', ok:E.csPix<=1}; }} ],
    hints:['化学シフト（画素）＝ 水脂肪の周波数差（Hz）÷ 1 画素あたりのバンド幅（Hz/画素）。','3T の水脂肪差は約 440 Hz。バンド幅を 440 Hz/画素以上にします（SNR は下がります）。'],
    expl:'バンド幅を広げると 1 画素あたりの周波数幅が増え、ずれ（画素数）が減ります。代わりに雑音が増え、SNR は √(BW) に反比例して下がります。' },
- { id:'metal', keys:['bw','fs','vat','semac'], lv:'応用', title:'金属アーチファクトを減らす', ph:'knee', seq:'metal', B0:1.5, les:{metal:true},
+ { id:'metal', art:true, quiz:{q:'金属の周りの信号の抜けと、脂肪抑制のむらの原因は？', opts:['磁化率（金属による磁場の乱れ）','雑音','動きのゴースト','折り返し'], a:0, why:'金属は周囲の磁場を大きく乱し、周波数でずれる・周波数で選ぶ方法（読出し・スライス選択・脂肪抑制）が乱れます。'}, keys:['bw','fs','vat','semac'], lv:'応用', title:'金属アーチファクトを減らす', ph:'knee', seq:'metal', B0:1.5, les:{metal:true},
    init:{p:{bw:130}, st:{fs:'chess',vat:false,semac:0}},
    goal:'金属の周りで信号が抜け、脂肪抑制もむらになっています。金属アーチファクトを減らす設定にしてください。',
    crit:[ {label:'受信バンド幅 ≥ 400 Hz/画素', f:function(E){ return {v:E.p.bw+' Hz/画素', ok:E.p.bw>=400}; }},
@@ -170,7 +206,7 @@ MS.MISSIONS=[
           {label:'周波数選択の脂肪抑制（CHESS／SPAIR）を使わない', f:function(E){ return {v:E.st.fs||'なし', ok:E.st.fs!=='chess'&&E.st.fs!=='spair'}; }} ],
    hints:['金属の近くは磁場が大きくずれるため、周波数で選ぶ方法（脂肪抑制・スライス選択・読出し）が乱れます。','バンド幅を広げる、ビュー角傾斜（VAT）、スライス方向の補正（SEMAC）が有効です。','脂肪抑制は STIR（反転回復）か Dixon が金属に強いです。'],
    expl:'金属では局所の周波数ずれが大きく、読出し方向のずれ・スライス面の歪み・脂肪抑制の失敗が起こります。高バンド幅・VAT・SEMAC・STIR/Dixon の組み合わせが基本です。' },
- { id:'epi', keys:['r','pf','ny'], lv:'応用', title:'拡散強調像の歪みを減らす', ph:'head', seq:'dwi', B0:3,
+ { id:'epi', art:true, quiz:{q:'前頭葉の底や側頭葉が引き伸ばされ・縮んで見える原因は？', opts:['磁化率による EPI の歪み','化学シフト','雑音','折り返し'], a:0, why:'EPI は位相方向の 1 画素あたりの帯域が狭いため、空気と組織の境界の磁場のずれがそのまま位置のずれ（歪み）になります。'}, keys:['r','pf','ny'], lv:'応用', title:'拡散強調像の歪みを減らす', ph:'head', seq:'dwi', B0:3,
    init:{p:{r:1,pf:1,ny:192,nx:192}},
    goal:'3T の EPI で読出しが長く、歪みが目立ちます。EPI の読出し時間を 30 ms 以下にしてください。',
    crit:[ {label:'EPI 読出し時間 ≤ 30 ms', f:function(E){ var r=E.readEPI||0; return {v:r?r.toFixed(1)+' ms':'—', ok:r>0&&r<=30}; }} ],
@@ -186,7 +222,7 @@ MS.MISSIONS=[
 ];
 function mmss(s){ s=Math.round(s); return Math.floor(s/60)+':'+('0'+(s%60)).slice(-2); }
 MS.MISSION_LEVELS=['学生','基礎','応用','エキスパート'];
-var ORDER=['s_t1w','t2w','s_pd','flair','s_thin','s_half','b_fatsat','stir','inopp','chemshift','alias','b_hem','cnr_time','fast_t2','breathhold','a_sar','epi','metal','x_mprage','x_flair3','x_knee3','x_dwi3','x_vibe','x_mrcp'];
+var ORDER=['s_t1w','t2w','s_pd','flair','s_thin','s_half','art_noise','b_fatsat','stir','inopp','chemshift','alias','b_hem','art_resp','cnr_time','fast_t2','breathhold','a_sar','epi','metal','art_gfac','x_mprage','x_flair3','x_knee3','x_dwi3','x_vibe','x_mrcp','art_combo'];
 function ord(M){ var i=ORDER.indexOf(M.id); return i<0?999:i; }
 MS.MISSIONS.sort(function(a,b){ return (MS.MISSION_LEVELS.indexOf(a.lv)-MS.MISSION_LEVELS.indexOf(b.lv))||(ord(a)-ord(b)); });
 MS.MISSION_MAP={}; MS.MISSIONS.forEach(function(M){ MS.MISSION_MAP[M.id]=M; });

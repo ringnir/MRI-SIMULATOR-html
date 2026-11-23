@@ -51,7 +51,7 @@ function buildSeqList(){ var box=$('#navigation'), q=($('#seqq').value||'').toLo
       (MS.MISSION_LEVELS||[]).forEach(function(lv){ var ms=MS.MISSIONS.filter(function(M){ return M.lv===lv; }); if(!ms.length) return; var done=ms.filter(function(M){ return sv[M.id]; }).length;
         var open=openLv[lv]!=null?openLv[lv]:(mode==='mission'&&mission?mission.lv===lv:lv===MS.MISSION_LEVELS[0]);
         var h=el('button',{type:'button',class:'nav-lv'+(open?' open':''),'aria-expanded':String(open)}); h.appendChild(el('span',{class:'chev','aria-hidden':'true'})); h.appendChild(document.createTextNode(LVN[lv]||lv)); h.appendChild(el('small',{},done+'/'+ms.length)); h.onclick=function(){ openLv[lv]=!open; buildSeqList(); }; box.appendChild(h);
-        if(open) ms.forEach(function(M){ box.appendChild(nb((sv[M.id]?'✓ ':'')+M.title,'',view==='sim'&&mode==='mission'&&mission&&mission.id===M.id,function(){ setView('sim'); startMission(M.id); })); }); }); }
+        if(open) ms.forEach(function(M){ box.appendChild(nb((sv[M.id]?'✓ ':'')+(M.art?'⚠ ':'')+M.title,'',view==='sim'&&mode==='mission'&&mission&&mission.id===M.id,function(){ setView('sim'); startMission(M.id); })); }); }); }
     box.appendChild(el('div',{class:'nav-group'},'資料')); box.appendChild(nb('名称対応表','メーカー別',view==='names',function(){ setView('names'); })); box.appendChild(nb('組織パラメータ','T1・T2・文献',view==='tissue',function(){ setView('tissue'); }));
     box.appendChild(el('div',{class:'nav-group',style:'color:#fff;font-weight:700;margin-top:26px'},'エキスパート用（全 '+MS.SEQS.length+' シーケンス）')); }
   var hit=0;
@@ -137,7 +137,7 @@ function buildParams0(){ var sq=MS.SEQ[st.seq], box=$('#params'); box.innerHTML=
   if(/dwi/.test(sq.k)) det2.appendChild(numRow('cdwi','計算DWI の b 値（0=なし）','s/mm²',0,3000,50,function(){return st.cdwi;},function(v){st.cdwi=v;},'Siemens: Computed b-values、Canon: cDWI'));
   if(sq.k==='mrs') det2.appendChild(sel('ボクセル位置',[['normal','正常白質'],['lesion','病変（腫瘍）']],function(){return st.mrsVox;},function(v){st.mrsVox=v;}));
   var det3=grp('動き対策・同期・位相方向');
-  det3.appendChild(sel('呼吸',[['none','なし（自由呼吸）'],['bh','息止め'],['trig','呼吸同期'],['nav','ナビゲータ'],['radial','ラジアル（BLADE／JET）']],function(){return st.resp;},function(v){st.resp=v;}));
+  det3.appendChild(tagK('resp',sel('呼吸',[['none','なし（自由呼吸）'],['bh','息止め'],['trig','呼吸同期'],['nav','ナビゲータ'],['radial','ラジアル（BLADE／JET）']],function(){return st.resp;},function(v){st.resp=v;})));
   det3.appendChild(sel('心電図同期',[['none','なし'],['pro','前向き同期'],['retro','後ろ向き同期']],function(){return st.ecg;},function(v){st.ecg=v;}));
   det3.appendChild(numRow('hr','心拍数','bpm',40,140,1,function(){return st.hr;},function(v){st.hr=v;}));
   var plx=MS.PHANTOMS[st.phantom].plane; var peOpts=plx==='sag'?[['AP','前後（AP）'],['SI','上下（SI）']]:(plx==='cor'?[['RL','左右（RL）'],['SI','上下（SI）']]:[['AP','前後（AP）'],['RL','左右（RL）']]);
@@ -523,34 +523,36 @@ function lvProgress(lv){ var sv=solvedSet(), ms=MS.MISSIONS.filter(function(M){ 
 function loadRecs(){ try{ return JSON.parse(localStorage.getItem('mrisimMissionLog')||'[]'); }catch(e){ return []; } }
 function saveRecs(a){ try{ localStorage.setItem('mrisimMissionLog',JSON.stringify(a.slice(-1000))); }catch(e){} }
 function solvedSet(){ var s={}; loadRecs().forEach(function(r){ if(r.solved) s[r.id]=true; }); return s; }
-function endAttempt(){ if(mrec&&!mrec.saved){ mrec.saved=true; var a=loadRecs(); a.push({id:mrec.id,start:new Date(mrec.start).toISOString(),solved:!!mrec.solved,time:Math.round(((mrec.solved?mrec.tSolve:Date.now())-mrec.start)/1000),hints:mrec.hints,changes:Math.max(0,mrec.changes),B0:st&&st.B0}); saveRecs(a); } }
+function endAttempt(){ if(mrec&&!mrec.saved){ mrec.saved=true; var a=loadRecs(); a.push({id:mrec.id,start:new Date(mrec.start).toISOString(),solved:!!mrec.solved,time:Math.round(((mrec.solved?mrec.tSolve:Date.now())-mrec.start)/1000),hints:mrec.hints,changes:Math.max(0,mrec.changes),quiz:mrec.quiz||0,B0:st&&st.B0}); saveRecs(a); } }
 function startMission(id){ var M=MS.MISSION_MAP[id]; if(!M) return; endAttempt(); mission=M; mode='mission';
   st=MS.defaultState(M.ph,M.seq,null); st.B0=M.B0||B0pref; st.les={}; if(M.les) Object.keys(M.les).forEach(function(k){ st.les[k]=M.les[k]; }); if(M.popt) Object.keys(M.popt).forEach(function(k){ st.popt[k]=M.popt[k]; });
   if(M.init){ if(M.init.p) Object.keys(M.init.p).forEach(function(k){ st.p[k]=M.init.p[k]; }); if(M.init.st) Object.keys(M.init.st).forEach(function(k){ st[k]=M.init.st[k]; }); }
-  mrec={id:M.id,start:Date.now(),hints:0,changes:-1,solved:false}; mhint=0; if(document.body.classList.contains('mob')&&typeof setMtab==='function') setMtab('params',true);
+  mrec={id:M.id,start:Date.now(),hints:0,changes:-1,solved:false,quiz:0}; mhint=0; quizOK=false; quizTry=0; if(document.body.classList.contains('mob')&&typeof setMtab==='function') setMtab('params',true);
   chart.follow=true; chart.hide={}; lastChanged=null; prevRes=null; manualW=null; cur=0; refInfo(); defaultAB();
   buildPhantomSel(); buildSys(); buildLesions(); buildSeqList(); buildParams(); seqCard(); learnCard(); schedule(); }
 function missionCard(box){ var M=mission; $('#protop').classList.remove('one'); box.hidden=false; box.innerHTML='';
   var lvb=el('div',{class:'mlvsel',role:'group','aria-label':'課題のレベル'}); (MS.MISSION_LEVELS||[]).forEach(function(lv){ var pr=lvProgress(lv); if(!pr.n) return; var b=el('button',{type:'button',class:lv===M.lv?'on':'','aria-pressed':String(lv===M.lv)}); b.appendChild(document.createTextNode(LVN[lv]||lv)); b.appendChild(el('small',{},pr.done+'/'+pr.n)); b.onclick=function(){ if(lv!==M.lv) startMission(lvProgress(lv).next.id); }; lvb.appendChild(b); }); box.appendChild(lvb);
   var ms_=MS.MISSIONS.filter(function(x){ return x.lv===M.lv; }), qi=ms_.indexOf(M)+1;
   var h=el('h2',{},'課題：'+M.title); box.appendChild(h); box.appendChild(el('p',{class:'mlv'},(LVN[M.lv]||M.lv)+' '+qi+'/'+ms_.length+'　·　'+MS.SEQ[M.seq].n+'　·　'+(st.B0)+' T'));
-  box.appendChild(el('p',{},M.goal)); var ul=el('ul',{id:'mcrit',class:'mcrit','aria-live':'polite'}); M.crit.forEach(function(c){ ul.appendChild(el('li',{},c.label)); }); box.appendChild(ul);
+  box.appendChild(el('p',{},M.goal)); quizBox(box,M); var ul=el('ul',{id:'mcrit',class:'mcrit','aria-live':'polite'}); critsOf(M).forEach(function(c){ ul.appendChild(el('li',{},c.label)); }); box.appendChild(ul);
   var hb=el('div',{id:'mhints',class:'mhints'}); box.appendChild(hb);
   var row=el('div',{class:'sim-presets'}); var b1=el('button',{type:'button',id:'mhintbtn'},'ヒントを見る（0/'+mHints(M).length+'）'); b1.onclick=function(){ if(mhint>=mHints(M).length) return; mhint++; if(mrec&&!mrec.solved) mrec.hints++; renderHints(); if(mhint===1&&M.keys){ var f=document.querySelector('#params .mhl'); if(f&&document.body.classList.contains('mob')) setTimeout(function(){ f.scrollIntoView({behavior:'smooth',block:'center'}); },350); } };
   var b2=el('button',{type:'button'},'最初からやり直す'); b2.onclick=function(){ startMission(M.id); };
   var b3=el('button',{type:'button'},'記録を書き出す（CSV）'); b3.onclick=exportRecs; var b4=el('button',{type:'button',class:'mquit'},'課題をやめる'); b4.onclick=function(){ quitMission(); }; row.appendChild(b1); row.appendChild(b2); row.appendChild(b3); row.appendChild(b4); box.appendChild(row);
   box.appendChild(el('div',{id:'mresult'})); renderHints(); }
 function mHints(M){ var ks=M.keys||[]; if(!ks.length) return M.hints; return ['動かすパラメータ：'+ks.map(keyName).join('・')+'（パラメータ欄に印をつけました）'].concat(M.hints); }
-function keyName(k){ if(k==='fs') return '脂肪抑制'; if(k==='vat') return 'VAT'; if(k==='semac') return 'SEMAC'; var d=MS.PDEF[k]; return d?d.n:k; }
+function keyName(k){ if(k==='fs') return '脂肪抑制'; if(k==='resp') return '呼吸'; if(k==='satband') return '空間飽和パルス'; if(k==='vat') return 'VAT'; if(k==='semac') return 'SEMAC'; var d=MS.PDEF[k]; return d?d.n:k; }
 function markMissionKeys(){ document.querySelectorAll('.sim-control.mhl,.chk.mhl').forEach(function(e){ e.classList.remove('mhl'); }); if(mode!=='mission'||!mission||mhint<1||!mission.keys) return;
   mission.keys.forEach(function(k){ var e=document.querySelector('#params [data-k="'+k+'"]'); if(!e) return; e.classList.add('mhl'); var sec=e.closest('.pgrp'); if(sec&&sec.classList.contains('closed')) setClosed(sec,false); }); }
 function renderHints(){ var M=mission, hb=$('#mhints'); if(!hb||!M) return; var H=mHints(M); hb.innerHTML=''; for(var i=0;i<mhint;i++) hb.appendChild(el('p',{class:'mhint'+(i===0&&M.keys?' keys':'')},'ヒント '+(i+1)+'：'+H[i])); var b=$('#mhintbtn'); if(b){ b.textContent='ヒントを見る（'+mhint+'/'+H.length+'）'; b.disabled=mhint>=H.length; } markMissionKeys(); }
-function missionEval(){ if(mode!=='mission'||!mission||!res||!res.outs||!res.outs[0]||!res.outs[0].data) return; var M=mission, i=res.info, cm=medians(res,res.outs[0]);
+function missionEval(){ if(mode!=='mission'||!mission||!res||!res.outs||!res.outs[0]||!res.outs[0].data) return; var M=mission, i=res.info, cm=medians(res,res.outs[0]), air=airMean(res,res.outs[0]);
   var E={st:st,p:i.p,info:i,T:i.T,sar:i.sar,snr:i.snr0/(snrRef||i.snr0)*100,wrap:i.wrap||0,readEPI:i.readEPI||0,csPix:Math.abs(MS.FAT_PPM*42.577*st.B0/((i.p&&i.p.bw)||st.p.bw)),
-    sig:function(k){ return cm[k]?cm[k].v:0; }, cnr:function(a,b){ return Math.abs((cm[a]?cm[a].v:0)-(cm[b]?cm[b].v:0))*i.snr0; }};
+    sig:function(k){ return cm[k]?cm[k].v:0; }, cnr:function(a,b){ return Math.abs((cm[a]?cm[a].v:0)-(cm[b]?cm[b].v:0))*i.snr0; },
+    bg:function(ref){ var r=cm[ref||'muscle']; return r&&r.v>0? 100*air/r.v : 0; }, quiz:quizOK};
+  lastE=E;
   var all=true, ul=$('#mcrit'); if(!ul) return; ul.innerHTML='';
-  M.crit.forEach(function(c){ var r; try{ r=c.f(E)||{}; }catch(e){ r={ok:false,v:'—'}; } if(!r.ok) all=false; var li=el('li',{class:r.ok?'ok':'ng'}); li.appendChild(el('span',{class:'mk','aria-hidden':'true'},r.ok?'✓':'✗')); li.appendChild(document.createTextNode(c.label+(r.v!==''&&r.v!=null?'（いま '+r.v+'）':''))); li.setAttribute('aria-label',(r.ok?'達成：':'未達成：')+c.label); ul.appendChild(li); });
-  mstat(M.crit.length-ul.querySelectorAll('li.ng').length,M.crit.length,all);
+  critsOf(M).forEach(function(c){ var r; try{ r=c.f(E)||{}; }catch(e){ r={ok:false,v:'—'}; } if(!r.ok) all=false; var li=el('li',{class:r.ok?'ok':'ng'}); li.appendChild(el('span',{class:'mk','aria-hidden':'true'},r.ok?'✓':'✗')); li.appendChild(document.createTextNode(c.label+(r.v!==''&&r.v!=null?'（いま '+r.v+'）':''))); li.setAttribute('aria-label',(r.ok?'達成：':'未達成：')+c.label); ul.appendChild(li); });
+  mstat(critsOf(M).length-ul.querySelectorAll('li.ng').length,critsOf(M).length,all);
   var rb=$('#mresult'); if(!rb) return;
   if(all){ if(mrec&&!mrec.solved){ mrec.solved=true; mrec.tSolve=Date.now(); endAttempt(); buildSeqList(); toast('課題クリア！'); }
     var t=mrec?Math.round((mrec.tSolve-mrec.start)/1000):0; rb.innerHTML=''; var d=el('div',{class:'mdone'}); d.appendChild(el('b',{},'クリア！')); d.appendChild(el('span',{},'　所要時間 '+Math.floor(t/60)+':'+('0'+t%60).slice(-2)+'・ヒント '+(mrec?mrec.hints:0)+' 回・変更 '+(mrec?Math.max(0,mrec.changes):0)+' 回'));
@@ -567,7 +569,17 @@ function mstat(ok,n,all){ var b=$('#mstat'); if(!b){ var host=$('#metrics'); if(
   b.hidden=false; b.className='mstat'+(all?' done':''); b.textContent=(all?'✓ 課題クリア：':'課題 ')+ok+'/'+n+' 達成'; b.title='課題の条件を見る'; }
 function mstatHide(){ var b=$('#mstat'); if(b) b.hidden=true; }
 
-function exportRecs(){ var a=loadRecs(); var rows=[['id','title','start','solved','time_s','hints','changes','B0']]; a.forEach(function(r){ var M=MS.MISSION_MAP[r.id]; rows.push([r.id,M?M.title:'',r.start,r.solved?1:0,r.time,r.hints,r.changes,r.B0||'']); });
+/* 体の外（空気）の平均信号：ゴーストや雑音が多いほど上がる */
+function airMean(r,o){ var S=r.S, lab=r.labC, s=0, n=0; for(var q=0;q<S*S;q++){ if(lab[q]===0){ s+=o.data[q]; n++; } } return n? s/n : 0; }
+var lastE=null;
+/* 課題の「この画像の問題は？」（選択式） */
+var quizOK=false, quizTry=0;
+function critsOf(M){ return M.quiz? [{label:'アーチファクトの種類を答える（①）',f:function(E){ return {v:'',ok:!!E.quiz}; }}].concat(M.crit) : M.crit; }
+function quizBox(box,M){ if(!M.quiz) return; var Q=M.quiz, d=el('div',{class:'mquiz'}); d.appendChild(el('p',{class:'mq'},'① '+Q.q));
+  var row=el('div',{class:'mqopts',role:'group'}); Q.opts.forEach(function(t,i){ var b=el('button',{type:'button',class:quizOK&&i===Q.a?'ok':''},t); b.onclick=function(){ if(quizOK) return; quizTry++; if(mrec) mrec.quiz=quizTry; if(i===Q.a){ quizOK=true; b.classList.add('ok'); fb.textContent='正解：'+Q.why; fb.className='mqfb ok'; missionEval(); } else { b.classList.add('ng'); b.disabled=true; fb.textContent='ちがいます。画像をもう一度よく見てください。'; fb.className='mqfb ng'; } }; row.appendChild(b); });
+  d.appendChild(row); var fb=el('p',{class:'mqfb'+(quizOK?' ok':'')},quizOK?'正解：'+Q.why:''); d.appendChild(fb); d.appendChild(el('p',{class:'mq'},'② 条件を変えて減らしてください。')); box.appendChild(d); }
+
+function exportRecs(){ var a=loadRecs(); var rows=[['id','level','title','start','solved','time_s','hints','changes','quiz_tries','B0']]; a.forEach(function(r){ var M=MS.MISSION_MAP[r.id]; rows.push([r.id,M?M.lv:'',M?M.title:'',r.start,r.solved?1:0,r.time,r.hints,r.changes,r.quiz||'',r.B0||'']); });
   var csv='﻿'+rows.map(function(r){ return r.map(function(x){ x=String(x==null?'':x); var Q=String.fromCharCode(34); return (x.indexOf(Q)>=0||x.indexOf(',')>=0||x.indexOf('\n')>=0)?Q+x.split(Q).join(Q+Q)+Q:x; }).join(','); }).join('\n');
   var url=URL.createObjectURL(new Blob([csv],{type:'text/csv'})); var l=el('a',{href:url,download:'mrisim_missions.csv'}); document.body.appendChild(l); l.click(); l.remove(); setTimeout(function(){ URL.revokeObjectURL(url); },2000); }
 window.addEventListener('pagehide',function(){ endAttempt(); });
@@ -660,7 +672,7 @@ function kfill(){ var box=$('#kfill'); if(!box) return; var sq=MS.SEQ[st.seq];
   }
   lines.forEach(function(t,j){ tx.appendChild(el('div',{class:j?'':'kfmain'},t)); }); if(legend) tx.appendChild(el('div',{class:'kfleg'},legend));
 }
-window.__mrisimTest=function(f){ return f({newState:newState,buildParams:buildParams,schedule:schedule,getSt:function(){return st;},setMode:function(m){mode=m;},startMission:startMission}); };
+window.__mrisimTest=function(f){ return f({newState:newState,buildParams:buildParams,schedule:schedule,getSt:function(){return st;},setMode:function(m){mode=m;},startMission:startMission,lastE:function(){ return lastE; },setQuiz:function(v){ quizOK=v; }}); };
 
 })();
 

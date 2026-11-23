@@ -317,6 +317,16 @@ body.mob.simview.minichart #v-sim>.pro-out .sim-image h3::after{content:attr(dat
 .mlvdone{font-weight:700;color:var(--rt-ok,#17804a)}
 body.mob .mlvsel button{font-size:11.5px;padding:3px 8px}
 .modesw .swn{font-size:10px;font-weight:500;opacity:.8}
+
+/* 課題：アーチファクトの種類を答える */
+.mquiz{margin:8px 0 6px;padding:8px 10px;border:1px solid var(--rt-line);border-radius:8px;background:var(--rt-surface-2)}
+.mquiz .mq{font-size:13.5px;font-weight:700;margin:2px 0 6px}
+.mqopts{display:flex;flex-wrap:wrap;gap:5px}
+.mqopts button{border:1px solid var(--rt-line-strong);background:var(--rt-surface);border-radius:999px;padding:4px 11px;font-size:12.5px;cursor:pointer}
+.mqopts button.ok{background:var(--rt-ok-soft,#eaf7ef);border-color:var(--rt-ok,#17804a);color:var(--rt-ok,#17804a);font-weight:700}
+.mqopts button.ng{text-decoration:line-through;opacity:.55}
+.mqfb{font-size:12.5px;margin:6px 0 2px} .mqfb.ok{color:var(--rt-ok,#17804a)} .mqfb.ng{color:var(--rt-danger,#b42318)}
+.sidebar .nav-btn .art{font-size:11px;margin-right:3px}
 #toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);background:var(--rt-ink,#1b2430);color:#fff;padding:9px 16px;border-radius:999px;font-size:13.5px;opacity:0;pointer-events:none;transition:all .2s;z-index:100}
 #toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
 body.mob #toast{bottom:84px}

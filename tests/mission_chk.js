@@ -6,10 +6,10 @@ function mkE(st){ var sq=MS.SEQ[st.seq], ph=MS.PHANTOMS[st.phantom]; st.coil=ph.
 function setup(M){ var st=MS.defaultState(M.ph,M.seq,null); st.B0=M.B0||1.5; st.les={}; if(M.les) Object.assign(st.les,M.les); if(M.popt) Object.assign(st.popt,M.popt); if(M.init){ if(M.init.p) Object.assign(st.p,M.init.p); if(M.init.st) Object.assign(st,M.init.st); } return st; }
 function okAll(M,E){ return M.crit.map(c=>{ try{ return !!c.f(E).ok; }catch(e){ return 'ERR '+e; } }); }
 var seed=1; function rnd(){ seed=(seed*16807)%2147483647; return seed/2147483647; }
-var SOL={ s_t1w:{p:{tr:500,te:12}}, t2w:{p:{tr:4000,te:100}}, s_pd:{p:{tr:3000,te:15}}, flair:{p:{ti:2500}}, s_thin:{p:{thk:3,nex:3}}, s_half:{p:{nex:1}},
-  stir:{p:{ti:160}}, alias:{p:{pfov:100}}, inopp:{p:{te:2.3,te2:4.6}}, chemshift:{p:{bw:450}}, b_fatsat:{st:{fs:'chess'}}, b_hem:{p:{te:25}},
-  cnr_time:{p:{tr:500,te:12,nex:2}}, breathhold:{p:{r:2,pf:0.75}}, metal:{p:{bw:500},st:{vat:true,fs:'stir'}}, epi:{p:{r:3}}, fast_t2:{p:{etl:16,nex:1}}, a_sar:{p:{refoc:120,etl:16,tr:4000}},
-  x_mrcp:{p:{te:600,r:2,pf:0.75}}, x_flair3:{p:{refoc:120,etl:24}}, x_vibe:{p:{thk:2.5,r:2,pfz:0.75}}, x_dwi3:{p:{r:3,pf:0.75}}, x_knee3:{p:{nx:448,ny:400,bw:450,nex:2,etl:16}}, x_mprage:{p:{ti:750}} };
+var SOL={ s_t1w:{p:{tr:500,te:12}}, t2w:{p:{tr:4000,te:100}}, s_pd:{p:{tr:3000,te:15}}, flair:{p:{ti:2400}}, s_thin:{p:{thk:3,nex:3}}, s_half:{p:{nex:1}},
+  stir:{p:{ti:230}}, alias:{p:{pfov:100}}, inopp:{p:{te:2.3,te2:4.6}}, chemshift:{p:{bw:450}}, b_fatsat:{st:{fs:'chess'}}, b_hem:{p:{te:25}},
+  cnr_time:{p:{tr:400,te:12,nex:1,ny:192,thk:6}}, breathhold:{p:{r:3,pf:0.75,npart:48}}, metal:{p:{bw:500},st:{vat:true,fs:'stir'}}, epi:{p:{r:3,pf:0.75,ny:128}}, fast_t2:{p:{etl:16,nex:1}}, a_sar:{p:{refoc:120,etl:16,tr:4000}},
+  x_mrcp:{p:{te:600,r:2,pf:0.75}}, x_flair3:{p:{refoc:120,etl:24,ti:2400}}, x_vibe:{p:{thk:2.5,r:2,pfz:0.75}}, x_dwi3:{p:{r:3,pf:0.75,ny:128}}, x_knee3:{p:{nx:448,ny:400,bw:450,nex:2,etl:16}}, x_mprage:{p:{ti:750}} };
 var OPTV={fs:['none','chess','spair','stir','water','dixon'],vat:[false,true],semac:[0,4,8,12]};
 var bad=0;
 MS.MISSIONS.forEach(function(M){ var st=setup(M), o0=okAll(M,mkE(JSON.parse(JSON.stringify(st))));

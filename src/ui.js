@@ -42,7 +42,7 @@ function vname(s){ if(vendor==='sie') return s.sie; if(vendor==='can') return s.
 function buildSeqList(){ var box=$('#navigation'), q=($('#seqq').value||'').toLowerCase(); box.innerHTML='';
   function nb(label,small,active,fn){ var b=el('button',{type:'button',class:'nav-btn'+(active?' active':'')}); b.appendChild(document.createTextNode(label)); if(small) b.appendChild(el('small',{},small)); b.onclick=function(){ fn(); closeMenu(); }; if(active) b.setAttribute('aria-current','page'); return b; }
   if(!q){ var sw=el('div',{class:'modesw',role:'group','aria-label':'モードの切り替え'}); var cm=view==='sim'?mode:'';
-    [['learn','勉強用'],['mission','課題'],['expert','エキスパート']].forEach(function(m){ var b=el('button',{type:'button',class:cm===m[0]?'on':'','aria-pressed':String(cm===m[0])},m[1]); b.onclick=function(){ goMode(m[0]); closeMenu(); }; sw.appendChild(b); });
+    var svN=Object.keys(solvedSet()).length; [['learn','勉強用'],['mission','課題'],['expert','エキスパート']].forEach(function(m){ var b=el('button',{type:'button',class:cm===m[0]?'on':'','aria-pressed':String(cm===m[0]),title:m[0]==='mission'?'まだクリアしていない課題から始めます':''},m[1]); if(m[0]==='mission'&&MS.MISSIONS) b.appendChild(el('small',{class:'swn'},' '+svN+'/'+MS.MISSIONS.length)); b.onclick=function(){ goMode(m[0]); closeMenu(); }; sw.appendChild(b); });
     box.appendChild(sw);
     box.appendChild(el('div',{class:'nav-group'},'はじめに')); box.appendChild(nb('このツールの使い方','',view==='about',function(){ setView('about'); }));
     box.appendChild(el('div',{class:'nav-group'},'勉強用（よく使うシーケンス）'));
@@ -61,8 +61,12 @@ function buildSeqList(){ var box=$('#navigation'), q=($('#seqq').value||'').toLo
 /* モードの切り替え（サイドバー上部） */
 function goMode(m){ setView('sim');
   if(m==='learn'){ if(mode!=='learn') startLearn(MS.LEARN[0].seq); setHash('learn'); return; }
-  if(m==='mission'){ if(mode!=='mission'){ var sv=solvedSet(), M=MS.MISSIONS.filter(function(x){ return !sv[x.id]; })[0]||MS.MISSIONS[0]; startMission(M.id); } setHash('mission'); return; }
+  if(m==='mission'){ var sv=solvedSet(); if(!(mode==='mission'&&mission&&!sv[mission.id])){ var M=firstUnsolved(); if(!M){ M=MS.MISSIONS[0]; toast('すべての課題をクリアしています。1 題目から復習できます'); } startMission(M.id); } setHash('mission'); return; }
   if(mode!=='expert'){ endAttempt(); mode='expert'; newState(st?st.phantom:'head',(st&&MS.SEQ[st.seq])?st.seq:'fse_t2',true); } setHash('expert'); }
+
+/* まだクリアしていない最初の課題（いまのレベルから先を優先し、なければ最初から） */
+function firstUnsolved(){ var sv=solvedSet(), L=MS.MISSION_LEVELS||[], cl=(mission&&mission.lv)||null, ms=MS.MISSIONS.filter(function(x){ return !sv[x.id]; }); if(!ms.length) return null;
+  if(cl){ var from=L.indexOf(cl), after=ms.filter(function(x){ return L.indexOf(x.lv)>=from; }); if(after.length) return after[0]; } return ms[0]; }
 
 function setHash(h){ try{ history.replaceState(null,'','#'+h); }catch(e){} }
 function startLearn(seq){ endAttempt(); var L=MS.LEARN_MAP[seq]; mode='learn'; st=MS.defaultState(L.ph,seq,null); st.B0=B0pref; st.les={}; if(L.popt) Object.keys(L.popt).forEach(function(k){ st.popt[k]=L.popt[k]; }); (L.les||[]).forEach(function(k){ st.les[k]=true; }); if(L.agent){ st.agent=L.agent; st.cphase=L.cphase||0; }
@@ -398,7 +402,7 @@ function init(){ tables(); try{ if(window.top!==window) $('#save').hidden=true; 
   var rz=null; window.addEventListener('resize',function(){ clearTimeout(rz); rz=setTimeout(function(){ if(res&&view==='sim') show(res); },150); });
   var h=(location.hash||'').replace('#',''); var hp=h.split('&'), cpar=null; hp.slice(1).forEach(function(x){ if(x.indexOf('c=')===0) cpar=x.slice(2); }); h=hp[0];
   if(cpar){ var ok=false; try{ ok=applyShared(JSON.parse(b64d(cpar))); }catch(e){ ok=false; } if(ok) return; }
-  if(h==='mission'&&MS.MISSIONS) startMission(MS.MISSIONS[0].id); else if(h==='learn') startLearn(MS.LEARN[0].seq); else if(h==='names'||h==='tissue'||h==='about'){ newState('head','fse_t2'); setView(h); } else newState('head','fse_t2'); }
+  if(h==='mission'&&MS.MISSIONS) startMission((firstUnsolved()||MS.MISSIONS[0]).id); else if(h==='learn') startLearn(MS.LEARN[0].seq); else if(h==='names'||h==='tissue'||h==='about'){ newState('head','fse_t2'); setView(h); } else newState('head','fse_t2'); }
 if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init); else init();
 
 /* ---------- スマートフォン用の画面（幅 760px 以下） ----------

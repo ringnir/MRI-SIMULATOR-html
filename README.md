@@ -166,6 +166,7 @@ node tests/all.js              # 全ファントム×全シーケンス×1.5/3T�
 node tests/learn_chk.js        # 勉強用の設定の整合
 node tests/optim_test.js       # 最適化が条件を悪くしないこと
 node tests/mission_chk.js      # 課題の判定と、解けること
+python3 tests/ui_missions.py index.html  # 画面で 24 題すべてが開始時は未達成・解を入れるとクリアになること（要 playwright）
 node tests/psd_test.js         # パルスシーケンス図を全シーケンスで描けること
 node tests/epg_validate.js     # EPG と Bloch 方程式（isochromat）の比較
 node tests/modes.js epg        # 精密計算で全ファントム×全シーケンス

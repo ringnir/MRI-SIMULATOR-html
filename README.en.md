@@ -166,6 +166,7 @@ node tests/all.js              # all phantoms × all sequences × 1.5/3 T (a few
 node tests/learn_chk.js        # learning-mode settings
 node tests/optim_test.js       # optimizer never makes things worse
 node tests/mission_chk.js      # tasks evaluate and are solvable
+python3 tests/ui_missions.py en.html     # in the browser: all 24 tasks start unsolved and clear with a known solution (needs playwright)
 node tests/psd_test.js         # pulse sequence diagrams for every sequence
 node tests/epg_validate.js     # EPG vs isochromat Bloch simulation
 node tests/modes.js epg        # precise mode, all phantoms × all sequences

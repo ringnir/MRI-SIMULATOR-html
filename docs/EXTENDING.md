@@ -97,12 +97,14 @@ node tests/img1.js head se_t2,se_dual 1.5 '{}' none && python3 tests/topng.py te
 `src/missions.js` と同じ形のオブジェクトを渡します。`crit` の各 `f(E)` は `{v: 表示する今の値, ok: 達成したか}` を返します。
 
 ```js
-MS.addMission({ id:'my_t1', lv:'基礎', title:'T1強調像をつくる', ph:'head', seq:'se_t1', B0:1.5,
+MS.addMission({ id:'my_t1', lv:'基礎', keys:['tr','te'], title:'T1強調像をつくる', ph:'head', seq:'se_t1', B0:1.5,
   init:{p:{tr:2500, te:90}},                 // 出発時の条件（st.p と st）
   goal:'T2 強調に近い条件です。T1 強調像にしてください。',
   crit:[ {label:'白質 ＞ 灰白質', f:function(E){ return {v:'', ok:E.sig('wm')>E.sig('gm')}; }} ],
   hints:['TR と TE を短くします。'], expl:'短い TR で T1 の差が、短い TE で T2 の影響の少なさが効きます。' });
 ```
+
+`lv` は `'学生'` `'基礎'` `'応用'` `'エキスパート'` のいずれかで、課題カードとサイドバーがレベル別にまとまります。`keys` は最初のヒントで「動かすパラメータ」として名前を出し、パラメータ欄に印をつけるキーです（PDEF のキー、または `fs`・`vat`・`semac`）。
 
 `E` には `sig(組織キー)`（画像上の中央値）、`cnr(a,b)`、`snr`（既定条件を 100 とした %）、`T`（秒）、`sar`、`wrap`（折り返しの割合）、`csPix`（化学シフトの画素数）、`readEPI`（ms）、`p`（補正後のパラメータ）、`st` が入っています。
 

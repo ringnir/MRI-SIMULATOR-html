@@ -707,6 +707,23 @@ body.mob.simview.minichart #v-sim>.pro-out #minichart canvas{width:100%!importan
 body.mob.simview.minichart #v-sim>.pro-out .metrics,body.mob.simview.minichart #v-sim>.pro-out .warns{display:none}
 body.mob.simview.minichart #v-sim>.pro-out .mstat{grid-row:2}
 body.mob.simview.minichart #v-sim>.pro-out .sim-image h3::after{content:attr(data-mini);font-weight:400;font-size:10.5px;color:var(--rt-muted);margin-left:6px}
+
+/* 課題：ヒントで示した「動かすパラメータ」 */
+#params .mhl{outline:2px dashed var(--rt-accent,#c2410c);outline-offset:3px;border-radius:6px;background:var(--rt-accent-soft)}
+.mhints .mhint.keys{font-weight:700}
+
+/* 課題のレベル */
+.sidebar .nav-lv{display:flex;align-items:center;gap:6px;width:100%;background:transparent;border:0;color:rgba(255,255,255,.88);font-size:13px;font-weight:700;padding:6px 14px;cursor:pointer;text-align:left}
+.sidebar .nav-lv small{margin-left:auto;font-weight:500;color:rgba(255,255,255,.6);font-size:11.5px}
+.sidebar .nav-lv .chev{width:0;height:0;border-left:5px solid currentColor;border-top:4px solid transparent;border-bottom:4px solid transparent;transition:transform .15s}
+.sidebar .nav-lv.open .chev{transform:rotate(90deg)}
+.sidebar .nav-lv:hover{background:rgba(255,255,255,.07)}
+.mlvsel{display:flex;flex-wrap:wrap;gap:4px;margin:0 0 10px}
+.mlvsel button{border:1px solid var(--rt-line-strong);background:var(--rt-surface);border-radius:999px;padding:3px 10px;font-size:12px;cursor:pointer;color:var(--rt-ink-2);display:inline-flex;gap:5px;align-items:baseline}
+.mlvsel button small{font-size:10.5px;color:var(--rt-muted)}
+.mlvsel button.on{background:var(--rt-accent);border-color:var(--rt-accent);color:#fff} .mlvsel button.on small{color:rgba(255,255,255,.85)}
+.mlvdone{font-weight:700;color:var(--rt-ok,#17804a)}
+body.mob .mlvsel button{font-size:11.5px;padding:3px 8px}
 #toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);background:var(--rt-ink,#1b2430);color:#fff;padding:9px 16px;border-radius:999px;font-size:13.5px;opacity:0;pointer-events:none;transition:all .2s;z-index:100}
 #toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
 body.mob #toast{bottom:84px}
@@ -4637,79 +4654,174 @@ MS.drawPSD=function(canvas,sq,p,st,opts){
      E.csPix       … 化学シフト（読出し方向、画素）
      E.readEPI     … EPI の読出し時間（ms）
      E.p / E.st    … 補正後のパラメータ／状態
+   各課題の lv は '学生' '基礎' '応用' 'エキスパート' のいずれか、keys はヒント 1 で示す「動かすパラメータ」（PDEF のキー、または fs・vat・semac）。
    追加するときは MS.addMission({...}) を src/seq/*.js などから呼ぶ。 */
 (function(){
 var MS=window.MS;
 function rng(v,a,b){ return v>=a&&v<=b; }
 MS.MISSIONS=[
- { id:'t2w', lv:'Basic', title:'Make a T2-weighted image', ph:'head', seq:'fse_t2', B0:1.5,
+ { id:'s_t1w', keys:['tr','te'], lv:'Student', title:'Make a T1-weighted image', ph:'head', seq:'se_t1', B0:1.5,
+   init:{p:{tr:2500,te:90}},
+   goal:'The current settings are close to T2 weighting. Make a T1-weighted image in which white matter is brighter than grey matter and CSF is dark.',
+   crit:[ {label:'White matter > grey matter (T1-weighted order)', f:function(E){ return {v:'', ok:E.sig('wm')>E.sig('gm')}; }},
+          {label:'CSF ÷ white matter < 0.5', f:function(E){ var r=E.sig('csf')/Math.max(E.sig('wm'),1e-6); return {v:r.toFixed(2), ok:r<0.5}; }} ],
+   hints:['T1 weighting means a short TR and a short TE.','Aim for TR 400–600 ms and TE 10–20 ms.'],
+   expl:'With a short TR, short-T1 tissues (fat, white matter) have recovered more longitudinal magnetization and are bright, while long-T1 CSF is dark. A short TE reduces T2 effects.' },
+ { id:'s_pd', keys:['tr','te'], lv:'Student', title:'Make a proton-density-weighted image', ph:'head', seq:'se_pd', B0:1.5,
+   init:{p:{tr:500,te:12}},
+   goal:'The current settings are T1-weighted. Make an image that reflects the amount of hydrogen (proton density).',
+   crit:[ {label:'TR ≥ 2000 ms', f:function(E){ return {v:Math.round(E.p.tr)+' ms', ok:E.p.tr>=2000}; }},
+          {label:'TE ≤ 30 ms', f:function(E){ return {v:Math.round(E.p.te)+' ms', ok:E.p.te<=30}; }},
+          {label:'Grey matter > white matter (more water is brighter)', f:function(E){ return {v:'', ok:E.sig('gm')>E.sig('wm')}; }} ],
+   hints:['A long TR removes T1 differences; a short TE removes T2 differences.','Aim for TR 2500–3000 ms and TE 15–30 ms.'],
+   expl:'With a long TR the longitudinal magnetization nearly recovers, and with a short TE little transverse relaxation occurs, so the signal depends mainly on the amount of hydrogen (proton density).' },
+ { id:'s_thin', keys:['thk','nex'], lv:'Student', title:'Thinner slices without losing SNR', ph:'head', seq:'fse_t2', B0:1.5,
+   goal:'Make the slices 3 mm or thinner while keeping SNR at 90% of default or more.',
+   crit:[ {label:'Slice thickness ≤ 3 mm', f:function(E){ return {v:E.p.thk+' mm', ok:E.p.thk<=3}; }},
+          {label:'SNR ≥ 90%', f:function(E){ return {v:Math.round(E.snr)+'%', ok:E.snr>=90}; }} ],
+   hints:['Thinner slices lower SNR in proportion to voxel volume (5 → 3 mm gives 60%).','More averages raise SNR by √NEX (and time by NEX).'],
+   expl:'SNR is proportional to voxel volume and √(averages). SNR lost to thin slices can be recovered by averaging, at the cost of scan time. Resolution, SNR and time trade off against each other.' },
+ { id:'s_half', keys:['nex'], lv:'Student', title:'Halve the scan time', ph:'head', seq:'fse_t2', B0:1.5,
+   init:{p:{nex:2}},
+   goal:'Bring the scan time (now 2 min 08 s) within 1 min 05 s without changing slice thickness or matrix.',
+   crit:[ {label:'Scan time ≤ 1:05', f:function(E){ return {v:mmss(E.T), ok:E.T<=65}; }},
+          {label:'Keep 5 mm slices and phase matrix 256', f:function(E){ return {v:'', ok:E.p.thk>=5&&E.p.ny>=256}; }} ],
+   hints:['Scan time is proportional to the number of averages (NEX).','Going from 2 to 1 average halves the time and lowers SNR to 1/√2 (about 71%).'],
+   expl:'Scan time = TR × phase encodes × averages ÷ ETL. Fewer averages reduce time proportionally and SNR by the square root.' },
+ { id:'b_fatsat', keys:['fs'], lv:'Basic', title:'Use fat suppression', ph:'knee', seq:'fse_pd', B0:1.5,
+   goal:'On this PD-weighted knee image fat is bright, hiding marrow oedema and joint fluid. Bring the fat signal below 30% of muscle.',
+   crit:[ {label:'Fat ÷ muscle < 0.3', f:function(E){ var r=E.sig('fat')/Math.max(E.sig('muscle'),1e-6); return {v:r.toFixed(2), ok:r<0.3}; }} ],
+   hints:['Choose a method under "Fat suppression".','At 1.5 T and above, chemical-shift-selective saturation (CHESS / Fat Sat) or SPAIR is commonly used.'],
+   expl:'Chemical-shift-selective fat suppression saturates only the fat resonance beforehand. Where the field is inhomogeneous (body edges, near metal) suppression becomes uneven; use STIR or Dixon there.' },
+ { id:'b_hem', keys:['te','fa'], lv:'Basic', title:'Make haemorrhage stand out with T2* weighting', ph:'head', seq:'gre_t2s', B0:1.5, les:{hem:true},
+   init:{p:{te:5}},
+   goal:'TE is too short and the haemorrhage is barely visible. Make the haemorrhage darker than 40% of white matter (scan time within 6 minutes).',
+   crit:[ {label:'Haemorrhage ÷ white matter < 0.4', f:function(E){ var r=E.sig('hem')/Math.max(E.sig('wm'),1e-6); return {v:r.toFixed(2), ok:r<0.4}; }},
+          {label:'Scan time ≤ 6:00', f:function(E){ return {v:mmss(E.T), ok:E.T<=360}; }} ],
+   hints:['A longer TE darkens haemorrhage through susceptibility-induced dephasing (T2*).','At 1.5 T, a TE of about 20–25 ms. A longer TE also lengthens TR and the scan time.'],
+   expl:'Haemosiderin and deoxyhaemoglobin have high susceptibility, disturbing the local field and shortening T2*. The longer the TE, the stronger the signal loss (blooming).' },
+ { id:'a_sar', keys:['refoc','etl','tr'], lv:'Advanced', title:'Lower SAR at 3 T', ph:'head', seq:'fse_t2', B0:3,
+   init:{p:{refoc:180,etl:24,tr:3000}},
+   goal:'SAR is too high at 3 T. Bring SAR to 40% of the limit or less, while keeping scan time within 1 min 30 s and SNR at 70% or more.',
+   crit:[ {label:'SAR ≤ 40%', f:function(E){ return {v:Math.round(E.sar)+'%', ok:E.sar<=40}; }},
+          {label:'Scan time ≤ 1:30', f:function(E){ return {v:mmss(E.T), ok:E.T<=90}; }},
+          {label:'SNR ≥ 70%', f:function(E){ return {v:Math.round(E.snr)+'%', ok:E.snr>=70}; }} ],
+   hints:['SAR scales with the square of the flip angle and the square of B0. Lowering the refocusing angle is the most effective step.','A shorter ETL or a longer TR means fewer RF pulses per unit time.'],
+   expl:'At 3 T, SAR is about four times that at 1.5 T for the same settings. The basics are lowering the refocusing angle to 120–150° (variable flip angles, hyperechoes) and using fewer pulses.' },
+ { id:'x_mrcp', keys:['te','r','pf','etl'], lv:'Expert', title:'MRCP: bright bile only, and faster', ph:'abdomen', seq:'mrcp3d', B0:1.5,
+   init:{p:{te:80,r:1}},
+   goal:'TE is short so the liver remains, and the scan takes long. Bring liver below 10% of bile, with scan time within 4 minutes and SNR at 70% or more.',
+   crit:[ {label:'Liver ÷ bile < 0.1', f:function(E){ var r=E.sig('liver')/Math.max(E.sig('bile'),1e-6); return {v:r.toFixed(2), ok:r<0.1}; }},
+          {label:'Scan time ≤ 4:00', f:function(E){ return {v:mmss(E.T), ok:E.T<=240}; }},
+          {label:'SNR ≥ 70%', f:function(E){ return {v:Math.round(E.snr)+'%', ok:E.snr>=70}; }} ],
+   hints:['MRCP uses a very long TE so that only long-T2 fluid remains.','With TE 500–700 ms the parenchyma almost disappears. Shorten the scan with parallel imaging or partial Fourier.'],
+   expl:'Bile and pancreatic juice have T2 above 1000 ms; liver about 50 ms. A TE of several hundred ms removes parenchymal signal so only fluid remains. In 3D, acceleration shortens the scan but SNR must be preserved.' },
+ { id:'x_flair3', keys:['refoc','etl','tr','r'], lv:'Expert', title:'3 T FLAIR within SAR and time limits', ph:'head', seq:'flair', B0:3,
+   init:{p:{refoc:180,etl:12}},
+   goal:'This 3 T FLAIR has high SAR and takes long. Keep CSF suppressed while bringing SAR to 25% or less and scan time within 1 min 50 s.',
+   crit:[ {label:'CSF ÷ white matter < 0.2', f:function(E){ var r=E.sig('csf')/Math.max(E.sig('wm'),1e-6); return {v:r.toFixed(2), ok:r<0.2}; }},
+          {label:'SAR ≤ 25%', f:function(E){ return {v:Math.round(E.sar)+'%', ok:E.sar<=25}; }},
+          {label:'Scan time ≤ 1:50', f:function(E){ return {v:mmss(E.T), ok:E.T<=110}; }} ],
+   hints:['Lowering the refocusing angle reduces SAR considerably.','A longer ETL shortens the scan, but watch blurring and SAR. Keep TI at the CSF null point for the TR you choose.'],
+   expl:'FLAIR needs a long TR, so it takes time, and at 3 T SAR is also a constraint. Combine a lower refocusing angle, a longer ETL and parallel imaging.' },
+ { id:'x_vibe', keys:['thk','npart','r','rz','pf','pfz','cs'], lv:'Expert', title:'Thinner and faster 3D T1 of the liver', ph:'abdomen', seq:'vibe', B0:1.5,
+   goal:'This 3D T1 is for dynamic contrast imaging. Make the slice direction 2.5 mm or less, with scan time within 15 s and SNR at 55% or more.',
+   crit:[ {label:'Slice direction ≤ 2.5 mm', f:function(E){ return {v:(E.info.dz||0).toFixed(1)+' mm', ok:(E.info.dz||9)<=2.5}; }},
+          {label:'Scan time ≤ 15 s', f:function(E){ return {v:E.T.toFixed(1)+' s', ok:E.T<=15}; }},
+          {label:'SNR ≥ 55%', f:function(E){ return {v:Math.round(E.snr)+'%', ok:E.snr>=55}; }} ],
+   hints:['Thinner partitions lower SNR, and covering the same range needs more partitions and more time.','Combine parallel imaging in the phase direction, partial Fourier in the slice direction and CAIPIRINHA (rz).'],
+   expl:'In 3D you can accelerate both in-plane and along the slice direction. Splitting the acceleration keeps the g-factor small, so SNR drops less for the same total acceleration.' },
+ { id:'x_dwi3', keys:['r','pf','ny','nex'], lv:'Expert', title:'3 T DWI: balance distortion and SNR', ph:'head', seq:'dwi', B0:3,
+   init:{p:{r:1,pf:1}},
+   goal:'This is 3 T DWI. Reduce distortion by bringing the EPI readout to 28 ms or less, while keeping SNR at 65% or more and scan time within 1 minute.',
+   crit:[ {label:'EPI readout time ≤ 28 ms', f:function(E){ return {v:(E.readEPI||0).toFixed(1)+' ms', ok:E.readEPI>0&&E.readEPI<=28}; }},
+          {label:'SNR ≥ 65%', f:function(E){ return {v:Math.round(E.snr)+'%', ok:E.snr>=65}; }},
+          {label:'Scan time ≤ 1:00', f:function(E){ return {v:mmss(E.T), ok:E.T<=60}; }} ],
+   hints:['Parallel imaging (R) shortens the echo train but lowers SNR by √R × g.','Partial Fourier also shortens the echo train. Reducing the phase matrix a little helps too.'],
+   expl:'Steps that reduce distortion (acceleration, partial Fourier, smaller matrix) tend to lower SNR. Recovering it with averaging lengthens the scan, so balance all three.' },
+ { id:'x_knee3', keys:['nx','ny','bw','nex','etl'], lv:'Expert', title:'High-resolution fat-suppressed PD of the knee at 3 T', ph:'knee', seq:'fse_pd', B0:3,
+   init:{st:{fs:'chess'}},
+   goal:'To see cartilage and menisci, make the in-plane pixels 0.4 mm or smaller, with chemical shift ≤ 1 pixel, SNR ≥ 50% and scan time within 5 min 30 s.',
+   crit:[ {label:'In-plane pixel ≤ 0.4 mm', f:function(E){ var d=Math.max(E.info.dx||9,E.info.dy||9); return {v:d.toFixed(2)+' mm', ok:d<=0.4}; }},
+          {label:'Chemical shift ≤ 1 pixel', f:function(E){ return {v:E.csPix.toFixed(2)+' px', ok:E.csPix<=1}; }},
+          {label:'SNR ≥ 50%', f:function(E){ return {v:Math.round(E.snr)+'%', ok:E.snr>=50}; }},
+          {label:'Scan time ≤ 5:30', f:function(E){ return {v:mmss(E.T), ok:E.T<=330}; }} ],
+   hints:['A larger matrix gives smaller pixels but costs SNR and time. The water–fat difference at 3 T is about 440 Hz.','Recover the SNR lost to the higher bandwidth with averaging, and the added time with a longer ETL.'],
+   expl:'High resolution, chemical shift, SNR and time all trade off. At 3 T, the idea is to spend the extra SNR on smaller pixels and a higher bandwidth.' },
+ { id:'x_mprage', keys:['ti','fa'], lv:'Expert', title:'Raise grey–white CNR in MPRAGE', ph:'head', seq:'mprage', B0:1.5,
+   goal:'Raise the grey–white matter CNR of MPRAGE to 3.6 or more, keeping 1 mm isotropic resolution.',
+   crit:[ {label:'CNR (grey vs white matter) ≥ 3.6', f:function(E){ var c=E.cnr('gm','wm'); return {v:c.toFixed(2), ok:c>=3.6}; }},
+          {label:'Keep 1 mm in the slice direction', f:function(E){ return {v:'', ok:(E.info.dz||9)<=1.0001}; }} ],
+   hints:['Choose the TI (inversion time) at which the longitudinal magnetization of grey and white matter differs most.','Set the chart x-axis to TI and look for the maximum CNR.'],
+   expl:'In MPRAGE, longitudinal magnetization recovers differently after inversion in white matter (short T1) and grey matter (long T1); reading out at the TI where the difference is largest maximizes CNR. The flip angle also affects saturation during the readout.' },
+ { id:'t2w', keys:['tr','te'], lv:'Student', title:'Make a T2-weighted image', ph:'head', seq:'fse_t2', B0:1.5,
    init:{p:{tr:600,te:15}},
    goal:'The current settings are close to T1 weighting. Make a T2-weighted image in which CSF is at least twice as bright as white matter.',
    crit:[ {label:'CSF ÷ white matter ≥ 2', f:function(E){ var r=E.sig('csf')/Math.max(1e-9,E.sig('wm')); return {v:r.toFixed(2), ok:r>=2}; }},
           {label:'White matter < grey matter (T2-weighted order)', f:function(E){ return {v:'', ok:E.sig('wm')<E.sig('gm')}; }} ],
    hints:['T2 weighting means a long TR and a long TE.','Use TR ≥ 2500 ms to remove T1 effects and TE of roughly 80–120 ms.'],
    expl:'A long TR lets the longitudinal magnetization nearly recover (removing T1 differences), and a long TE leaves long-T2 tissue (CSF) bright, giving T2 weighting.' },
- { id:'flair', lv:'Basic', title:'Null CSF with FLAIR', ph:'head', seq:'flair', B0:1.5,
+ { id:'flair', keys:['ti'], lv:'Student', title:'Null CSF with FLAIR', ph:'head', seq:'flair', B0:1.5,
    init:{p:{ti:900}},
    goal:'The inversion time (TI) is too short and CSF is still visible. Bring the CSF signal below 20% of white matter.',
    crit:[ {label:'CSF ÷ white matter < 0.2', f:function(E){ var r=E.sig('csf')/Math.max(1e-9,E.sig('wm')); return {v:r.toFixed(2), ok:r<0.2}; }} ],
    hints:['Exciting when the longitudinal magnetization passes through zero after inversion (the null point) removes that tissue\'s signal.','The null point is TI ≈ T1 × ln2 (when TR is long enough). CSF T1 is about 4000 ms at 1.5 T.','With a short TR the magnetization does not fully recover, so the best TI shifts shorter. Try setting the chart x-axis to TI.'],
    expl:'At TI ≈ T1 × ln2 (≈ 0.69 × T1) the longitudinal magnetization crosses zero and that tissue disappears. With a finite TR, TI ≈ T1 × ln[2 / (1 + e^(−TR/T1))].' },
- { id:'stir', lv:'Basic', title:'Suppress fat with STIR', ph:'knee', seq:'stir', B0:1.5,
+ { id:'stir', keys:['ti'], lv:'Basic', title:'Suppress fat with STIR', ph:'knee', seq:'stir', B0:1.5,
    init:{p:{ti:350}},
    goal:'Fat is still bright. Bring the fat signal below 30% of muscle.',
    crit:[ {label:'Fat ÷ muscle < 0.3', f:function(E){ var r=E.sig('fat')/Math.max(1e-9,E.sig('muscle')); return {v:r.toFixed(2), ok:r<0.3}; }} ],
    hints:['In STIR, the TI is chosen to match the T1 of fat.','At 1.5 T, fat T1 is about 250–300 ms, so the null point is TI ≈ 150–170 ms.'],
    expl:'Fat has a short T1, so its longitudinal magnetization reaches zero at TI ≈ 0.69 × T1(fat) ≈ 150 ms (1.5 T). STIR is robust to field inhomogeneity, but it also suppresses tissues with the same T1 (such as enhancing lesions).' },
- { id:'cnr_time', lv:'Advanced', title:'Raise white–grey CNR within the time limit', ph:'head', seq:'se_t1', B0:1.5,
+ { id:'cnr_time', keys:['tr','te','nex','thk'], lv:'Advanced', title:'Raise white–grey CNR within the time limit', ph:'head', seq:'se_t1', B0:1.5,
    init:{p:{tr:1500,te:30,nex:1}},
    goal:'On SE T1-weighted imaging, raise the white–grey matter CNR to 12 or more, keeping the scan within 4 minutes.',
    crit:[ {label:'CNR (white vs grey matter) ≥ 12', f:function(E){ var c=E.cnr('wm','gm'); return {v:c.toFixed(1), ok:c>=12}; }},
           {label:'Scan time ≤ 4 min', f:function(E){ return {v:mmss(E.T), ok:E.T<=240}; }} ],
    hints:['For T1 weighting, use a short TR and a short TE.','To raise SNR: thicker slices, larger FOV, smaller matrix, more averages, or a narrower bandwidth.','Time = TR × phase matrix × averages. Lowering TR and spending the saved time on averaging is one option.'],
    expl:'CNR is the signal difference × SNR. Placing TR between the two T1 values widens the difference, and spending the saved time on averaging raises SNR by √NEX. Keep the trade-off with resolution (voxel volume) in mind.' },
- { id:'alias', lv:'Basic', title:'Remove aliasing', ph:'abdomen', seq:'vibe', B0:1.5,
+ { id:'alias', keys:['pfov','pos','r','pf'], lv:'Basic', title:'Remove aliasing', ph:'abdomen', seq:'vibe', B0:1.5,
    init:{p:{pfov:50}},
    goal:'The phase FOV is smaller than the body, so the body wraps onto the opposite side. Remove the aliasing (keeping the breath-hold within 20 s).',
    crit:[ {label:'Aliasing < 1%', f:function(E){ return {v:(E.wrap*100).toFixed(1)+'%', ok:E.wrap<0.01}; }},
           {label:'Scan time ≤ 20 s', f:function(E){ return {v:E.T.toFixed(1)+' s', ok:E.T<=20}; }} ],
    hints:['Widen the phase FOV (%) or use phase oversampling.','A larger FOV lengthens the scan. Win the time back with parallel imaging or partial Fourier.'],
    expl:'The phase direction cannot be separated by frequency, so tissue outside the FOV folds onto the opposite side. Fix it with a larger FOV, phase oversampling, swapping the phase direction, or saturation pulses.' },
- { id:'breathhold', lv:'Advanced', title:'Fit in a 15 s breath-hold', ph:'abdomen', seq:'vibe', B0:1.5,
+ { id:'breathhold', keys:['r','pf','npart','thk'], lv:'Advanced', title:'Fit in a 15 s breath-hold', ph:'abdomen', seq:'vibe', B0:1.5,
    init:{p:{r:1,pf:1,npart:72}},
    goal:'The breath-hold is too long. Bring the scan time to 15 s or less while keeping SNR at 60% of default or more.',
    crit:[ {label:'Scan time ≤ 15 s', f:function(E){ return {v:E.T.toFixed(1)+' s', ok:E.T<=15}; }},
           {label:'SNR ≥ 60%', f:function(E){ return {v:Math.round(E.snr)+'%', ok:E.snr>=60}; }} ],
    hints:['Parallel imaging (acceleration), partial Fourier and fewer partitions all help.','More acceleration lowers SNR (√R and the g-factor). You can make slices a little thicker to compensate.'],
    expl:'3D scan time is TR × phase steps × partitions ÷ acceleration. Parallel imaging lowers SNR by √R × g, so balance time, SNR and resolution.' },
- { id:'inopp', lv:'Basic', title:'Set in-phase and opposed-phase TEs', ph:'abdomen', seq:'inopp', B0:1.5,
+ { id:'inopp', keys:['te','te2'], lv:'Basic', title:'Set in-phase and opposed-phase TEs', ph:'abdomen', seq:'inopp', B0:1.5,
    init:{p:{te:3.0,te2:5.5}},
    goal:'The two TEs are off. At 1.5 T, set the first echo to opposed-phase and the second echo to in-phase.',
    crit:[ {label:'TE1 is opposed-phase (±0.3 ms)', f:function(E){ var t=E.st.B0>=2.5?1.15:2.3; return {v:E.p.te+' ms', ok:Math.abs(E.p.te-t)<=0.3*(E.st.B0>=2.5?0.5:1)}; }},
           {label:'TE2 is in-phase (±0.3 ms)', f:function(E){ var t=E.st.B0>=2.5?2.3:4.6; return {v:E.p.te2+' ms', ok:Math.abs(E.p.te2-t)<=0.3*(E.st.B0>=2.5?0.5:1)}; }} ],
    hints:['Water and fat differ by about 3.4 ppm, about 220 Hz at 1.5 T, so one full phase cycle takes about 4.6 ms.','Half a cycle (opposed-phase) is 2.3 ms and a full cycle (in-phase) is 4.6 ms. At 3 T both are halved.'],
    expl:'Water and fat are 3.4 ppm apart; one cycle ≈ 4.6 ms at 1.5 T. In opposed-phase, water and fat in the same voxel cancel, so fat-containing lesions (adenoma, fatty liver) lose signal.' },
- { id:'chemshift', lv:'Basic', title:'Keep chemical shift ≤ 1 pixel', ph:'knee', seq:'fse_pd', B0:3,
+ { id:'chemshift', keys:['bw'], lv:'Basic', title:'Keep chemical shift ≤ 1 pixel', ph:'knee', seq:'fse_pd', B0:3,
    init:{p:{bw:80}},
    goal:'At 3 T the receiver bandwidth is narrow and the fat–water boundary is shifted. Reduce the chemical shift to 1 pixel or less.',
    crit:[ {label:'Chemical shift ≤ 1 pixel', f:function(E){ return {v:E.csPix.toFixed(2)+' px', ok:E.csPix<=1}; }} ],
    hints:['Chemical shift (pixels) = water–fat frequency difference (Hz) ÷ bandwidth per pixel (Hz/pixel).','The water–fat difference at 3 T is about 440 Hz. Set the bandwidth to at least 440 Hz/pixel (SNR will drop).'],
    expl:'A wider bandwidth increases the frequency range per pixel, so the shift (in pixels) shrinks. In exchange noise rises and SNR falls in proportion to 1/√(BW).' },
- { id:'metal', lv:'Advanced', title:'Reduce metal artifacts', ph:'knee', seq:'fse_pd', B0:1.5, les:{metal:true},
-   init:{p:{bw:130}, st:{fs:'chess'}},
+ { id:'metal', keys:['bw','fs','vat','semac'], lv:'Advanced', title:'Reduce metal artifacts', ph:'knee', seq:'metal', B0:1.5, les:{metal:true},
+   init:{p:{bw:130}, st:{fs:'chess',vat:false,semac:0}},
    goal:'Signal drops out around the metal and fat suppression is uneven. Choose settings that reduce metal artifacts.',
    crit:[ {label:'Receiver bandwidth ≥ 400 Hz/pixel', f:function(E){ return {v:E.p.bw+' Hz/pixel', ok:E.p.bw>=400}; }},
           {label:'Use VAT or SEMAC', f:function(E){ return {v:'', ok:!!(E.st.vat||E.st.semac)}; }},
           {label:'Do not use frequency-selective fat suppression (CHESS/SPAIR)', f:function(E){ return {v:E.st.fs||'None', ok:E.st.fs!=='chess'&&E.st.fs!=='spair'}; }} ],
    hints:['Near metal the field is strongly distorted, so anything that relies on frequency (fat suppression, slice selection, readout) is disrupted.','A wider bandwidth, view-angle tilting (VAT) and slice-direction correction (SEMAC) help.','For fat suppression near metal, STIR (inversion recovery) or Dixon is robust.'],
    expl:'Metal causes large local frequency offsets, leading to readout shifts, slice-plane distortion and failed fat suppression. The basic remedy combines high bandwidth, VAT, SEMAC and STIR/Dixon.' },
- { id:'epi', lv:'Advanced', title:'Reduce DWI distortion', ph:'head', seq:'dwi', B0:3,
+ { id:'epi', keys:['r','pf','ny'], lv:'Advanced', title:'Reduce DWI distortion', ph:'head', seq:'dwi', B0:3,
    init:{p:{r:1,pf:1,ny:192,nx:192}},
    goal:'The 3 T EPI readout is long and distortion is obvious. Bring the EPI readout time down to 30 ms or less.',
    crit:[ {label:'EPI readout time ≤ 30 ms', f:function(E){ var r=E.readEPI||0; return {v:r?r.toFixed(1)+' ms':'—', ok:r>0&&r<=30}; }} ],
    hints:['Distortion scales with the echo train length (readout time).','Shorten the echo train with parallel imaging (R), reduce the phase matrix, use partial Fourier, or segmented readout (RESOLVE, EPIX, etc.).'],
    expl:'In EPI the bandwidth per pixel in the phase direction is small (1 ÷ readout time), so any field offset becomes a shift along the phase direction. The shorter the readout, the smaller the distortion.' },
- { id:'fast_t2', lv:'Advanced', title:'Fast T2 while keeping SNR', ph:'head', seq:'fse_t2', B0:1.5,
+ { id:'fast_t2', keys:['etl','nex'], lv:'Advanced', title:'Fast T2 while keeping SNR', ph:'head', seq:'fse_t2', B0:1.5,
    init:{p:{etl:8,nex:2}},
    goal:'Bring the scan time within 1 min 30 s while keeping SNR at 80% of default or more.',
    crit:[ {label:'Scan time ≤ 1:30', f:function(E){ return {v:mmss(E.T), ok:E.T<=90}; }},
@@ -4718,6 +4830,10 @@ MS.MISSIONS=[
    expl:'FSE time is TR × phase steps × averages ÷ ETL. A longer ETL is faster, but T2 decay along the train adds blurring and SAR rises.' }
 ];
 function mmss(s){ s=Math.round(s); return Math.floor(s/60)+':'+('0'+(s%60)).slice(-2); }
+MS.MISSION_LEVELS=['Student','Basic','Advanced','Expert'];
+var ORDER=['s_t1w','t2w','s_pd','flair','s_thin','s_half','b_fatsat','stir','inopp','chemshift','alias','b_hem','cnr_time','fast_t2','breathhold','a_sar','epi','metal','x_mprage','x_flair3','x_knee3','x_dwi3','x_vibe','x_mrcp'];
+function ord(M){ var i=ORDER.indexOf(M.id); return i<0?999:i; }
+MS.MISSIONS.sort(function(a,b){ return (MS.MISSION_LEVELS.indexOf(a.lv)-MS.MISSION_LEVELS.indexOf(b.lv))||(ord(a)-ord(b)); });
 MS.MISSION_MAP={}; MS.MISSIONS.forEach(function(M){ MS.MISSION_MAP[M.id]=M; });
 MS.addMission=function(M){ MS.MISSIONS=MS.MISSIONS.filter(function(x){ return x.id!==M.id; }); MS.MISSIONS.push(M); MS.MISSION_MAP[M.id]=M; return M; };
 })();
@@ -8658,79 +8774,174 @@ MS.drawPSD=function(canvas,sq,p,st,opts){
      E.csPix       … 化学シフト（読出し方向、画素）
      E.readEPI     … EPI の読出し時間（ms）
      E.p / E.st    … 補正後のパラメータ／状態
+   各課題の lv は '学生' '基礎' '応用' 'エキスパート' のいずれか、keys はヒント 1 で示す「動かすパラメータ」（PDEF のキー、または fs・vat・semac）。
    追加するときは MS.addMission({...}) を src/seq/*.js などから呼ぶ。 */
 (function(){
 var MS=window.MS;
 function rng(v,a,b){ return v>=a&&v<=b; }
 MS.MISSIONS=[
- { id:'t2w', lv:'Basic', title:'Make a T2-weighted image', ph:'head', seq:'fse_t2', B0:1.5,
+ { id:'s_t1w', keys:['tr','te'], lv:'Student', title:'Make a T1-weighted image', ph:'head', seq:'se_t1', B0:1.5,
+   init:{p:{tr:2500,te:90}},
+   goal:'The current settings are close to T2 weighting. Make a T1-weighted image in which white matter is brighter than grey matter and CSF is dark.',
+   crit:[ {label:'White matter > grey matter (T1-weighted order)', f:function(E){ return {v:'', ok:E.sig('wm')>E.sig('gm')}; }},
+          {label:'CSF ÷ white matter < 0.5', f:function(E){ var r=E.sig('csf')/Math.max(E.sig('wm'),1e-6); return {v:r.toFixed(2), ok:r<0.5}; }} ],
+   hints:['T1 weighting means a short TR and a short TE.','Aim for TR 400–600 ms and TE 10–20 ms.'],
+   expl:'With a short TR, short-T1 tissues (fat, white matter) have recovered more longitudinal magnetization and are bright, while long-T1 CSF is dark. A short TE reduces T2 effects.' },
+ { id:'s_pd', keys:['tr','te'], lv:'Student', title:'Make a proton-density-weighted image', ph:'head', seq:'se_pd', B0:1.5,
+   init:{p:{tr:500,te:12}},
+   goal:'The current settings are T1-weighted. Make an image that reflects the amount of hydrogen (proton density).',
+   crit:[ {label:'TR ≥ 2000 ms', f:function(E){ return {v:Math.round(E.p.tr)+' ms', ok:E.p.tr>=2000}; }},
+          {label:'TE ≤ 30 ms', f:function(E){ return {v:Math.round(E.p.te)+' ms', ok:E.p.te<=30}; }},
+          {label:'Grey matter > white matter (more water is brighter)', f:function(E){ return {v:'', ok:E.sig('gm')>E.sig('wm')}; }} ],
+   hints:['A long TR removes T1 differences; a short TE removes T2 differences.','Aim for TR 2500–3000 ms and TE 15–30 ms.'],
+   expl:'With a long TR the longitudinal magnetization nearly recovers, and with a short TE little transverse relaxation occurs, so the signal depends mainly on the amount of hydrogen (proton density).' },
+ { id:'s_thin', keys:['thk','nex'], lv:'Student', title:'Thinner slices without losing SNR', ph:'head', seq:'fse_t2', B0:1.5,
+   goal:'Make the slices 3 mm or thinner while keeping SNR at 90% of default or more.',
+   crit:[ {label:'Slice thickness ≤ 3 mm', f:function(E){ return {v:E.p.thk+' mm', ok:E.p.thk<=3}; }},
+          {label:'SNR ≥ 90%', f:function(E){ return {v:Math.round(E.snr)+'%', ok:E.snr>=90}; }} ],
+   hints:['Thinner slices lower SNR in proportion to voxel volume (5 → 3 mm gives 60%).','More averages raise SNR by √NEX (and time by NEX).'],
+   expl:'SNR is proportional to voxel volume and √(averages). SNR lost to thin slices can be recovered by averaging, at the cost of scan time. Resolution, SNR and time trade off against each other.' },
+ { id:'s_half', keys:['nex'], lv:'Student', title:'Halve the scan time', ph:'head', seq:'fse_t2', B0:1.5,
+   init:{p:{nex:2}},
+   goal:'Bring the scan time (now 2 min 08 s) within 1 min 05 s without changing slice thickness or matrix.',
+   crit:[ {label:'Scan time ≤ 1:05', f:function(E){ return {v:mmss(E.T), ok:E.T<=65}; }},
+          {label:'Keep 5 mm slices and phase matrix 256', f:function(E){ return {v:'', ok:E.p.thk>=5&&E.p.ny>=256}; }} ],
+   hints:['Scan time is proportional to the number of averages (NEX).','Going from 2 to 1 average halves the time and lowers SNR to 1/√2 (about 71%).'],
+   expl:'Scan time = TR × phase encodes × averages ÷ ETL. Fewer averages reduce time proportionally and SNR by the square root.' },
+ { id:'b_fatsat', keys:['fs'], lv:'Basic', title:'Use fat suppression', ph:'knee', seq:'fse_pd', B0:1.5,
+   goal:'On this PD-weighted knee image fat is bright, hiding marrow oedema and joint fluid. Bring the fat signal below 30% of muscle.',
+   crit:[ {label:'Fat ÷ muscle < 0.3', f:function(E){ var r=E.sig('fat')/Math.max(E.sig('muscle'),1e-6); return {v:r.toFixed(2), ok:r<0.3}; }} ],
+   hints:['Choose a method under "Fat suppression".','At 1.5 T and above, chemical-shift-selective saturation (CHESS / Fat Sat) or SPAIR is commonly used.'],
+   expl:'Chemical-shift-selective fat suppression saturates only the fat resonance beforehand. Where the field is inhomogeneous (body edges, near metal) suppression becomes uneven; use STIR or Dixon there.' },
+ { id:'b_hem', keys:['te','fa'], lv:'Basic', title:'Make haemorrhage stand out with T2* weighting', ph:'head', seq:'gre_t2s', B0:1.5, les:{hem:true},
+   init:{p:{te:5}},
+   goal:'TE is too short and the haemorrhage is barely visible. Make the haemorrhage darker than 40% of white matter (scan time within 6 minutes).',
+   crit:[ {label:'Haemorrhage ÷ white matter < 0.4', f:function(E){ var r=E.sig('hem')/Math.max(E.sig('wm'),1e-6); return {v:r.toFixed(2), ok:r<0.4}; }},
+          {label:'Scan time ≤ 6:00', f:function(E){ return {v:mmss(E.T), ok:E.T<=360}; }} ],
+   hints:['A longer TE darkens haemorrhage through susceptibility-induced dephasing (T2*).','At 1.5 T, a TE of about 20–25 ms. A longer TE also lengthens TR and the scan time.'],
+   expl:'Haemosiderin and deoxyhaemoglobin have high susceptibility, disturbing the local field and shortening T2*. The longer the TE, the stronger the signal loss (blooming).' },
+ { id:'a_sar', keys:['refoc','etl','tr'], lv:'Advanced', title:'Lower SAR at 3 T', ph:'head', seq:'fse_t2', B0:3,
+   init:{p:{refoc:180,etl:24,tr:3000}},
+   goal:'SAR is too high at 3 T. Bring SAR to 40% of the limit or less, while keeping scan time within 1 min 30 s and SNR at 70% or more.',
+   crit:[ {label:'SAR ≤ 40%', f:function(E){ return {v:Math.round(E.sar)+'%', ok:E.sar<=40}; }},
+          {label:'Scan time ≤ 1:30', f:function(E){ return {v:mmss(E.T), ok:E.T<=90}; }},
+          {label:'SNR ≥ 70%', f:function(E){ return {v:Math.round(E.snr)+'%', ok:E.snr>=70}; }} ],
+   hints:['SAR scales with the square of the flip angle and the square of B0. Lowering the refocusing angle is the most effective step.','A shorter ETL or a longer TR means fewer RF pulses per unit time.'],
+   expl:'At 3 T, SAR is about four times that at 1.5 T for the same settings. The basics are lowering the refocusing angle to 120–150° (variable flip angles, hyperechoes) and using fewer pulses.' },
+ { id:'x_mrcp', keys:['te','r','pf','etl'], lv:'Expert', title:'MRCP: bright bile only, and faster', ph:'abdomen', seq:'mrcp3d', B0:1.5,
+   init:{p:{te:80,r:1}},
+   goal:'TE is short so the liver remains, and the scan takes long. Bring liver below 10% of bile, with scan time within 4 minutes and SNR at 70% or more.',
+   crit:[ {label:'Liver ÷ bile < 0.1', f:function(E){ var r=E.sig('liver')/Math.max(E.sig('bile'),1e-6); return {v:r.toFixed(2), ok:r<0.1}; }},
+          {label:'Scan time ≤ 4:00', f:function(E){ return {v:mmss(E.T), ok:E.T<=240}; }},
+          {label:'SNR ≥ 70%', f:function(E){ return {v:Math.round(E.snr)+'%', ok:E.snr>=70}; }} ],
+   hints:['MRCP uses a very long TE so that only long-T2 fluid remains.','With TE 500–700 ms the parenchyma almost disappears. Shorten the scan with parallel imaging or partial Fourier.'],
+   expl:'Bile and pancreatic juice have T2 above 1000 ms; liver about 50 ms. A TE of several hundred ms removes parenchymal signal so only fluid remains. In 3D, acceleration shortens the scan but SNR must be preserved.' },
+ { id:'x_flair3', keys:['refoc','etl','tr','r'], lv:'Expert', title:'3 T FLAIR within SAR and time limits', ph:'head', seq:'flair', B0:3,
+   init:{p:{refoc:180,etl:12}},
+   goal:'This 3 T FLAIR has high SAR and takes long. Keep CSF suppressed while bringing SAR to 25% or less and scan time within 1 min 50 s.',
+   crit:[ {label:'CSF ÷ white matter < 0.2', f:function(E){ var r=E.sig('csf')/Math.max(E.sig('wm'),1e-6); return {v:r.toFixed(2), ok:r<0.2}; }},
+          {label:'SAR ≤ 25%', f:function(E){ return {v:Math.round(E.sar)+'%', ok:E.sar<=25}; }},
+          {label:'Scan time ≤ 1:50', f:function(E){ return {v:mmss(E.T), ok:E.T<=110}; }} ],
+   hints:['Lowering the refocusing angle reduces SAR considerably.','A longer ETL shortens the scan, but watch blurring and SAR. Keep TI at the CSF null point for the TR you choose.'],
+   expl:'FLAIR needs a long TR, so it takes time, and at 3 T SAR is also a constraint. Combine a lower refocusing angle, a longer ETL and parallel imaging.' },
+ { id:'x_vibe', keys:['thk','npart','r','rz','pf','pfz','cs'], lv:'Expert', title:'Thinner and faster 3D T1 of the liver', ph:'abdomen', seq:'vibe', B0:1.5,
+   goal:'This 3D T1 is for dynamic contrast imaging. Make the slice direction 2.5 mm or less, with scan time within 15 s and SNR at 55% or more.',
+   crit:[ {label:'Slice direction ≤ 2.5 mm', f:function(E){ return {v:(E.info.dz||0).toFixed(1)+' mm', ok:(E.info.dz||9)<=2.5}; }},
+          {label:'Scan time ≤ 15 s', f:function(E){ return {v:E.T.toFixed(1)+' s', ok:E.T<=15}; }},
+          {label:'SNR ≥ 55%', f:function(E){ return {v:Math.round(E.snr)+'%', ok:E.snr>=55}; }} ],
+   hints:['Thinner partitions lower SNR, and covering the same range needs more partitions and more time.','Combine parallel imaging in the phase direction, partial Fourier in the slice direction and CAIPIRINHA (rz).'],
+   expl:'In 3D you can accelerate both in-plane and along the slice direction. Splitting the acceleration keeps the g-factor small, so SNR drops less for the same total acceleration.' },
+ { id:'x_dwi3', keys:['r','pf','ny','nex'], lv:'Expert', title:'3 T DWI: balance distortion and SNR', ph:'head', seq:'dwi', B0:3,
+   init:{p:{r:1,pf:1}},
+   goal:'This is 3 T DWI. Reduce distortion by bringing the EPI readout to 28 ms or less, while keeping SNR at 65% or more and scan time within 1 minute.',
+   crit:[ {label:'EPI readout time ≤ 28 ms', f:function(E){ return {v:(E.readEPI||0).toFixed(1)+' ms', ok:E.readEPI>0&&E.readEPI<=28}; }},
+          {label:'SNR ≥ 65%', f:function(E){ return {v:Math.round(E.snr)+'%', ok:E.snr>=65}; }},
+          {label:'Scan time ≤ 1:00', f:function(E){ return {v:mmss(E.T), ok:E.T<=60}; }} ],
+   hints:['Parallel imaging (R) shortens the echo train but lowers SNR by √R × g.','Partial Fourier also shortens the echo train. Reducing the phase matrix a little helps too.'],
+   expl:'Steps that reduce distortion (acceleration, partial Fourier, smaller matrix) tend to lower SNR. Recovering it with averaging lengthens the scan, so balance all three.' },
+ { id:'x_knee3', keys:['nx','ny','bw','nex','etl'], lv:'Expert', title:'High-resolution fat-suppressed PD of the knee at 3 T', ph:'knee', seq:'fse_pd', B0:3,
+   init:{st:{fs:'chess'}},
+   goal:'To see cartilage and menisci, make the in-plane pixels 0.4 mm or smaller, with chemical shift ≤ 1 pixel, SNR ≥ 50% and scan time within 5 min 30 s.',
+   crit:[ {label:'In-plane pixel ≤ 0.4 mm', f:function(E){ var d=Math.max(E.info.dx||9,E.info.dy||9); return {v:d.toFixed(2)+' mm', ok:d<=0.4}; }},
+          {label:'Chemical shift ≤ 1 pixel', f:function(E){ return {v:E.csPix.toFixed(2)+' px', ok:E.csPix<=1}; }},
+          {label:'SNR ≥ 50%', f:function(E){ return {v:Math.round(E.snr)+'%', ok:E.snr>=50}; }},
+          {label:'Scan time ≤ 5:30', f:function(E){ return {v:mmss(E.T), ok:E.T<=330}; }} ],
+   hints:['A larger matrix gives smaller pixels but costs SNR and time. The water–fat difference at 3 T is about 440 Hz.','Recover the SNR lost to the higher bandwidth with averaging, and the added time with a longer ETL.'],
+   expl:'High resolution, chemical shift, SNR and time all trade off. At 3 T, the idea is to spend the extra SNR on smaller pixels and a higher bandwidth.' },
+ { id:'x_mprage', keys:['ti','fa'], lv:'Expert', title:'Raise grey–white CNR in MPRAGE', ph:'head', seq:'mprage', B0:1.5,
+   goal:'Raise the grey–white matter CNR of MPRAGE to 3.6 or more, keeping 1 mm isotropic resolution.',
+   crit:[ {label:'CNR (grey vs white matter) ≥ 3.6', f:function(E){ var c=E.cnr('gm','wm'); return {v:c.toFixed(2), ok:c>=3.6}; }},
+          {label:'Keep 1 mm in the slice direction', f:function(E){ return {v:'', ok:(E.info.dz||9)<=1.0001}; }} ],
+   hints:['Choose the TI (inversion time) at which the longitudinal magnetization of grey and white matter differs most.','Set the chart x-axis to TI and look for the maximum CNR.'],
+   expl:'In MPRAGE, longitudinal magnetization recovers differently after inversion in white matter (short T1) and grey matter (long T1); reading out at the TI where the difference is largest maximizes CNR. The flip angle also affects saturation during the readout.' },
+ { id:'t2w', keys:['tr','te'], lv:'Student', title:'Make a T2-weighted image', ph:'head', seq:'fse_t2', B0:1.5,
    init:{p:{tr:600,te:15}},
    goal:'The current settings are close to T1 weighting. Make a T2-weighted image in which CSF is at least twice as bright as white matter.',
    crit:[ {label:'CSF ÷ white matter ≥ 2', f:function(E){ var r=E.sig('csf')/Math.max(1e-9,E.sig('wm')); return {v:r.toFixed(2), ok:r>=2}; }},
           {label:'White matter < grey matter (T2-weighted order)', f:function(E){ return {v:'', ok:E.sig('wm')<E.sig('gm')}; }} ],
    hints:['T2 weighting means a long TR and a long TE.','Use TR ≥ 2500 ms to remove T1 effects and TE of roughly 80–120 ms.'],
    expl:'A long TR lets the longitudinal magnetization nearly recover (removing T1 differences), and a long TE leaves long-T2 tissue (CSF) bright, giving T2 weighting.' },
- { id:'flair', lv:'Basic', title:'Null CSF with FLAIR', ph:'head', seq:'flair', B0:1.5,
+ { id:'flair', keys:['ti'], lv:'Student', title:'Null CSF with FLAIR', ph:'head', seq:'flair', B0:1.5,
    init:{p:{ti:900}},
    goal:'The inversion time (TI) is too short and CSF is still visible. Bring the CSF signal below 20% of white matter.',
    crit:[ {label:'CSF ÷ white matter < 0.2', f:function(E){ var r=E.sig('csf')/Math.max(1e-9,E.sig('wm')); return {v:r.toFixed(2), ok:r<0.2}; }} ],
    hints:['Exciting when the longitudinal magnetization passes through zero after inversion (the null point) removes that tissue\'s signal.','The null point is TI ≈ T1 × ln2 (when TR is long enough). CSF T1 is about 4000 ms at 1.5 T.','With a short TR the magnetization does not fully recover, so the best TI shifts shorter. Try setting the chart x-axis to TI.'],
    expl:'At TI ≈ T1 × ln2 (≈ 0.69 × T1) the longitudinal magnetization crosses zero and that tissue disappears. With a finite TR, TI ≈ T1 × ln[2 / (1 + e^(−TR/T1))].' },
- { id:'stir', lv:'Basic', title:'Suppress fat with STIR', ph:'knee', seq:'stir', B0:1.5,
+ { id:'stir', keys:['ti'], lv:'Basic', title:'Suppress fat with STIR', ph:'knee', seq:'stir', B0:1.5,
    init:{p:{ti:350}},
    goal:'Fat is still bright. Bring the fat signal below 30% of muscle.',
    crit:[ {label:'Fat ÷ muscle < 0.3', f:function(E){ var r=E.sig('fat')/Math.max(1e-9,E.sig('muscle')); return {v:r.toFixed(2), ok:r<0.3}; }} ],
    hints:['In STIR, the TI is chosen to match the T1 of fat.','At 1.5 T, fat T1 is about 250–300 ms, so the null point is TI ≈ 150–170 ms.'],
    expl:'Fat has a short T1, so its longitudinal magnetization reaches zero at TI ≈ 0.69 × T1(fat) ≈ 150 ms (1.5 T). STIR is robust to field inhomogeneity, but it also suppresses tissues with the same T1 (such as enhancing lesions).' },
- { id:'cnr_time', lv:'Advanced', title:'Raise white–grey CNR within the time limit', ph:'head', seq:'se_t1', B0:1.5,
+ { id:'cnr_time', keys:['tr','te','nex','thk'], lv:'Advanced', title:'Raise white–grey CNR within the time limit', ph:'head', seq:'se_t1', B0:1.5,
    init:{p:{tr:1500,te:30,nex:1}},
    goal:'On SE T1-weighted imaging, raise the white–grey matter CNR to 12 or more, keeping the scan within 4 minutes.',
    crit:[ {label:'CNR (white vs grey matter) ≥ 12', f:function(E){ var c=E.cnr('wm','gm'); return {v:c.toFixed(1), ok:c>=12}; }},
           {label:'Scan time ≤ 4 min', f:function(E){ return {v:mmss(E.T), ok:E.T<=240}; }} ],
    hints:['For T1 weighting, use a short TR and a short TE.','To raise SNR: thicker slices, larger FOV, smaller matrix, more averages, or a narrower bandwidth.','Time = TR × phase matrix × averages. Lowering TR and spending the saved time on averaging is one option.'],
    expl:'CNR is the signal difference × SNR. Placing TR between the two T1 values widens the difference, and spending the saved time on averaging raises SNR by √NEX. Keep the trade-off with resolution (voxel volume) in mind.' },
- { id:'alias', lv:'Basic', title:'Remove aliasing', ph:'abdomen', seq:'vibe', B0:1.5,
+ { id:'alias', keys:['pfov','pos','r','pf'], lv:'Basic', title:'Remove aliasing', ph:'abdomen', seq:'vibe', B0:1.5,
    init:{p:{pfov:50}},
    goal:'The phase FOV is smaller than the body, so the body wraps onto the opposite side. Remove the aliasing (keeping the breath-hold within 20 s).',
    crit:[ {label:'Aliasing < 1%', f:function(E){ return {v:(E.wrap*100).toFixed(1)+'%', ok:E.wrap<0.01}; }},
           {label:'Scan time ≤ 20 s', f:function(E){ return {v:E.T.toFixed(1)+' s', ok:E.T<=20}; }} ],
    hints:['Widen the phase FOV (%) or use phase oversampling.','A larger FOV lengthens the scan. Win the time back with parallel imaging or partial Fourier.'],
    expl:'The phase direction cannot be separated by frequency, so tissue outside the FOV folds onto the opposite side. Fix it with a larger FOV, phase oversampling, swapping the phase direction, or saturation pulses.' },
- { id:'breathhold', lv:'Advanced', title:'Fit in a 15 s breath-hold', ph:'abdomen', seq:'vibe', B0:1.5,
+ { id:'breathhold', keys:['r','pf','npart','thk'], lv:'Advanced', title:'Fit in a 15 s breath-hold', ph:'abdomen', seq:'vibe', B0:1.5,
    init:{p:{r:1,pf:1,npart:72}},
    goal:'The breath-hold is too long. Bring the scan time to 15 s or less while keeping SNR at 60% of default or more.',
    crit:[ {label:'Scan time ≤ 15 s', f:function(E){ return {v:E.T.toFixed(1)+' s', ok:E.T<=15}; }},
           {label:'SNR ≥ 60%', f:function(E){ return {v:Math.round(E.snr)+'%', ok:E.snr>=60}; }} ],
    hints:['Parallel imaging (acceleration), partial Fourier and fewer partitions all help.','More acceleration lowers SNR (√R and the g-factor). You can make slices a little thicker to compensate.'],
    expl:'3D scan time is TR × phase steps × partitions ÷ acceleration. Parallel imaging lowers SNR by √R × g, so balance time, SNR and resolution.' },
- { id:'inopp', lv:'Basic', title:'Set in-phase and opposed-phase TEs', ph:'abdomen', seq:'inopp', B0:1.5,
+ { id:'inopp', keys:['te','te2'], lv:'Basic', title:'Set in-phase and opposed-phase TEs', ph:'abdomen', seq:'inopp', B0:1.5,
    init:{p:{te:3.0,te2:5.5}},
    goal:'The two TEs are off. At 1.5 T, set the first echo to opposed-phase and the second echo to in-phase.',
    crit:[ {label:'TE1 is opposed-phase (±0.3 ms)', f:function(E){ var t=E.st.B0>=2.5?1.15:2.3; return {v:E.p.te+' ms', ok:Math.abs(E.p.te-t)<=0.3*(E.st.B0>=2.5?0.5:1)}; }},
           {label:'TE2 is in-phase (±0.3 ms)', f:function(E){ var t=E.st.B0>=2.5?2.3:4.6; return {v:E.p.te2+' ms', ok:Math.abs(E.p.te2-t)<=0.3*(E.st.B0>=2.5?0.5:1)}; }} ],
    hints:['Water and fat differ by about 3.4 ppm, about 220 Hz at 1.5 T, so one full phase cycle takes about 4.6 ms.','Half a cycle (opposed-phase) is 2.3 ms and a full cycle (in-phase) is 4.6 ms. At 3 T both are halved.'],
    expl:'Water and fat are 3.4 ppm apart; one cycle ≈ 4.6 ms at 1.5 T. In opposed-phase, water and fat in the same voxel cancel, so fat-containing lesions (adenoma, fatty liver) lose signal.' },
- { id:'chemshift', lv:'Basic', title:'Keep chemical shift ≤ 1 pixel', ph:'knee', seq:'fse_pd', B0:3,
+ { id:'chemshift', keys:['bw'], lv:'Basic', title:'Keep chemical shift ≤ 1 pixel', ph:'knee', seq:'fse_pd', B0:3,
    init:{p:{bw:80}},
    goal:'At 3 T the receiver bandwidth is narrow and the fat–water boundary is shifted. Reduce the chemical shift to 1 pixel or less.',
    crit:[ {label:'Chemical shift ≤ 1 pixel', f:function(E){ return {v:E.csPix.toFixed(2)+' px', ok:E.csPix<=1}; }} ],
    hints:['Chemical shift (pixels) = water–fat frequency difference (Hz) ÷ bandwidth per pixel (Hz/pixel).','The water–fat difference at 3 T is about 440 Hz. Set the bandwidth to at least 440 Hz/pixel (SNR will drop).'],
    expl:'A wider bandwidth increases the frequency range per pixel, so the shift (in pixels) shrinks. In exchange noise rises and SNR falls in proportion to 1/√(BW).' },
- { id:'metal', lv:'Advanced', title:'Reduce metal artifacts', ph:'knee', seq:'fse_pd', B0:1.5, les:{metal:true},
-   init:{p:{bw:130}, st:{fs:'chess'}},
+ { id:'metal', keys:['bw','fs','vat','semac'], lv:'Advanced', title:'Reduce metal artifacts', ph:'knee', seq:'metal', B0:1.5, les:{metal:true},
+   init:{p:{bw:130}, st:{fs:'chess',vat:false,semac:0}},
    goal:'Signal drops out around the metal and fat suppression is uneven. Choose settings that reduce metal artifacts.',
    crit:[ {label:'Receiver bandwidth ≥ 400 Hz/pixel', f:function(E){ return {v:E.p.bw+' Hz/pixel', ok:E.p.bw>=400}; }},
           {label:'Use VAT or SEMAC', f:function(E){ return {v:'', ok:!!(E.st.vat||E.st.semac)}; }},
           {label:'Do not use frequency-selective fat suppression (CHESS/SPAIR)', f:function(E){ return {v:E.st.fs||'None', ok:E.st.fs!=='chess'&&E.st.fs!=='spair'}; }} ],
    hints:['Near metal the field is strongly distorted, so anything that relies on frequency (fat suppression, slice selection, readout) is disrupted.','A wider bandwidth, view-angle tilting (VAT) and slice-direction correction (SEMAC) help.','For fat suppression near metal, STIR (inversion recovery) or Dixon is robust.'],
    expl:'Metal causes large local frequency offsets, leading to readout shifts, slice-plane distortion and failed fat suppression. The basic remedy combines high bandwidth, VAT, SEMAC and STIR/Dixon.' },
- { id:'epi', lv:'Advanced', title:'Reduce DWI distortion', ph:'head', seq:'dwi', B0:3,
+ { id:'epi', keys:['r','pf','ny'], lv:'Advanced', title:'Reduce DWI distortion', ph:'head', seq:'dwi', B0:3,
    init:{p:{r:1,pf:1,ny:192,nx:192}},
    goal:'The 3 T EPI readout is long and distortion is obvious. Bring the EPI readout time down to 30 ms or less.',
    crit:[ {label:'EPI readout time ≤ 30 ms', f:function(E){ var r=E.readEPI||0; return {v:r?r.toFixed(1)+' ms':'—', ok:r>0&&r<=30}; }} ],
    hints:['Distortion scales with the echo train length (readout time).','Shorten the echo train with parallel imaging (R), reduce the phase matrix, use partial Fourier, or segmented readout (RESOLVE, EPIX, etc.).'],
    expl:'In EPI the bandwidth per pixel in the phase direction is small (1 ÷ readout time), so any field offset becomes a shift along the phase direction. The shorter the readout, the smaller the distortion.' },
- { id:'fast_t2', lv:'Advanced', title:'Fast T2 while keeping SNR', ph:'head', seq:'fse_t2', B0:1.5,
+ { id:'fast_t2', keys:['etl','nex'], lv:'Advanced', title:'Fast T2 while keeping SNR', ph:'head', seq:'fse_t2', B0:1.5,
    init:{p:{etl:8,nex:2}},
    goal:'Bring the scan time within 1 min 30 s while keeping SNR at 80% of default or more.',
    crit:[ {label:'Scan time ≤ 1:30', f:function(E){ return {v:mmss(E.T), ok:E.T<=90}; }},
@@ -8739,6 +8950,10 @@ MS.MISSIONS=[
    expl:'FSE time is TR × phase steps × averages ÷ ETL. A longer ETL is faster, but T2 decay along the train adds blurring and SAR rises.' }
 ];
 function mmss(s){ s=Math.round(s); return Math.floor(s/60)+':'+('0'+(s%60)).slice(-2); }
+MS.MISSION_LEVELS=['Student','Basic','Advanced','Expert'];
+var ORDER=['s_t1w','t2w','s_pd','flair','s_thin','s_half','b_fatsat','stir','inopp','chemshift','alias','b_hem','cnr_time','fast_t2','breathhold','a_sar','epi','metal','x_mprage','x_flair3','x_knee3','x_dwi3','x_vibe','x_mrcp'];
+function ord(M){ var i=ORDER.indexOf(M.id); return i<0?999:i; }
+MS.MISSIONS.sort(function(a,b){ return (MS.MISSION_LEVELS.indexOf(a.lv)-MS.MISSION_LEVELS.indexOf(b.lv))||(ord(a)-ord(b)); });
 MS.MISSION_MAP={}; MS.MISSIONS.forEach(function(M){ MS.MISSION_MAP[M.id]=M; });
 MS.addMission=function(M){ MS.MISSIONS=MS.MISSIONS.filter(function(x){ return x.id!==M.id; }); MS.MISSIONS.push(M); MS.MISSION_MAP[M.id]=M; return M; };
 })();
@@ -8908,7 +9123,11 @@ function buildSeqList(){ var box=$('#navigation'), q=($('#seqq').value||'').toLo
     box.appendChild(el('div',{class:'nav-group'},'Introduction')); box.appendChild(nb('How to use this tool','',view==='about',function(){ setView('about'); }));
     box.appendChild(el('div',{class:'nav-group'},'Study (common sequences)'));
     MS.LEARN.forEach(function(L){ var s=MS.SEQ[L.seq]; box.appendChild(nb(s.n,'',view==='sim'&&mode==='learn'&&st&&st.seq===L.seq,function(){ setView('sim'); startLearn(L.seq); })); });
-    if(MS.MISSIONS){ var sv=solvedSet(); box.appendChild(el('div',{class:'nav-group'},'Tasks (auto-graded)')); MS.MISSIONS.forEach(function(M){ box.appendChild(nb((sv[M.id]?'✓ ':'')+M.title,M.lv,view==='sim'&&mode==='mission'&&mission&&mission.id===M.id,function(){ setView('sim'); startMission(M.id); })); }); }
+    if(MS.MISSIONS){ var sv=solvedSet(); box.appendChild(el('div',{class:'nav-group'},'Tasks (auto-graded)'));
+      (MS.MISSION_LEVELS||[]).forEach(function(lv){ var ms=MS.MISSIONS.filter(function(M){ return M.lv===lv; }); if(!ms.length) return; var done=ms.filter(function(M){ return sv[M.id]; }).length;
+        var open=openLv[lv]!=null?openLv[lv]:(mode==='mission'&&mission?mission.lv===lv:lv===MS.MISSION_LEVELS[0]);
+        var h=el('button',{type:'button',class:'nav-lv'+(open?' open':''),'aria-expanded':String(open)}); h.appendChild(el('span',{class:'chev','aria-hidden':'true'})); h.appendChild(document.createTextNode(LVN[lv]||lv)); h.appendChild(el('small',{},done+'/'+ms.length)); h.onclick=function(){ openLv[lv]=!open; buildSeqList(); }; box.appendChild(h);
+        if(open) ms.forEach(function(M){ box.appendChild(nb((sv[M.id]?'✓ ':'')+M.title,'',view==='sim'&&mode==='mission'&&mission&&mission.id===M.id,function(){ setView('sim'); startMission(M.id); })); }); }); }
     box.appendChild(el('div',{class:'nav-group'},'Resources')); box.appendChild(nb('Name mapping','By vendor',view==='names',function(){ setView('names'); })); box.appendChild(nb('Tissue parameters','T1, T2, references',view==='tissue',function(){ setView('tissue'); }));
     box.appendChild(el('div',{class:'nav-group',style:'color:#fff;font-weight:700;margin-top:26px'},'Expert (all '+MS.SEQS.length+' sequences)')); }
   var hit=0;
@@ -8949,8 +9168,9 @@ function numRow(id,name,unit,min,max,step,get,set,tip,logm){ var lb=el('label',{
   return lb; }
 function fmtv(v){ return Math.abs(v)>=100? Math.round(v*10)/10 : Math.round(v*1000)/1000; }
 function sel(name,opts,get,set,tip){ var d=el('label',{class:'sim-control'}); d.appendChild(document.createTextNode(name)); if(tip) d.appendChild(el('span',{class:'q',title:tip},'?')); var s=el('select'); opts.forEach(function(o){ var op=el('option',{value:o[0]},o[1]); if(String(get())===String(o[0])) op.selected=true; s.appendChild(op); }); s.onchange=function(){ set(s.value); schedule(); if(s.dataset.rebuild) buildParams(); }; d.appendChild(s); d.s=s; return d; }
+function tagK(k,e){ e.setAttribute('data-k',k); return e; }
 function chk(name,get,set,tip){ var lb=el('label',{class:'chk'}); if(tip) lb.title=tip; var c=el('input',{type:'checkbox'}); c.checked=!!get(); c.onchange=function(){ set(c.checked); schedule(); }; lb.appendChild(c); lb.appendChild(document.createTextNode(name)); return lb; }
-function buildParams(){ buildParams0(); grpCounts(); grpBadges(); }
+function buildParams(){ buildParams0(); grpCounts(); grpBadges(); markMissionKeys(); }
 function buildParams0(){ var sq=MS.SEQ[st.seq], box=$('#params'); box.innerHTML=''; var keys=visibleParams(sq);
   function grp(title){ var c0=!!closedG[title]; var sec=el('div',{class:'pgrp'+(c0?' closed':''),'data-t':title}); var h=el('button',{type:'button',class:'grp','aria-expanded':String(!c0)});
     h.appendChild(el('span',{class:'chev','aria-hidden':'true'})); h.appendChild(document.createTextNode(title)); var cn=el('span',{class:'gcnt'}); h.appendChild(cn); h.appendChild(el('span',{class:'gbadge',title:'Number of parameters changed from defaults'}));
@@ -8977,14 +9197,14 @@ function buildParams0(){ var sq=MS.SEQ[st.seq], box=$('#params'); box.innerHTML=
   });
   /* オプション */
   var o=sq.o||[], det2=grp('Fat suppression & options');
-  if(o.indexOf('fs')>=0 || /dwi/.test(sq.k)){ var fsOpts=[['none','None'],['chess','Chemical shift selective (CHESS/Fat Sat)'],['spair','Adiabatic pulse (SPAIR)'],['we','Water excitation (WE/PASTA)']]; if(/dwi|dti/.test(sq.k)) fsOpts.push(['stir','STIR (inversion)']); det2.appendChild(sel('Fat suppression',fsOpts,function(){return st.fs;},function(v){st.fs=v;},'CHESS, SPAIR and water excitation are sensitive to field inhomogeneity. STIR and Dixon are robust to it but work on different principles')); }
+  if(o.indexOf('fs')>=0 || /dwi/.test(sq.k)){ var fsOpts=[['none','None'],['chess','Chemical shift selective (CHESS/Fat Sat)'],['spair','Adiabatic pulse (SPAIR)'],['we','Water excitation (WE/PASTA)']]; if(/dwi|dti/.test(sq.k)) fsOpts.push(['stir','STIR (inversion)']); det2.appendChild(tagK('fs',sel('Fat suppression',fsOpts,function(){return st.fs;},function(v){st.fs=v;},'CHESS, SPAIR and water excitation are sensitive to field inhomogeneity. STIR and Dixon are robust to it but work on different principles'))); }
   if(o.indexOf('restore')>=0) det2.appendChild(chk('Flip-back (RESTORE/T2 Plus)',function(){return st.restore;},function(v){st.restore=v;},'Returns transverse magnetization to the longitudinal axis at the end of the echo train. Fluid stays bright even with a short TR'));
   if(o.indexOf('mt')>=0) det2.appendChild(chk('MT pulse (MTC/SORS-STC)',function(){return st.mt;},function(v){st.mt=v;},'Reduces signal from macromolecule-bound water (white matter, muscle and cartilage darken)'));
   if(o.indexOf('tone')>=0) det2.appendChild(chk('Ramped flip angle (TONE/ISCE)',function(){return st.tone;},function(v){st.tone=v;}));
   if(o.indexOf('vsat')>=0) det2.appendChild(chk('Venous saturation pulse',function(){return st.vsat;},function(v){st.vsat=v;}));
   if(o.indexOf('flowcomp')>=0||sq.gre) det2.appendChild(chk('Flow compensation (GMN/Flow Comp)',function(){return st.flowcomp;},function(v){st.flowcomp=v;},'Reduces flow-related phase dispersion'));
   det2.appendChild(chk('Spatial saturation pulse (for pulsation artifacts)',function(){return st.satband;},function(v){st.satband=v;},'Places a saturation pulse on the inflow side of vessels to reduce pulsatile ghosts in the phase direction'));
-  if(o.indexOf('vat')>=0) det2.appendChild(chk('VAT (view angle tilting)',function(){return st.vat;},function(v){st.vat=v;},'Siemens: WARP; Canon: VAT. Corrects in-plane displacement'));
+  if(o.indexOf('vat')>=0) det2.appendChild(tagK('vat',chk('VAT (view angle tilting)',function(){return st.vat;},function(v){st.vat=v;},'Siemens: WARP; Canon: VAT. Corrects in-plane displacement')));
   if(o.indexOf('semac')>=0) det2.appendChild(numRow('semac','SEMAC correction steps','',0,24,1,function(){return st.semac;},function(v){st.semac=v;},'Corrects through-plane distortion (time increases in proportion to the number of steps)'));
   if(/dwi/.test(sq.k)) det2.appendChild(numRow('cdwi','Computed DWI b-value (0 = off)','s/mm²',0,3000,50,function(){return st.cdwi;},function(v){st.cdwi=v;},'Siemens: Computed b-values、Canon: cDWI'));
   if(sq.k==='mrs') det2.appendChild(sel('Voxel position',[['normal','Normal white matter'],['lesion','Lesion (tumor)']],function(){return st.mrsVox;},function(v){st.mrsVox=v;}));
@@ -9369,7 +9589,9 @@ function applyShared(obj){ if(!obj||!MS.SEQ[obj.sq]||!MS.PHANTOMS[obj.ph]) retur
 var toastT=null; function toast(t){ var d=$('#toast'); if(!d){ d=el('div',{id:'toast',role:'status','aria-live':'polite'}); document.body.appendChild(d); } d.textContent=t; d.classList.add('on'); clearTimeout(toastT); toastT=setTimeout(function(){ d.classList.remove('on'); },2200); }
 
 /* ---------- 課題モード（自動判定・ヒント・記録） ---------- */
-var mission=null, mrec=null, mhint=0;
+var mission=null, mrec=null, mhint=0, openLv={};
+var LVN={'Student':'Student level','Basic':'Basic level','Advanced':'Advanced level','Expert':'Expert level'};
+function lvProgress(lv){ var sv=solvedSet(), ms=MS.MISSIONS.filter(function(M){ return M.lv===lv; }); return {n:ms.length, done:ms.filter(function(M){ return sv[M.id]; }).length, next:(ms.filter(function(M){ return !sv[M.id]; })[0]||ms[0])}; }
 function loadRecs(){ try{ return JSON.parse(localStorage.getItem('mrisimMissionLog')||'[]'); }catch(e){ return []; } }
 function saveRecs(a){ try{ localStorage.setItem('mrisimMissionLog',JSON.stringify(a.slice(-1000))); }catch(e){} }
 function solvedSet(){ var s={}; loadRecs().forEach(function(r){ if(r.solved) s[r.id]=true; }); return s; }
@@ -9381,14 +9603,20 @@ function startMission(id){ var M=MS.MISSION_MAP[id]; if(!M) return; endAttempt()
   chart.follow=true; chart.hide={}; lastChanged=null; prevRes=null; manualW=null; cur=0; refInfo(); defaultAB();
   buildPhantomSel(); buildSys(); buildLesions(); buildSeqList(); buildParams(); seqCard(); learnCard(); schedule(); }
 function missionCard(box){ var M=mission; $('#protop').classList.remove('one'); box.hidden=false; box.innerHTML='';
-  var h=el('h2',{},'Task: '+M.title); box.appendChild(h); box.appendChild(el('p',{class:'mlv'},M.lv+'　·　'+MS.SEQ[M.seq].n+'　·　'+(st.B0)+' T'));
+  var lvb=el('div',{class:'mlvsel',role:'group','aria-label':'Task level'}); (MS.MISSION_LEVELS||[]).forEach(function(lv){ var pr=lvProgress(lv); if(!pr.n) return; var b=el('button',{type:'button',class:lv===M.lv?'on':'','aria-pressed':String(lv===M.lv)}); b.appendChild(document.createTextNode(LVN[lv]||lv)); b.appendChild(el('small',{},pr.done+'/'+pr.n)); b.onclick=function(){ if(lv!==M.lv) startMission(lvProgress(lv).next.id); }; lvb.appendChild(b); }); box.appendChild(lvb);
+  var ms_=MS.MISSIONS.filter(function(x){ return x.lv===M.lv; }), qi=ms_.indexOf(M)+1;
+  var h=el('h2',{},'Task: '+M.title); box.appendChild(h); box.appendChild(el('p',{class:'mlv'},(LVN[M.lv]||M.lv)+' '+qi+'/'+ms_.length+'　·　'+MS.SEQ[M.seq].n+'　·　'+(st.B0)+' T'));
   box.appendChild(el('p',{},M.goal)); var ul=el('ul',{id:'mcrit',class:'mcrit','aria-live':'polite'}); M.crit.forEach(function(c){ ul.appendChild(el('li',{},c.label)); }); box.appendChild(ul);
   var hb=el('div',{id:'mhints',class:'mhints'}); box.appendChild(hb);
-  var row=el('div',{class:'sim-presets'}); var b1=el('button',{type:'button',id:'mhintbtn'},'Show hint (0/'+M.hints.length+')'); b1.onclick=function(){ if(mhint>=M.hints.length) return; mhint++; if(mrec&&!mrec.solved) mrec.hints++; renderHints(); };
+  var row=el('div',{class:'sim-presets'}); var b1=el('button',{type:'button',id:'mhintbtn'},'Show hint (0/'+mHints(M).length+')'); b1.onclick=function(){ if(mhint>=mHints(M).length) return; mhint++; if(mrec&&!mrec.solved) mrec.hints++; renderHints(); if(mhint===1&&M.keys){ var f=document.querySelector('#params .mhl'); if(f&&document.body.classList.contains('mob')) setTimeout(function(){ f.scrollIntoView({behavior:'smooth',block:'center'}); },350); } };
   var b2=el('button',{type:'button'},'Start over'); b2.onclick=function(){ startMission(M.id); };
   var b3=el('button',{type:'button'},'Export records (CSV)'); b3.onclick=exportRecs; var b4=el('button',{type:'button',class:'mquit'},'Quit task'); b4.onclick=function(){ quitMission(); }; row.appendChild(b1); row.appendChild(b2); row.appendChild(b3); row.appendChild(b4); box.appendChild(row);
   box.appendChild(el('div',{id:'mresult'})); renderHints(); }
-function renderHints(){ var M=mission, hb=$('#mhints'); if(!hb||!M) return; hb.innerHTML=''; for(var i=0;i<mhint;i++) hb.appendChild(el('p',{class:'mhint'},'Hint '+(i+1)+': '+M.hints[i])); var b=$('#mhintbtn'); if(b){ b.textContent='Show hint ('+mhint+'/'+M.hints.length+')'; b.disabled=mhint>=M.hints.length; } }
+function mHints(M){ var ks=M.keys||[]; if(!ks.length) return M.hints; return ['Parameters to change: '+ks.map(keyName).join('; ')+' (marked in the parameter panel)'].concat(M.hints); }
+function keyName(k){ if(k==='fs') return 'Fat suppression'; if(k==='vat') return 'VAT'; if(k==='semac') return 'SEMAC'; var d=MS.PDEF[k]; return d?d.n:k; }
+function markMissionKeys(){ document.querySelectorAll('.sim-control.mhl,.chk.mhl').forEach(function(e){ e.classList.remove('mhl'); }); if(mode!=='mission'||!mission||mhint<1||!mission.keys) return;
+  mission.keys.forEach(function(k){ var e=document.querySelector('#params [data-k="'+k+'"]'); if(!e) return; e.classList.add('mhl'); var sec=e.closest('.pgrp'); if(sec&&sec.classList.contains('closed')) setClosed(sec,false); }); }
+function renderHints(){ var M=mission, hb=$('#mhints'); if(!hb||!M) return; var H=mHints(M); hb.innerHTML=''; for(var i=0;i<mhint;i++) hb.appendChild(el('p',{class:'mhint'+(i===0&&M.keys?' keys':'')},'Hint '+(i+1)+': '+H[i])); var b=$('#mhintbtn'); if(b){ b.textContent='Show hint ('+mhint+'/'+H.length+')'; b.disabled=mhint>=H.length; } markMissionKeys(); }
 function missionEval(){ if(mode!=='mission'||!mission||!res||!res.outs||!res.outs[0]||!res.outs[0].data) return; var M=mission, i=res.info, cm=medians(res,res.outs[0]);
   var E={st:st,p:i.p,info:i,T:i.T,sar:i.sar,snr:i.snr0/(snrRef||i.snr0)*100,wrap:i.wrap||0,readEPI:i.readEPI||0,csPix:Math.abs(MS.FAT_PPM*42.577*st.B0/((i.p&&i.p.bw)||st.p.bw)),
     sig:function(k){ return cm[k]?cm[k].v:0; }, cnr:function(a,b){ return Math.abs((cm[a]?cm[a].v:0)-(cm[b]?cm[b].v:0))*i.snr0; }};
@@ -9397,8 +9625,10 @@ function missionEval(){ if(mode!=='mission'||!mission||!res||!res.outs||!res.out
   mstat(M.crit.length-ul.querySelectorAll('li.ng').length,M.crit.length,all);
   var rb=$('#mresult'); if(!rb) return;
   if(all){ if(mrec&&!mrec.solved){ mrec.solved=true; mrec.tSolve=Date.now(); endAttempt(); buildSeqList(); toast('Task solved!'); }
-    var t=mrec?Math.round((mrec.tSolve-mrec.start)/1000):0; rb.innerHTML=''; var d=el('div',{class:'mdone'}); d.appendChild(el('b',{},'Solved!')); d.appendChild(el('span',{},'  Time '+Math.floor(t/60)+':'+('0'+t%60).slice(-2)+' · hints '+(mrec?mrec.hints:0)+' · changes '+(mrec?Math.max(0,mrec.changes):0)+' concatenations'));
-    d.appendChild(el('p',{},M.expl)); var idx=MS.MISSIONS.indexOf(M), nx=MS.MISSIONS[idx+1]; if(nx){ var bn=el('button',{type:'button'},'Next task: '+nx.title); bn.onclick=function(){ startMission(nx.id); }; d.appendChild(bn); } rb.appendChild(d); }
+    var t=mrec?Math.round((mrec.tSolve-mrec.start)/1000):0; rb.innerHTML=''; var d=el('div',{class:'mdone'}); d.appendChild(el('b',{},'Solved!')); d.appendChild(el('span',{},'  Time '+Math.floor(t/60)+':'+('0'+t%60).slice(-2)+' · hints '+(mrec?mrec.hints:0)+' · changes '+(mrec?Math.max(0,mrec.changes):0)+''));
+    d.appendChild(el('p',{},M.expl)); var sv2=solvedSet(), same=MS.MISSIONS.filter(function(x){ return x.lv===M.lv; }), nx=same.slice(same.indexOf(M)+1).concat(same.slice(0,same.indexOf(M))).filter(function(x){ return !sv2[x.id]; })[0];
+    if(nx){ var bn=el('button',{type:'button'},'Next task: '+nx.title); bn.onclick=function(){ startMission(nx.id); }; d.appendChild(bn); }
+    else { var L=MS.MISSION_LEVELS, nl=L[L.indexOf(M.lv)+1]; d.appendChild(el('p',{class:'mlvdone'},(LVN[M.lv]||M.lv)+': all tasks solved!')); if(nl){ var bl=el('button',{type:'button'},(LVN[nl]||nl)+': go on'); bl.onclick=function(){ startMission(lvProgress(nl).next.id); }; d.appendChild(bl); } } rb.appendChild(d); }
   else rb.innerHTML=''; }
 /* 課題を終えて、いまの条件のままエキスパート用へ */
 function quitMission(silent){ if(mode!=='mission') return; endAttempt(); mode='expert'; mission=null; mrec=null; mhint=0; mstatHide();
@@ -9502,7 +9732,7 @@ function kfill(){ var box=$('#kfill'); if(!box) return; var sq=MS.SEQ[st.seq];
   }
   lines.forEach(function(t,j){ tx.appendChild(el('div',{class:j?'':'kfmain'},t)); }); if(legend) tx.appendChild(el('div',{class:'kfleg'},legend));
 }
-window.__mrisimTest=function(f){ return f({newState:newState,buildParams:buildParams,schedule:schedule,getSt:function(){return st;},setMode:function(m){mode=m;}}); };
+window.__mrisimTest=function(f){ return f({newState:newState,buildParams:buildParams,schedule:schedule,getSt:function(){return st;},setMode:function(m){mode=m;},startMission:startMission}); };
 
 })();
 

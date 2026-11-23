@@ -47,7 +47,11 @@ function buildSeqList(){ var box=$('#navigation'), q=($('#seqq').value||'').toLo
     box.appendChild(el('div',{class:'nav-group'},'はじめに')); box.appendChild(nb('このツールの使い方','',view==='about',function(){ setView('about'); }));
     box.appendChild(el('div',{class:'nav-group'},'勉強用（よく使うシーケンス）'));
     MS.LEARN.forEach(function(L){ var s=MS.SEQ[L.seq]; box.appendChild(nb(s.n,'',view==='sim'&&mode==='learn'&&st&&st.seq===L.seq,function(){ setView('sim'); startLearn(L.seq); })); });
-    if(MS.MISSIONS){ var sv=solvedSet(); box.appendChild(el('div',{class:'nav-group'},'課題（自動判定）')); MS.MISSIONS.forEach(function(M){ box.appendChild(nb((sv[M.id]?'✓ ':'')+M.title,M.lv,view==='sim'&&mode==='mission'&&mission&&mission.id===M.id,function(){ setView('sim'); startMission(M.id); })); }); }
+    if(MS.MISSIONS){ var sv=solvedSet(); box.appendChild(el('div',{class:'nav-group'},'課題（自動判定）'));
+      (MS.MISSION_LEVELS||[]).forEach(function(lv){ var ms=MS.MISSIONS.filter(function(M){ return M.lv===lv; }); if(!ms.length) return; var done=ms.filter(function(M){ return sv[M.id]; }).length;
+        var open=openLv[lv]!=null?openLv[lv]:(mode==='mission'&&mission?mission.lv===lv:lv===MS.MISSION_LEVELS[0]);
+        var h=el('button',{type:'button',class:'nav-lv'+(open?' open':''),'aria-expanded':String(open)}); h.appendChild(el('span',{class:'chev','aria-hidden':'true'})); h.appendChild(document.createTextNode(LVN[lv]||lv)); h.appendChild(el('small',{},done+'/'+ms.length)); h.onclick=function(){ openLv[lv]=!open; buildSeqList(); }; box.appendChild(h);
+        if(open) ms.forEach(function(M){ box.appendChild(nb((sv[M.id]?'✓ ':'')+M.title,'',view==='sim'&&mode==='mission'&&mission&&mission.id===M.id,function(){ setView('sim'); startMission(M.id); })); }); }); }
     box.appendChild(el('div',{class:'nav-group'},'資料')); box.appendChild(nb('名称対応表','メーカー別',view==='names',function(){ setView('names'); })); box.appendChild(nb('組織パラメータ','T1・T2・文献',view==='tissue',function(){ setView('tissue'); }));
     box.appendChild(el('div',{class:'nav-group',style:'color:#fff;font-weight:700;margin-top:26px'},'エキスパート用（全 '+MS.SEQS.length+' シーケンス）')); }
   var hit=0;
@@ -88,8 +92,9 @@ function numRow(id,name,unit,min,max,step,get,set,tip,logm){ var lb=el('label',{
   return lb; }
 function fmtv(v){ return Math.abs(v)>=100? Math.round(v*10)/10 : Math.round(v*1000)/1000; }
 function sel(name,opts,get,set,tip){ var d=el('label',{class:'sim-control'}); d.appendChild(document.createTextNode(name)); if(tip) d.appendChild(el('span',{class:'q',title:tip},'?')); var s=el('select'); opts.forEach(function(o){ var op=el('option',{value:o[0]},o[1]); if(String(get())===String(o[0])) op.selected=true; s.appendChild(op); }); s.onchange=function(){ set(s.value); schedule(); if(s.dataset.rebuild) buildParams(); }; d.appendChild(s); d.s=s; return d; }
+function tagK(k,e){ e.setAttribute('data-k',k); return e; }
 function chk(name,get,set,tip){ var lb=el('label',{class:'chk'}); if(tip) lb.title=tip; var c=el('input',{type:'checkbox'}); c.checked=!!get(); c.onchange=function(){ set(c.checked); schedule(); }; lb.appendChild(c); lb.appendChild(document.createTextNode(name)); return lb; }
-function buildParams(){ buildParams0(); grpCounts(); grpBadges(); }
+function buildParams(){ buildParams0(); grpCounts(); grpBadges(); markMissionKeys(); }
 function buildParams0(){ var sq=MS.SEQ[st.seq], box=$('#params'); box.innerHTML=''; var keys=visibleParams(sq);
   function grp(title){ var c0=!!closedG[title]; var sec=el('div',{class:'pgrp'+(c0?' closed':''),'data-t':title}); var h=el('button',{type:'button',class:'grp','aria-expanded':String(!c0)});
     h.appendChild(el('span',{class:'chev','aria-hidden':'true'})); h.appendChild(document.createTextNode(title)); var cn=el('span',{class:'gcnt'}); h.appendChild(cn); h.appendChild(el('span',{class:'gbadge',title:'既定値から変えたパラメータの数'}));
@@ -116,14 +121,14 @@ function buildParams0(){ var sq=MS.SEQ[st.seq], box=$('#params'); box.innerHTML=
   });
   /* オプション */
   var o=sq.o||[], det2=grp('脂肪抑制・オプション');
-  if(o.indexOf('fs')>=0 || /dwi/.test(sq.k)){ var fsOpts=[['none','なし'],['chess','化学シフト選択（CHESS／Fat Sat）'],['spair','断熱パルス（SPAIR）'],['we','水選択励起（WE／PASTA）']]; if(/dwi|dti/.test(sq.k)) fsOpts.push(['stir','STIR（反転）']); det2.appendChild(sel('脂肪抑制',fsOpts,function(){return st.fs;},function(v){st.fs=v;},'磁場不均一に弱いのは CHESS・SPAIR・水選択励起。STIR と Dixon は均一だが原理が異なる')); }
+  if(o.indexOf('fs')>=0 || /dwi/.test(sq.k)){ var fsOpts=[['none','なし'],['chess','化学シフト選択（CHESS／Fat Sat）'],['spair','断熱パルス（SPAIR）'],['we','水選択励起（WE／PASTA）']]; if(/dwi|dti/.test(sq.k)) fsOpts.push(['stir','STIR（反転）']); det2.appendChild(tagK('fs',sel('脂肪抑制',fsOpts,function(){return st.fs;},function(v){st.fs=v;},'磁場不均一に弱いのは CHESS・SPAIR・水選択励起。STIR と Dixon は均一だが原理が異なる'))); }
   if(o.indexOf('restore')>=0) det2.appendChild(chk('フリップバック（RESTORE／T2 Plus）',function(){return st.restore;},function(v){st.restore=v;},'エコートレイン終了時の横磁化を縦に戻す。短いTRでも液体が明るい'));
   if(o.indexOf('mt')>=0) det2.appendChild(chk('MTパルス（MTC／SORS-STC）',function(){return st.mt;},function(v){st.mt=v;},'高分子と結合した水の信号を下げる（白質・筋・軟骨が低下）'));
   if(o.indexOf('tone')>=0) det2.appendChild(chk('傾斜フリップ角（TONE／ISCE）',function(){return st.tone;},function(v){st.tone=v;}));
   if(o.indexOf('vsat')>=0) det2.appendChild(chk('静脈の飽和パルス',function(){return st.vsat;},function(v){st.vsat=v;}));
   if(o.indexOf('flowcomp')>=0||sq.gre) det2.appendChild(chk('流れ補正（GMN／Flow Comp）',function(){return st.flowcomp;},function(v){st.flowcomp=v;},'流れによる位相分散を減らす'));
   det2.appendChild(chk('空間飽和パルス（拍動アーチファクト対策）',function(){return st.satband;},function(v){st.satband=v;},'血管の流入側に飽和パルスを置き、拍動による位相方向のゴーストを減らす'));
-  if(o.indexOf('vat')>=0) det2.appendChild(chk('VAT（view angle tilting）',function(){return st.vat;},function(v){st.vat=v;},'Siemens: WARP、Canon: VAT。面内の位置ずれを補正'));
+  if(o.indexOf('vat')>=0) det2.appendChild(tagK('vat',chk('VAT（view angle tilting）',function(){return st.vat;},function(v){st.vat=v;},'Siemens: WARP、Canon: VAT。面内の位置ずれを補正')));
   if(o.indexOf('semac')>=0) det2.appendChild(numRow('semac','SEMAC 補正ステップ','',0,24,1,function(){return st.semac;},function(v){st.semac=v;},'面直交方向の歪みを補正（時間はステップ数に比例して延長）'));
   if(/dwi/.test(sq.k)) det2.appendChild(numRow('cdwi','計算DWI の b 値（0=なし）','s/mm²',0,3000,50,function(){return st.cdwi;},function(v){st.cdwi=v;},'Siemens: Computed b-values、Canon: cDWI'));
   if(sq.k==='mrs') det2.appendChild(sel('ボクセル位置',[['normal','正常白質'],['lesion','病変（腫瘍）']],function(){return st.mrsVox;},function(v){st.mrsVox=v;}));
@@ -207,7 +212,7 @@ function metrics(){ var i=res.info, m=$('#metrics'); m.innerHTML=''; var sq=MS.S
   add(MS.fmt(i.dx)+'×'+MS.fmt(i.dy)+'×'+MS.fmt(i.dz),'取得ボクセル（mm）');
   add(Math.round(i.sar)+' %','SAR（上限比・相対）',i.sar>100?'bad':(i.sar>70?'mid':''));
   if(i.tres) add(MS.fmt(i.tres)+' ms','時間分解能');
-  if(i.conc>1) add(i.conc+' 回','分割収集（スライスがTRに入らない）');
+  if(i.conc>1) add(i.conc+' 回に分割','分割収集（スライスがTRに入らない）');
   if(i.etlEPI) add(i.etlEPI+' × '+MS.fmt(i.p.esp_epi)+' ms','EPI エコー数 × 間隔');
   if(i.R>1||i.CS>1||(st.p.sms||1)>1) add('×'+MS.fmt(i.R*(i.Rz||1)*(i.CS||1)*(st.p.sms||1)),'総加速（PI×CS×SMS）');
   add(MS.fmt(i.tro)+' ms','読出し時間（1/BW）');
@@ -508,7 +513,9 @@ function applyShared(obj){ if(!obj||!MS.SEQ[obj.sq]||!MS.PHANTOMS[obj.ph]) retur
 var toastT=null; function toast(t){ var d=$('#toast'); if(!d){ d=el('div',{id:'toast',role:'status','aria-live':'polite'}); document.body.appendChild(d); } d.textContent=t; d.classList.add('on'); clearTimeout(toastT); toastT=setTimeout(function(){ d.classList.remove('on'); },2200); }
 
 /* ---------- 課題モード（自動判定・ヒント・記録） ---------- */
-var mission=null, mrec=null, mhint=0;
+var mission=null, mrec=null, mhint=0, openLv={};
+var LVN={'学生':'学生レベル','基礎':'基礎レベル','応用':'応用レベル','エキスパート':'エキスパートレベル'};
+function lvProgress(lv){ var sv=solvedSet(), ms=MS.MISSIONS.filter(function(M){ return M.lv===lv; }); return {n:ms.length, done:ms.filter(function(M){ return sv[M.id]; }).length, next:(ms.filter(function(M){ return !sv[M.id]; })[0]||ms[0])}; }
 function loadRecs(){ try{ return JSON.parse(localStorage.getItem('mrisimMissionLog')||'[]'); }catch(e){ return []; } }
 function saveRecs(a){ try{ localStorage.setItem('mrisimMissionLog',JSON.stringify(a.slice(-1000))); }catch(e){} }
 function solvedSet(){ var s={}; loadRecs().forEach(function(r){ if(r.solved) s[r.id]=true; }); return s; }
@@ -520,14 +527,20 @@ function startMission(id){ var M=MS.MISSION_MAP[id]; if(!M) return; endAttempt()
   chart.follow=true; chart.hide={}; lastChanged=null; prevRes=null; manualW=null; cur=0; refInfo(); defaultAB();
   buildPhantomSel(); buildSys(); buildLesions(); buildSeqList(); buildParams(); seqCard(); learnCard(); schedule(); }
 function missionCard(box){ var M=mission; $('#protop').classList.remove('one'); box.hidden=false; box.innerHTML='';
-  var h=el('h2',{},'課題：'+M.title); box.appendChild(h); box.appendChild(el('p',{class:'mlv'},M.lv+'　·　'+MS.SEQ[M.seq].n+'　·　'+(st.B0)+' T'));
+  var lvb=el('div',{class:'mlvsel',role:'group','aria-label':'課題のレベル'}); (MS.MISSION_LEVELS||[]).forEach(function(lv){ var pr=lvProgress(lv); if(!pr.n) return; var b=el('button',{type:'button',class:lv===M.lv?'on':'','aria-pressed':String(lv===M.lv)}); b.appendChild(document.createTextNode(LVN[lv]||lv)); b.appendChild(el('small',{},pr.done+'/'+pr.n)); b.onclick=function(){ if(lv!==M.lv) startMission(lvProgress(lv).next.id); }; lvb.appendChild(b); }); box.appendChild(lvb);
+  var ms_=MS.MISSIONS.filter(function(x){ return x.lv===M.lv; }), qi=ms_.indexOf(M)+1;
+  var h=el('h2',{},'課題：'+M.title); box.appendChild(h); box.appendChild(el('p',{class:'mlv'},(LVN[M.lv]||M.lv)+' '+qi+'/'+ms_.length+'　·　'+MS.SEQ[M.seq].n+'　·　'+(st.B0)+' T'));
   box.appendChild(el('p',{},M.goal)); var ul=el('ul',{id:'mcrit',class:'mcrit','aria-live':'polite'}); M.crit.forEach(function(c){ ul.appendChild(el('li',{},c.label)); }); box.appendChild(ul);
   var hb=el('div',{id:'mhints',class:'mhints'}); box.appendChild(hb);
-  var row=el('div',{class:'sim-presets'}); var b1=el('button',{type:'button',id:'mhintbtn'},'ヒントを見る（0/'+M.hints.length+'）'); b1.onclick=function(){ if(mhint>=M.hints.length) return; mhint++; if(mrec&&!mrec.solved) mrec.hints++; renderHints(); };
+  var row=el('div',{class:'sim-presets'}); var b1=el('button',{type:'button',id:'mhintbtn'},'ヒントを見る（0/'+mHints(M).length+'）'); b1.onclick=function(){ if(mhint>=mHints(M).length) return; mhint++; if(mrec&&!mrec.solved) mrec.hints++; renderHints(); if(mhint===1&&M.keys){ var f=document.querySelector('#params .mhl'); if(f&&document.body.classList.contains('mob')) setTimeout(function(){ f.scrollIntoView({behavior:'smooth',block:'center'}); },350); } };
   var b2=el('button',{type:'button'},'最初からやり直す'); b2.onclick=function(){ startMission(M.id); };
   var b3=el('button',{type:'button'},'記録を書き出す（CSV）'); b3.onclick=exportRecs; var b4=el('button',{type:'button',class:'mquit'},'課題をやめる'); b4.onclick=function(){ quitMission(); }; row.appendChild(b1); row.appendChild(b2); row.appendChild(b3); row.appendChild(b4); box.appendChild(row);
   box.appendChild(el('div',{id:'mresult'})); renderHints(); }
-function renderHints(){ var M=mission, hb=$('#mhints'); if(!hb||!M) return; hb.innerHTML=''; for(var i=0;i<mhint;i++) hb.appendChild(el('p',{class:'mhint'},'ヒント '+(i+1)+'：'+M.hints[i])); var b=$('#mhintbtn'); if(b){ b.textContent='ヒントを見る（'+mhint+'/'+M.hints.length+'）'; b.disabled=mhint>=M.hints.length; } }
+function mHints(M){ var ks=M.keys||[]; if(!ks.length) return M.hints; return ['動かすパラメータ：'+ks.map(keyName).join('・')+'（パラメータ欄に印をつけました）'].concat(M.hints); }
+function keyName(k){ if(k==='fs') return '脂肪抑制'; if(k==='vat') return 'VAT'; if(k==='semac') return 'SEMAC'; var d=MS.PDEF[k]; return d?d.n:k; }
+function markMissionKeys(){ document.querySelectorAll('.sim-control.mhl,.chk.mhl').forEach(function(e){ e.classList.remove('mhl'); }); if(mode!=='mission'||!mission||mhint<1||!mission.keys) return;
+  mission.keys.forEach(function(k){ var e=document.querySelector('#params [data-k="'+k+'"]'); if(!e) return; e.classList.add('mhl'); var sec=e.closest('.pgrp'); if(sec&&sec.classList.contains('closed')) setClosed(sec,false); }); }
+function renderHints(){ var M=mission, hb=$('#mhints'); if(!hb||!M) return; var H=mHints(M); hb.innerHTML=''; for(var i=0;i<mhint;i++) hb.appendChild(el('p',{class:'mhint'+(i===0&&M.keys?' keys':'')},'ヒント '+(i+1)+'：'+H[i])); var b=$('#mhintbtn'); if(b){ b.textContent='ヒントを見る（'+mhint+'/'+H.length+'）'; b.disabled=mhint>=H.length; } markMissionKeys(); }
 function missionEval(){ if(mode!=='mission'||!mission||!res||!res.outs||!res.outs[0]||!res.outs[0].data) return; var M=mission, i=res.info, cm=medians(res,res.outs[0]);
   var E={st:st,p:i.p,info:i,T:i.T,sar:i.sar,snr:i.snr0/(snrRef||i.snr0)*100,wrap:i.wrap||0,readEPI:i.readEPI||0,csPix:Math.abs(MS.FAT_PPM*42.577*st.B0/((i.p&&i.p.bw)||st.p.bw)),
     sig:function(k){ return cm[k]?cm[k].v:0; }, cnr:function(a,b){ return Math.abs((cm[a]?cm[a].v:0)-(cm[b]?cm[b].v:0))*i.snr0; }};
@@ -537,7 +550,9 @@ function missionEval(){ if(mode!=='mission'||!mission||!res||!res.outs||!res.out
   var rb=$('#mresult'); if(!rb) return;
   if(all){ if(mrec&&!mrec.solved){ mrec.solved=true; mrec.tSolve=Date.now(); endAttempt(); buildSeqList(); toast('課題クリア！'); }
     var t=mrec?Math.round((mrec.tSolve-mrec.start)/1000):0; rb.innerHTML=''; var d=el('div',{class:'mdone'}); d.appendChild(el('b',{},'クリア！')); d.appendChild(el('span',{},'　所要時間 '+Math.floor(t/60)+':'+('0'+t%60).slice(-2)+'・ヒント '+(mrec?mrec.hints:0)+' 回・変更 '+(mrec?Math.max(0,mrec.changes):0)+' 回'));
-    d.appendChild(el('p',{},M.expl)); var idx=MS.MISSIONS.indexOf(M), nx=MS.MISSIONS[idx+1]; if(nx){ var bn=el('button',{type:'button'},'次の課題へ：'+nx.title); bn.onclick=function(){ startMission(nx.id); }; d.appendChild(bn); } rb.appendChild(d); }
+    d.appendChild(el('p',{},M.expl)); var sv2=solvedSet(), same=MS.MISSIONS.filter(function(x){ return x.lv===M.lv; }), nx=same.slice(same.indexOf(M)+1).concat(same.slice(0,same.indexOf(M))).filter(function(x){ return !sv2[x.id]; })[0];
+    if(nx){ var bn=el('button',{type:'button'},'次の課題へ：'+nx.title); bn.onclick=function(){ startMission(nx.id); }; d.appendChild(bn); }
+    else { var L=MS.MISSION_LEVELS, nl=L[L.indexOf(M.lv)+1]; d.appendChild(el('p',{class:'mlvdone'},(LVN[M.lv]||M.lv)+'の課題をすべてクリアしました！')); if(nl){ var bl=el('button',{type:'button'},(LVN[nl]||nl)+'へ進む'); bl.onclick=function(){ startMission(lvProgress(nl).next.id); }; d.appendChild(bl); } } rb.appendChild(d); }
   else rb.innerHTML=''; }
 /* 課題を終えて、いまの条件のままエキスパート用へ */
 function quitMission(silent){ if(mode!=='mission') return; endAttempt(); mode='expert'; mission=null; mrec=null; mhint=0; mstatHide();
@@ -641,7 +656,7 @@ function kfill(){ var box=$('#kfill'); if(!box) return; var sq=MS.SEQ[st.seq];
   }
   lines.forEach(function(t,j){ tx.appendChild(el('div',{class:j?'':'kfmain'},t)); }); if(legend) tx.appendChild(el('div',{class:'kfleg'},legend));
 }
-window.__mrisimTest=function(f){ return f({newState:newState,buildParams:buildParams,schedule:schedule,getSt:function(){return st;},setMode:function(m){mode=m;}}); };
+window.__mrisimTest=function(f){ return f({newState:newState,buildParams:buildParams,schedule:schedule,getSt:function(){return st;},setMode:function(m){mode=m;},startMission:startMission}); };
 
 })();
 

@@ -59,7 +59,7 @@
 | | |
 |---|---|
 | 🎯 **Optimize for a goal** | One-click buttons — Shorter scan, Higher SNR, Finer resolution, Higher contrast (CNR), Lower SAR — adjust parameters while respecting constraints (time, SNR, SAR, resolution). Review the before/after table, then apply or undo |
-| 🏆 **Tasks with auto-grading** | 11 tasks such as *Make a T2-weighted image*, *Remove aliasing* and *Reduce metal artifacts*. Automatic pass/fail, graded hints, and CSV export of time, hints used and changes made (usable for teaching and education research) |
+| 🏆 **Tasks with auto-grading** | 24 tasks in four levels — Student, Basic, Advanced and Expert, six each — from *Make a T1-weighted image* to *High-resolution fat-suppressed PD of the knee at 3 T* and *Raise grey–white CNR in MPRAGE*. Automatic pass/fail, graded hints (the first names the parameters to change and marks them on screen), and CSV export of time, hints used and changes made (usable for teaching and education research) |
 | 🎓 **Learning mode** | 15 common sequences with only the parameters that matter for learning, teaching points and presets |
 | 🔗 **Share by link** | Region, sequence, parameters and chart settings are encoded in the URL; opening the link restores the same conditions (handy for slides or answering questions) |
 
@@ -105,7 +105,7 @@
 | `#mission` | Tasks (auto-graded) |
 | `#expert&c=…` | A link made with *Share link* that restores its conditions |
 
-**Switching modes.** Use the *Learning / Task / Expert* switch at the top of the sidebar (on phones, open it with the menu button at the top left). *Task* starts with the first task you have not solved yet.
+**Switching modes.** Use the *Learning / Task / Expert* switch at the top of the sidebar (on phones, open it with the menu button at the top left). *Task* starts with the first task you have not solved yet. Buttons above the task card choose the level (Student, Basic, Advanced, Expert) and show how many you have solved in each.
 
 **Basics.** Choose the anatomy, lesions and field strength at the top, then move the parameters on the left; the image in the middle and the chart on the right update. The dashed vertical line in the chart is the current value. Drag on the image to change window width/level; double-click to reset. Click a parameter group heading to open or close it.
 

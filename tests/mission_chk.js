@@ -6,12 +6,28 @@ function mkE(st){ var sq=MS.SEQ[st.seq], ph=MS.PHANTOMS[st.phantom]; st.coil=ph.
 function setup(M){ var st=MS.defaultState(M.ph,M.seq,null); st.B0=M.B0||1.5; st.les={}; if(M.les) Object.assign(st.les,M.les); if(M.popt) Object.assign(st.popt,M.popt); if(M.init){ if(M.init.p) Object.assign(st.p,M.init.p); if(M.init.st) Object.assign(st,M.init.st); } return st; }
 function okAll(M,E){ return M.crit.map(c=>{ try{ return !!c.f(E).ok; }catch(e){ return 'ERR '+e; } }); }
 var seed=1; function rnd(){ seed=(seed*16807)%2147483647; return seed/2147483647; }
-MS.MISSIONS.forEach(function(M){ var st=setup(M), E0=mkE(JSON.parse(JSON.stringify(st))), o0=okAll(M,E0);
-  var keys=Object.keys(st.p).filter(k=>MS.PDEF[k]&&MS.PDEF[k].max>MS.PDEF[k].min&&typeof st.p[k]==='number'); var stKeys=['fs','B0','resp','swap'];
-  var found=null; for(var t=0;t<1500&&!found;t++){ var s=JSON.parse(JSON.stringify(st)); var nk=1+Math.floor(rnd()*3);
-    for(var j=0;j<nk;j++){ var k=keys[Math.floor(rnd()*keys.length)], d=MS.PDEF[k]; var lo=Math.log(Math.max(d.min,1e-3)), hi=Math.log(d.max); var v=d.min>0&&d.max/d.min>20?Math.exp(lo+rnd()*(hi-lo)):d.min+rnd()*(d.max-d.min); s.p[k]=Math.round(v/d.step)*d.step; }
-    if(rnd()<0.3){ var fsv=['none','fatsat','stir','water','dixon'][Math.floor(rnd()*5)]; s.fs=fsv; } if(rnd()<0.2) s.B0=rnd()<0.5?1.5:3; if(rnd()<0.15) s.swap=!s.swap; if(rnd()<0.15) s.resp=['none','bh','trig','radial'][Math.floor(rnd()*4)];
-    var E; try{ E=mkE(s); }catch(e){ continue; } if(okAll(M,E).every(x=>x===true)) found=s; }
-  console.log(M.id.padEnd(11), 'init', JSON.stringify(o0), found?'SOLVABLE':'no solution found in random search', found?JSON.stringify(Object.keys(found.p).filter(k=>found.p[k]!==st.p[k]).map(k=>k+'='+(+found.p[k]).toFixed(1)).concat(['fs','B0','swap','resp'].filter(k=>found[k]!==st[k]).map(k=>k+'='+found[k]))):''); });
+var SOL={ s_t1w:{p:{tr:500,te:12}}, t2w:{p:{tr:4000,te:100}}, s_pd:{p:{tr:3000,te:15}}, flair:{p:{ti:2500}}, s_thin:{p:{thk:3,nex:3}}, s_half:{p:{nex:1}},
+  stir:{p:{ti:160}}, alias:{p:{pfov:100}}, inopp:{p:{te:2.3,te2:4.6}}, chemshift:{p:{bw:450}}, b_fatsat:{st:{fs:'chess'}}, b_hem:{p:{te:25}},
+  cnr_time:{p:{tr:500,te:12,nex:2}}, breathhold:{p:{r:2,pf:0.75}}, metal:{p:{bw:500},st:{vat:true,fs:'stir'}}, epi:{p:{r:3}}, fast_t2:{p:{etl:16,nex:1}}, a_sar:{p:{refoc:120,etl:16,tr:4000}},
+  x_mrcp:{p:{te:600,r:2,pf:0.75}}, x_flair3:{p:{refoc:120,etl:24}}, x_vibe:{p:{thk:2.5,r:2,pfz:0.75}}, x_dwi3:{p:{r:3,pf:0.75}}, x_knee3:{p:{nx:448,ny:400,bw:450,nex:2,etl:16}}, x_mprage:{p:{ti:750}} };
+var OPTV={fs:['none','chess','spair','stir','water','dixon'],vat:[false,true],semac:[0,4,8,12]};
+var bad=0;
+MS.MISSIONS.forEach(function(M){ var st=setup(M), o0=okAll(M,mkE(JSON.parse(JSON.stringify(st))));
+  var found=null, how='';
+  if(SOL[M.id]){ var s=JSON.parse(JSON.stringify(st)); Object.assign(s.p,SOL[M.id].p||{}); Object.assign(s,SOL[M.id].st||{}); try{ if(okAll(M,mkE(s)).every(x=>x===true)){ found=s; how='known'; } }catch(e){} }
+  var ks=(M.keys||[]).filter(k=>OPTV[k]||(MS.PDEF[k]&&typeof st.p[k]==='number'));
+  for(var t=0;t<3000&&!found&&ks.length;t++){ var s=JSON.parse(JSON.stringify(st)); var nk=1+Math.floor(rnd()*ks.length);
+    for(var j=0;j<nk;j++){ var k=ks[Math.floor(rnd()*ks.length)]; if(OPTV[k]){ s[k]=OPTV[k][Math.floor(rnd()*OPTV[k].length)]; continue; } var d=MS.PDEF[k]; var lo=Math.log(Math.max(d.min,1e-3)), hi=Math.log(d.max); var v=d.min>0&&d.max/d.min>20?Math.exp(lo+rnd()*(hi-lo)):d.min+rnd()*(d.max-d.min); s.p[k]=Math.round(v/d.step)*d.step; }
+    var E; try{ E=mkE(s); }catch(e){ continue; } if(okAll(M,E).every(x=>x===true)){ found=s; how='search'; } }
+  var initSolved=o0.every(x=>x===true)&&M.id!=='alias'; /* 折り返しは画像で判定するので Node では見ない */ if(!found||initSolved) bad++;
+  console.log(M.lv.padEnd(6), M.id.padEnd(11), 'init', JSON.stringify(o0), found?'SOLVABLE ('+how+')':'NO SOLUTION', initSolved?'ALREADY SOLVED AT START':''); });
+console.log('missions', MS.MISSIONS.length, bad?'bad '+bad:'ok');
 var M=MS.MISSION_MAP.inopp, s=setup(M); s.p.te=2.3; s.p.te2=4.6; console.log('inopp direct', okAll(M,mkE(s)), mkE(setup(M)).p.te);
 M=MS.MISSION_MAP.metal; s=setup(M); s.p.bw=500; s.vat=true; s.fs='stir'; console.log('metal direct', okAll(M,mkE(s)));
+
+// ヒントで示すパラメータが、その課題のシーケンスの画面に出ること
+var OPT={fs:1,vat:1,semac:1}, badK=0;
+MS.MISSIONS.forEach(function(M){ var sq=MS.SEQ[M.seq], st=setup(M); (M.keys||[]).forEach(function(k){
+  var ok= OPT[k] ? ((sq.o||[]).indexOf(k)>=0 || (k==='fs'&&/dwi/.test(sq.k))) : (st.p[k]!==undefined && MS.PDEF[k]);
+  if(!ok){ badK++; console.log('KEY NOT IN UI', M.id, k); } }); });
+console.log('mission keys', badK? 'bad '+badK : 'ok');

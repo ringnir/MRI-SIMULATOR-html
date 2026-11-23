@@ -707,6 +707,23 @@ body.mob.simview.minichart #v-sim>.pro-out #minichart canvas{width:100%!importan
 body.mob.simview.minichart #v-sim>.pro-out .metrics,body.mob.simview.minichart #v-sim>.pro-out .warns{display:none}
 body.mob.simview.minichart #v-sim>.pro-out .mstat{grid-row:2}
 body.mob.simview.minichart #v-sim>.pro-out .sim-image h3::after{content:attr(data-mini);font-weight:400;font-size:10.5px;color:var(--rt-muted);margin-left:6px}
+
+/* 課題：ヒントで示した「動かすパラメータ」 */
+#params .mhl{outline:2px dashed var(--rt-accent,#c2410c);outline-offset:3px;border-radius:6px;background:var(--rt-accent-soft)}
+.mhints .mhint.keys{font-weight:700}
+
+/* 課題のレベル */
+.sidebar .nav-lv{display:flex;align-items:center;gap:6px;width:100%;background:transparent;border:0;color:rgba(255,255,255,.88);font-size:13px;font-weight:700;padding:6px 14px;cursor:pointer;text-align:left}
+.sidebar .nav-lv small{margin-left:auto;font-weight:500;color:rgba(255,255,255,.6);font-size:11.5px}
+.sidebar .nav-lv .chev{width:0;height:0;border-left:5px solid currentColor;border-top:4px solid transparent;border-bottom:4px solid transparent;transition:transform .15s}
+.sidebar .nav-lv.open .chev{transform:rotate(90deg)}
+.sidebar .nav-lv:hover{background:rgba(255,255,255,.07)}
+.mlvsel{display:flex;flex-wrap:wrap;gap:4px;margin:0 0 10px}
+.mlvsel button{border:1px solid var(--rt-line-strong);background:var(--rt-surface);border-radius:999px;padding:3px 10px;font-size:12px;cursor:pointer;color:var(--rt-ink-2);display:inline-flex;gap:5px;align-items:baseline}
+.mlvsel button small{font-size:10.5px;color:var(--rt-muted)}
+.mlvsel button.on{background:var(--rt-accent);border-color:var(--rt-accent);color:#fff} .mlvsel button.on small{color:rgba(255,255,255,.85)}
+.mlvdone{font-weight:700;color:var(--rt-ok,#17804a)}
+body.mob .mlvsel button{font-size:11.5px;padding:3px 8px}
 #toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);background:var(--rt-ink,#1b2430);color:#fff;padding:9px 16px;border-radius:999px;font-size:13.5px;opacity:0;pointer-events:none;transition:all .2s;z-index:100}
 #toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
 body.mob #toast{bottom:84px}
@@ -4637,79 +4654,174 @@ MS.drawPSD=function(canvas,sq,p,st,opts){
      E.csPix       … 化学シフト（読出し方向、画素）
      E.readEPI     … EPI の読出し時間（ms）
      E.p / E.st    … 補正後のパラメータ／状態
+   各課題の lv は '学生' '基礎' '応用' 'エキスパート' のいずれか、keys はヒント 1 で示す「動かすパラメータ」（PDEF のキー、または fs・vat・semac）。
    追加するときは MS.addMission({...}) を src/seq/*.js などから呼ぶ。 */
 (function(){
 var MS=window.MS;
 function rng(v,a,b){ return v>=a&&v<=b; }
 MS.MISSIONS=[
- { id:'t2w', lv:'基础', title:'做出 T2 加权像', ph:'head', seq:'fse_t2', B0:1.5,
+ { id:'s_t1w', keys:['tr','te'], lv:'学生', title:'做出 T1 加权像', ph:'head', seq:'se_t1', B0:1.5,
+   init:{p:{tr:2500,te:90}},
+   goal:'当前条件接近 T2 加权。请做出白质比灰质亮、脑脊液暗的 T1 加权像。',
+   crit:[ {label:'白质 ＞ 灰质（T1 加权的顺序）', f:function(E){ return {v:'', ok:E.sig('wm')>E.sig('gm')}; }},
+          {label:'脑脊液 ÷ 白质 ＜ 0.5', f:function(E){ var r=E.sig('csf')/Math.max(E.sig('wm'),1e-6); return {v:r.toFixed(2), ok:r<0.5}; }} ],
+   hints:['T1 加权就是“短 TR”加“短 TE”。','参考值：TR 400–600 ms，TE 10–20 ms。'],
+   expl:'短 TR 时，T1 短的组织（脂肪、白质）纵向磁化恢复更多而较亮，T1 长的脑脊液较暗。缩短 TE 可减少 T2 的影响。' },
+ { id:'s_pd', keys:['tr','te'], lv:'学生', title:'做出质子密度加权像', ph:'head', seq:'se_pd', B0:1.5,
+   init:{p:{tr:500,te:12}},
+   goal:'当前为 T1 加权条件。请做出反映氢含量（质子密度）的图像。',
+   crit:[ {label:'TR ≥ 2000 ms', f:function(E){ return {v:Math.round(E.p.tr)+' ms', ok:E.p.tr>=2000}; }},
+          {label:'TE ≤ 30 ms', f:function(E){ return {v:Math.round(E.p.te)+' ms', ok:E.p.te<=30}; }},
+          {label:'灰质 ＞ 白质（含水多者更亮）', f:function(E){ return {v:'', ok:E.sig('gm')>E.sig('wm')}; }} ],
+   hints:['长 TR 消除 T1 差异，短 TE 消除 T2 差异。','参考值：TR 2500–3000 ms，TE 15–30 ms。'],
+   expl:'长 TR 使纵向磁化几乎完全恢复，短 TE 使横向弛豫几乎未进行，因此信号主要取决于氢含量（质子密度）。' },
+ { id:'s_thin', keys:['thk','nex'], lv:'学生', title:'变薄层面同时保持 SNR', ph:'head', seq:'fse_t2', B0:1.5,
+   goal:'请将层厚减到 3 mm 以下，同时保持 SNR 不低于默认值的 90%。',
+   crit:[ {label:'层厚 ≤ 3 mm', f:function(E){ return {v:E.p.thk+' mm', ok:E.p.thk<=3}; }},
+          {label:'SNR ≥ 90%', f:function(E){ return {v:Math.round(E.snr)+'%', ok:E.snr>=90}; }} ],
+   hints:['层面变薄时 SNR 与体素体积成比例下降（5 → 3 mm 为 60%）。','增加平均次数可使 SNR 提高 √NEX 倍（时间也变为 NEX 倍）。'],
+   expl:'SNR 与体素体积和 √（平均次数）成正比。变薄层面损失的 SNR 可通过平均补回，但扫描时间会延长。分辨率、SNR 与时间相互制约。' },
+ { id:'s_half', keys:['nex'], lv:'学生', title:'把扫描时间减半', ph:'head', seq:'fse_t2', B0:1.5,
+   init:{p:{nex:2}},
+   goal:'请将扫描时间（当前 2 分 08 秒）缩短到 1 分 05 秒以内，不改变层厚和矩阵。',
+   crit:[ {label:'扫描时间 ≤ 1:05', f:function(E){ return {v:mmss(E.T), ok:E.T<=65}; }},
+          {label:'保持层厚 5 mm、相位矩阵 256', f:function(E){ return {v:'', ok:E.p.thk>=5&&E.p.ny>=256}; }} ],
+   hints:['扫描时间与平均次数（NEX）成正比。','平均次数从 2 减到 1，时间减半，SNR 变为 1/√2（约 71%）。'],
+   expl:'扫描时间 ＝ TR × 相位编码数 × 平均次数 ÷ ETL。减少平均次数，时间按比例减少，SNR 按平方根减少。' },
+ { id:'b_fatsat', keys:['fs'], lv:'基础', title:'使用脂肪抑制', ph:'knee', seq:'fse_pd', B0:1.5,
+   goal:'这张膝关节 PD 加权像中脂肪很亮，骨髓水肿和关节液不易看清。请使脂肪信号低于肌肉的 30%。',
+   crit:[ {label:'脂肪 ÷ 肌肉 ＜ 0.3', f:function(E){ var r=E.sig('fat')/Math.max(E.sig('muscle'),1e-6); return {v:r.toFixed(2), ok:r<0.3}; }} ],
+   hints:['在“脂肪抑制”中选择方法。','1.5T 及以上常用化学位移选择饱和（CHESS／Fat Sat）或 SPAIR。'],
+   expl:'化学位移选择性脂肪抑制先只饱和脂肪的共振频率。在磁场不均匀处（身体边缘、金属附近）抑制会不均匀，此时应使用 STIR 或 Dixon。' },
+ { id:'b_hem', keys:['te','fa'], lv:'基础', title:'用 T2* 加权突出出血', ph:'head', seq:'gre_t2s', B0:1.5, les:{hem:true},
+   init:{p:{te:5}},
+   goal:'TE 过短，出血几乎看不见。请使出血暗到白质的 40% 以下（扫描时间 6 分钟以内）。',
+   crit:[ {label:'出血 ÷ 白质 ＜ 0.4', f:function(E){ var r=E.sig('hem')/Math.max(E.sig('wm'),1e-6); return {v:r.toFixed(2), ok:r<0.4}; }},
+          {label:'扫描时间 ≤ 6:00', f:function(E){ return {v:mmss(E.T), ok:E.T<=360}; }} ],
+   hints:['延长 TE 后，磁化率引起的相位离散（T2*）会使出血变暗。','1.5T 时 TE 约 20–25 ms。延长 TE 会使 TR 和扫描时间也增加。'],
+   expl:'含铁血黄素和脱氧血红蛋白磁化率大，扰乱局部磁场并缩短 T2*。TE 越长，信号丢失（晕状伪影）越明显。' },
+ { id:'a_sar', keys:['refoc','etl','tr'], lv:'进阶', title:'在 3T 降低 SAR', ph:'head', seq:'fse_t2', B0:3,
+   init:{p:{refoc:180,etl:24,tr:3000}},
+   goal:'3T 下 SAR 过高。请将 SAR 降到上限的 40% 以下，同时保持扫描时间 1 分 30 秒以内、SNR 70% 以上。',
+   crit:[ {label:'SAR ≤ 40%', f:function(E){ return {v:Math.round(E.sar)+'%', ok:E.sar<=40}; }},
+          {label:'扫描时间 ≤ 1:30', f:function(E){ return {v:mmss(E.T), ok:E.T<=90}; }},
+          {label:'SNR ≥ 70%', f:function(E){ return {v:Math.round(E.snr)+'%', ok:E.snr>=70}; }} ],
+   hints:['SAR 与翻转角的平方和 B0 的平方成正比。降低重聚焦角最有效。','减少 ETL 或延长 TR，单位时间内的射频脉冲就会减少。'],
+   expl:'3T 下同样条件的 SAR 约为 1.5T 的 4 倍。基本方法是把重聚焦角降到 120–150°（可变翻转角、超回波）并减少脉冲数。' },
+ { id:'x_mrcp', keys:['te','r','pf','etl'], lv:'专家', title:'MRCP：只让胆汁变亮，并且更快', ph:'abdomen', seq:'mrcp3d', B0:1.5,
+   init:{p:{te:80,r:1}},
+   goal:'TE 过短，肝脏仍可见，且耗时较长。请将肝脏信号压到胆汁的 10% 以下，扫描时间 4 分钟以内、SNR 70% 以上。',
+   crit:[ {label:'肝脏 ÷ 胆汁 ＜ 0.1', f:function(E){ var r=E.sig('liver')/Math.max(E.sig('bile'),1e-6); return {v:r.toFixed(2), ok:r<0.1}; }},
+          {label:'扫描时间 ≤ 4:00', f:function(E){ return {v:mmss(E.T), ok:E.T<=240}; }},
+          {label:'SNR ≥ 70%', f:function(E){ return {v:Math.round(E.snr)+'%', ok:E.snr>=70}; }} ],
+   hints:['MRCP 使用极长的 TE，只保留 T2 很长的液体。','TE 500–700 ms 时实质几乎消失。可用并行成像或部分傅里叶缩短时间。'],
+   expl:'胆汁与胰液 T2 在 1000 ms 以上，肝脏约 50 ms。TE 设为数百 ms 时实质信号消失，只剩液体。3D 中需在加速缩短时间的同时保持 SNR。' },
+ { id:'x_flair3', keys:['refoc','etl','tr','r'], lv:'专家', title:'在 SAR 与时间限制内完成 3T FLAIR', ph:'head', seq:'flair', B0:3,
+   init:{p:{refoc:180,etl:12}},
+   goal:'这个 3T FLAIR 的 SAR 高且耗时长。请在保持脑脊液抑制的同时，将 SAR 降到 25% 以下、扫描时间控制在 1 分 50 秒以内。',
+   crit:[ {label:'脑脊液 ÷ 白质 ＜ 0.2', f:function(E){ var r=E.sig('csf')/Math.max(E.sig('wm'),1e-6); return {v:r.toFixed(2), ok:r<0.2}; }},
+          {label:'SAR ≤ 25%', f:function(E){ return {v:Math.round(E.sar)+'%', ok:E.sar<=25}; }},
+          {label:'扫描时间 ≤ 1:50', f:function(E){ return {v:mmss(E.T), ok:E.T<=110}; }} ],
+   hints:['降低重聚焦角可大幅降低 SAR。','延长 ETL 可缩短时间，但要注意模糊和 SAR。TI 要随 TR 调整到脑脊液的零点。'],
+   expl:'FLAIR 需要长 TR，耗时较长，3T 下 SAR 也是限制。可组合降低重聚焦角、延长 ETL、使用并行成像等方法。' },
+ { id:'x_vibe', keys:['thk','npart','r','rz','pf','pfz','cs'], lv:'专家', title:'更薄更快的肝脏 3D T1', ph:'abdomen', seq:'vibe', B0:1.5,
+   goal:'这是用于动态增强的 3D T1。请将层面方向减到 2.5 mm 以下，扫描时间 15 秒以内、SNR 55% 以上。',
+   crit:[ {label:'层面方向 ≤ 2.5 mm', f:function(E){ return {v:(E.info.dz||0).toFixed(1)+' mm', ok:(E.info.dz||9)<=2.5}; }},
+          {label:'扫描时间 ≤ 15 秒', f:function(E){ return {v:E.T.toFixed(1)+' 秒', ok:E.T<=15}; }},
+          {label:'SNR ≥ 55%', f:function(E){ return {v:Math.round(E.snr)+'%', ok:E.snr>=55}; }} ],
+   hints:['变薄会降低 SNR，要保持覆盖范围则需更多分区，时间也会延长。','组合使用相位方向并行成像、层面方向部分傅里叶和 CAIPIRINHA（rz）。'],
+   expl:'3D 可同时在层面内和层面方向加速。分开加速可使 g 因子较小，在相同总加速下减少 SNR 下降。' },
+ { id:'x_dwi3', keys:['r','pf','ny','nex'], lv:'专家', title:'3T DWI：兼顾变形与 SNR', ph:'head', seq:'dwi', B0:3,
+   init:{p:{r:1,pf:1}},
+   goal:'这是 3T DWI。请将 EPI 读出时间缩短到 28 ms 以内以减少变形，同时保持 SNR 65% 以上、扫描时间 1 分钟以内。',
+   crit:[ {label:'EPI 读出时间 ≤ 28 ms', f:function(E){ return {v:(E.readEPI||0).toFixed(1)+' ms', ok:E.readEPI>0&&E.readEPI<=28}; }},
+          {label:'SNR ≥ 65%', f:function(E){ return {v:Math.round(E.snr)+'%', ok:E.snr>=65}; }},
+          {label:'扫描时间 ≤ 1:00', f:function(E){ return {v:mmss(E.T), ok:E.T<=60}; }} ],
+   hints:['并行成像（R）可缩短回波链，但使 SNR 降低 √R × g。','部分傅里叶也能缩短回波链。适当减少相位矩阵也有效。'],
+   expl:'减少变形的操作（加速、部分傅里叶、减小矩阵）往往会降低 SNR。用平均补回又会延长时间，需要在三者之间取得平衡。' },
+ { id:'x_knee3', keys:['nx','ny','bw','nex','etl'], lv:'专家', title:'3T 膝关节高分辨率 PD 脂肪抑制', ph:'knee', seq:'fse_pd', B0:3,
+   init:{st:{fs:'chess'}},
+   goal:'为观察软骨和半月板，请将层面内像素减到 0.4 mm 以下，同时满足化学位移 ≤ 1 像素、SNR ≥ 50%、扫描时间 5 分 30 秒以内。',
+   crit:[ {label:'层面内像素 ≤ 0.4 mm', f:function(E){ var d=Math.max(E.info.dx||9,E.info.dy||9); return {v:d.toFixed(2)+' mm', ok:d<=0.4}; }},
+          {label:'化学位移 ≤ 1 像素', f:function(E){ return {v:E.csPix.toFixed(2)+' 像素', ok:E.csPix<=1}; }},
+          {label:'SNR ≥ 50%', f:function(E){ return {v:Math.round(E.snr)+'%', ok:E.snr>=50}; }},
+          {label:'扫描时间 ≤ 5:30', f:function(E){ return {v:mmss(E.T), ok:E.T<=330}; }} ],
+   hints:['增大矩阵可减小像素，但会影响 SNR 和时间。3T 时水脂频率差约 440 Hz。','提高带宽损失的 SNR 用平均补回，延长的时间用 ETL 补回。'],
+   expl:'高分辨率、化学位移、SNR 与时间相互制约。3T 膝关节成像的思路是把 3T 多出的 SNR 用于缩小像素和提高带宽。' },
+ { id:'x_mprage', keys:['ti','fa'], lv:'专家', title:'提高 MPRAGE 的灰白质 CNR', ph:'head', seq:'mprage', B0:1.5,
+   goal:'请将 MPRAGE 的灰质与白质 CNR 提高到 3.6 以上，并保持 1 mm 各向同性。',
+   crit:[ {label:'CNR（灰质 对 白质）≥ 3.6', f:function(E){ var c=E.cnr('gm','wm'); return {v:c.toFixed(2), ok:c>=3.6}; }},
+          {label:'层面方向保持 1 mm', f:function(E){ return {v:'', ok:(E.info.dz||9)<=1.0001}; }} ],
+   hints:['选择灰质与白质纵向磁化差值最大的 TI（反转时间）。','把图表横轴设为 TI，寻找 CNR 最大的位置。'],
+   expl:'MPRAGE 中，反转后纵向磁化在白质（T1 短）与灰质（T1 长）中的恢复不同，在差值最大的 TI 读出可提高 CNR。翻转角也会影响读出过程中的饱和。' },
+ { id:'t2w', keys:['tr','te'], lv:'学生', title:'做出 T2 加权像', ph:'head', seq:'fse_t2', B0:1.5,
    init:{p:{tr:600,te:15}},
    goal:'当前条件接近 T1 加权。请做出脑脊液亮度至少为白质 2 倍的 T2 加权像。',
    crit:[ {label:'脑脊液 ÷ 白质 ≥ 2', f:function(E){ var r=E.sig('csf')/Math.max(1e-9,E.sig('wm')); return {v:r.toFixed(2), ok:r>=2}; }},
           {label:'白质 ＜ 灰质（T2 加权的顺序）', f:function(E){ return {v:'', ok:E.sig('wm')<E.sig('gm')}; }} ],
    hints:['T2 加权就是“长 TR”加“长 TE”。','TR 一般 ≥ 2500 ms 以消除 T1 影响，TE 约 80–120 ms。'],
    expl:'长 TR 使纵向磁化几乎完全恢复（消除 T1 差异），长 TE 使长 T2 组织（脑脊液）保持高信号，从而形成 T2 加权。' },
- { id:'flair', lv:'基础', title:'用 FLAIR 抑制脑脊液', ph:'head', seq:'flair', B0:1.5,
+ { id:'flair', keys:['ti'], lv:'学生', title:'用 FLAIR 抑制脑脊液', ph:'head', seq:'flair', B0:1.5,
    init:{p:{ti:900}},
    goal:'反转时间（TI）过短，脑脊液仍有信号。请使脑脊液信号低于白质的 20%。',
    crit:[ {label:'脑脊液 ÷ 白质 ＜ 0.2', f:function(E){ var r=E.sig('csf')/Math.max(1e-9,E.sig('wm')); return {v:r.toFixed(2), ok:r<0.2}; }} ],
    hints:['在反转后纵向磁化经过 0 的时刻（零点）激发，该组织的信号就会消失。','零点为 TI ≈ T1 × ln2（TR 足够长时）。1.5T 时脑脊液 T1 约 4000 ms。','TR 较短时磁化无法完全恢复，最佳 TI 会偏短。可把图表横轴设为 TI 来寻找。'],
    expl:'当 TI ≈ T1 × ln2（≈ 0.69 × T1）时纵向磁化为 0，该组织信号消失。TR 有限时，TI ≈ T1 × ln[2 / (1 + e^(−TR/T1))]。' },
- { id:'stir', lv:'基础', title:'用 STIR 抑制脂肪', ph:'knee', seq:'stir', B0:1.5,
+ { id:'stir', keys:['ti'], lv:'基础', title:'用 STIR 抑制脂肪', ph:'knee', seq:'stir', B0:1.5,
    init:{p:{ti:350}},
    goal:'脂肪仍然很亮。请使脂肪信号低于肌肉的 30%。',
    crit:[ {label:'脂肪 ÷ 肌肉 ＜ 0.3', f:function(E){ var r=E.sig('fat')/Math.max(1e-9,E.sig('muscle')); return {v:r.toFixed(2), ok:r<0.3}; }} ],
    hints:['STIR 的 TI 根据脂肪的 T1 来设定。','1.5T 时脂肪的 T1 约为 250–300 ms，零点为 TI ≈ 150–170 ms。'],
    expl:'脂肪 T1 较短，在 TI ≈ 0.69 × T1(脂肪) ≈ 150 ms（1.5T）时其纵向磁化为 0。其优点是不受磁场不均匀影响，但也会抑制 T1 相同的组织（如增强后的病变）。' },
- { id:'cnr_time', lv:'进阶', title:'在时限内提高白质与灰质 CNR', ph:'head', seq:'se_t1', B0:1.5,
+ { id:'cnr_time', keys:['tr','te','nex','thk'], lv:'进阶', title:'在时限内提高白质与灰质 CNR', ph:'head', seq:'se_t1', B0:1.5,
    init:{p:{tr:1500,te:30,nex:1}},
    goal:'在 SE T1 加权像上，使白质与灰质的 CNR 达到 12 以上，且扫描时间不超过 4 分钟。',
    crit:[ {label:'CNR（白质 对 灰质）≥ 12', f:function(E){ var c=E.cnr('wm','gm'); return {v:c.toFixed(1), ok:c>=12}; }},
           {label:'扫描时间 ≤ 4 分钟', f:function(E){ return {v:mmss(E.T), ok:E.T<=240}; }} ],
    hints:['T1 加权需要短 TR 和短 TE。','提高 SNR 的方法：增加层厚或 FOV、减小矩阵、增加平均次数、缩窄带宽。','时间 = TR × 相位矩阵 × 平均次数。降低 TR 并把省下的时间用于平均也是一个办法。'],
    expl:'CNR 由信号差 × SNR 决定。把 TR 设在两种组织的 T1 之间可增大差异，把节省的时间用于平均可使 SNR 提高 √NEX 倍。也要注意与分辨率（体素体积）的权衡。' },
- { id:'alias', lv:'基础', title:'消除卷褶', ph:'abdomen', seq:'vibe', B0:1.5,
+ { id:'alias', keys:['pfov','pos','r','pf'], lv:'基础', title:'消除卷褶', ph:'abdomen', seq:'vibe', B0:1.5,
    init:{p:{pfov:50}},
    goal:'相位方向 FOV 小于身体，身体卷褶到对侧。请消除卷褶（屏气保持在 20 秒以内）。',
    crit:[ {label:'卷褶 ＜ 1%', f:function(E){ return {v:(E.wrap*100).toFixed(1)+'%', ok:E.wrap<0.01}; }},
           {label:'扫描时间 ≤ 20 秒', f:function(E){ return {v:E.T.toFixed(1)+' 秒', ok:E.T<=20}; }} ],
    hints:['增大相位方向 FOV（%）或使用相位过采样。','增大 FOV 会延长时间。可用并行成像（加速）或部分傅里叶把时间补回来。'],
    expl:'相位方向无法用频率区分，FOV 外的组织会叠加到对侧。可通过增大 FOV、相位过采样、交换相位方向或饱和脉冲来处理。' },
- { id:'breathhold', lv:'进阶', title:'控制在 15 秒屏气内', ph:'abdomen', seq:'vibe', B0:1.5,
+ { id:'breathhold', keys:['r','pf','npart','thk'], lv:'进阶', title:'控制在 15 秒屏气内', ph:'abdomen', seq:'vibe', B0:1.5,
    init:{p:{r:1,pf:1,npart:72}},
    goal:'屏气时间过长。请将扫描时间缩短到 15 秒以内，并保持 SNR 不低于默认值的 60%。',
    crit:[ {label:'扫描时间 ≤ 15 秒', f:function(E){ return {v:E.T.toFixed(1)+' 秒', ok:E.T<=15}; }},
           {label:'SNR ≥ 60%', f:function(E){ return {v:Math.round(E.snr)+'%', ok:E.snr>=60}; }} ],
    hints:['并行成像（加速）、部分傅里叶与减少分区数都有效。','加速越多 SNR 越低（√R 与 g 因子）。可适当增加层厚来补偿 SNR。'],
    expl:'3D 扫描时间 = TR × 相位编码数 × 分区数 ÷ 加速倍数。并行成像使 SNR 降低 √R × g，需要在时间、SNR 与分辨率之间取得平衡。' },
- { id:'inopp', lv:'基础', title:'设定同相位与反相位 TE', ph:'abdomen', seq:'inopp', B0:1.5,
+ { id:'inopp', keys:['te','te2'], lv:'基础', title:'设定同相位与反相位 TE', ph:'abdomen', seq:'inopp', B0:1.5,
    init:{p:{te:3.0,te2:5.5}},
    goal:'两个 TE 不正确。请在 1.5T 下将第 1 回波设为反相位（opposed-phase），第 2 回波设为同相位（in-phase）。',
    crit:[ {label:'TE1 为反相位（±0.3 ms）', f:function(E){ var t=E.st.B0>=2.5?1.15:2.3; return {v:E.p.te+' ms', ok:Math.abs(E.p.te-t)<=0.3*(E.st.B0>=2.5?0.5:1)}; }},
           {label:'TE2 为同相位（±0.3 ms）', f:function(E){ var t=E.st.B0>=2.5?2.3:4.6; return {v:E.p.te2+' ms', ok:Math.abs(E.p.te2-t)<=0.3*(E.st.B0>=2.5?0.5:1)}; }} ],
    hints:['水与脂肪的频率差约 3.4 ppm，1.5T 时约 220 Hz，因此相位转一周约需 4.6 ms。','半周（反相位）为 2.3 ms，一周（同相位）为 4.6 ms。3T 时减半。'],
    expl:'水与脂肪相差 3.4 ppm，1.5T 下一周 ≈ 4.6 ms。反相位时同一体素内的水与脂肪相互抵消，含脂病变（腺瘤、脂肪肝）的信号下降。' },
- { id:'chemshift', lv:'基础', title:'使化学位移 ≤ 1 像素', ph:'knee', seq:'fse_pd', B0:3,
+ { id:'chemshift', keys:['bw'], lv:'基础', title:'使化学位移 ≤ 1 像素', ph:'knee', seq:'fse_pd', B0:3,
    init:{p:{bw:80}},
    goal:'3T 下接收带宽过窄，脂肪与水的边界发生错位。请将化学位移降到 1 个像素以内。',
    crit:[ {label:'化学位移 ≤ 1 像素', f:function(E){ return {v:E.csPix.toFixed(2)+' 像素', ok:E.csPix<=1}; }} ],
    hints:['化学位移（像素）＝ 水脂频率差（Hz）÷ 每像素带宽（Hz/像素）。','3T 时水脂频率差约 440 Hz。将带宽设为 440 Hz/像素 以上（SNR 会下降）。'],
    expl:'增宽带宽会增大每像素的频率范围，位移（像素数）随之减小。代价是噪声增加，SNR 与 √(BW) 成反比下降。' },
- { id:'metal', lv:'进阶', title:'减少金属伪影', ph:'knee', seq:'fse_pd', B0:1.5, les:{metal:true},
-   init:{p:{bw:130}, st:{fs:'chess'}},
+ { id:'metal', keys:['bw','fs','vat','semac'], lv:'进阶', title:'减少金属伪影', ph:'knee', seq:'metal', B0:1.5, les:{metal:true},
+   init:{p:{bw:130}, st:{fs:'chess',vat:false,semac:0}},
    goal:'金属周围信号缺失，脂肪抑制也不均匀。请设置能减少金属伪影的参数。',
    crit:[ {label:'接收带宽 ≥ 400 Hz/像素', f:function(E){ return {v:E.p.bw+' Hz/像素', ok:E.p.bw>=400}; }},
           {label:'使用 VAT 或 SEMAC', f:function(E){ return {v:'', ok:!!(E.st.vat||E.st.semac)}; }},
           {label:'不使用频率选择性脂肪抑制（CHESS/SPAIR）', f:function(E){ return {v:E.st.fs||'无', ok:E.st.fs!=='chess'&&E.st.fs!=='spair'}; }} ],
    hints:['金属附近磁场偏差很大，依赖频率的方法（脂肪抑制、层面选择、读出）都会受干扰。','增宽带宽、视角倾斜（VAT）和层面方向校正（SEMAC）都有效。','金属附近的脂肪抑制宜用 STIR（反转恢复）或 Dixon。'],
    expl:'金属会造成较大的局部频率偏移，引起读出方向偏移、层面变形与脂肪抑制失败。基本对策是组合使用高带宽、VAT、SEMAC 与 STIR/Dixon。' },
- { id:'epi', lv:'进阶', title:'减少 DWI 变形', ph:'head', seq:'dwi', B0:3,
+ { id:'epi', keys:['r','pf','ny'], lv:'进阶', title:'减少 DWI 变形', ph:'head', seq:'dwi', B0:3,
    init:{p:{r:1,pf:1,ny:192,nx:192}},
    goal:'3T 的 EPI 读出时间过长，变形明显。请将 EPI 读出时间缩短到 30 ms 以内。',
    crit:[ {label:'EPI 读出时间 ≤ 30 ms', f:function(E){ var r=E.readEPI||0; return {v:r?r.toFixed(1)+' ms':'—', ok:r>0&&r<=30}; }} ],
    hints:['变形与回波链长度（读出时间）成正比。','可用并行成像（R）缩短回波链、减小相位矩阵、部分傅里叶或分段读出（RESOLVE、EPIX 等）。'],
    expl:'EPI 在相位方向每像素的带宽很窄（1 ÷ 读出时间），磁场偏差会直接变成相位方向的位置偏移。读出时间越短，变形越小。' },
- { id:'fast_t2', lv:'进阶', title:'保持 SNR 的快速 T2', ph:'head', seq:'fse_t2', B0:1.5,
+ { id:'fast_t2', keys:['etl','nex'], lv:'进阶', title:'保持 SNR 的快速 T2', ph:'head', seq:'fse_t2', B0:1.5,
    init:{p:{etl:8,nex:2}},
    goal:'请将扫描时间控制在 1 分 30 秒以内，并保持 SNR 不低于默认值的 80%。',
    crit:[ {label:'扫描时间 ≤ 1:30', f:function(E){ return {v:mmss(E.T), ok:E.T<=90}; }},
@@ -4718,6 +4830,10 @@ MS.MISSIONS=[
    expl:'FSE 时间 = TR × 相位编码数 × 平均次数 ÷ ETL。ETL 越长越快，但回波间的 T2 衰减会加重模糊，SAR 也会升高。' }
 ];
 function mmss(s){ s=Math.round(s); return Math.floor(s/60)+':'+('0'+(s%60)).slice(-2); }
+MS.MISSION_LEVELS=['学生','基础','进阶','专家'];
+var ORDER=['s_t1w','t2w','s_pd','flair','s_thin','s_half','b_fatsat','stir','inopp','chemshift','alias','b_hem','cnr_time','fast_t2','breathhold','a_sar','epi','metal','x_mprage','x_flair3','x_knee3','x_dwi3','x_vibe','x_mrcp'];
+function ord(M){ var i=ORDER.indexOf(M.id); return i<0?999:i; }
+MS.MISSIONS.sort(function(a,b){ return (MS.MISSION_LEVELS.indexOf(a.lv)-MS.MISSION_LEVELS.indexOf(b.lv))||(ord(a)-ord(b)); });
 MS.MISSION_MAP={}; MS.MISSIONS.forEach(function(M){ MS.MISSION_MAP[M.id]=M; });
 MS.addMission=function(M){ MS.MISSIONS=MS.MISSIONS.filter(function(x){ return x.id!==M.id; }); MS.MISSIONS.push(M); MS.MISSION_MAP[M.id]=M; return M; };
 })();
@@ -8658,79 +8774,174 @@ MS.drawPSD=function(canvas,sq,p,st,opts){
      E.csPix       … 化学シフト（読出し方向、画素）
      E.readEPI     … EPI の読出し時間（ms）
      E.p / E.st    … 補正後のパラメータ／状態
+   各課題の lv は '学生' '基礎' '応用' 'エキスパート' のいずれか、keys はヒント 1 で示す「動かすパラメータ」（PDEF のキー、または fs・vat・semac）。
    追加するときは MS.addMission({...}) を src/seq/*.js などから呼ぶ。 */
 (function(){
 var MS=window.MS;
 function rng(v,a,b){ return v>=a&&v<=b; }
 MS.MISSIONS=[
- { id:'t2w', lv:'基础', title:'做出 T2 加权像', ph:'head', seq:'fse_t2', B0:1.5,
+ { id:'s_t1w', keys:['tr','te'], lv:'学生', title:'做出 T1 加权像', ph:'head', seq:'se_t1', B0:1.5,
+   init:{p:{tr:2500,te:90}},
+   goal:'当前条件接近 T2 加权。请做出白质比灰质亮、脑脊液暗的 T1 加权像。',
+   crit:[ {label:'白质 ＞ 灰质（T1 加权的顺序）', f:function(E){ return {v:'', ok:E.sig('wm')>E.sig('gm')}; }},
+          {label:'脑脊液 ÷ 白质 ＜ 0.5', f:function(E){ var r=E.sig('csf')/Math.max(E.sig('wm'),1e-6); return {v:r.toFixed(2), ok:r<0.5}; }} ],
+   hints:['T1 加权就是“短 TR”加“短 TE”。','参考值：TR 400–600 ms，TE 10–20 ms。'],
+   expl:'短 TR 时，T1 短的组织（脂肪、白质）纵向磁化恢复更多而较亮，T1 长的脑脊液较暗。缩短 TE 可减少 T2 的影响。' },
+ { id:'s_pd', keys:['tr','te'], lv:'学生', title:'做出质子密度加权像', ph:'head', seq:'se_pd', B0:1.5,
+   init:{p:{tr:500,te:12}},
+   goal:'当前为 T1 加权条件。请做出反映氢含量（质子密度）的图像。',
+   crit:[ {label:'TR ≥ 2000 ms', f:function(E){ return {v:Math.round(E.p.tr)+' ms', ok:E.p.tr>=2000}; }},
+          {label:'TE ≤ 30 ms', f:function(E){ return {v:Math.round(E.p.te)+' ms', ok:E.p.te<=30}; }},
+          {label:'灰质 ＞ 白质（含水多者更亮）', f:function(E){ return {v:'', ok:E.sig('gm')>E.sig('wm')}; }} ],
+   hints:['长 TR 消除 T1 差异，短 TE 消除 T2 差异。','参考值：TR 2500–3000 ms，TE 15–30 ms。'],
+   expl:'长 TR 使纵向磁化几乎完全恢复，短 TE 使横向弛豫几乎未进行，因此信号主要取决于氢含量（质子密度）。' },
+ { id:'s_thin', keys:['thk','nex'], lv:'学生', title:'变薄层面同时保持 SNR', ph:'head', seq:'fse_t2', B0:1.5,
+   goal:'请将层厚减到 3 mm 以下，同时保持 SNR 不低于默认值的 90%。',
+   crit:[ {label:'层厚 ≤ 3 mm', f:function(E){ return {v:E.p.thk+' mm', ok:E.p.thk<=3}; }},
+          {label:'SNR ≥ 90%', f:function(E){ return {v:Math.round(E.snr)+'%', ok:E.snr>=90}; }} ],
+   hints:['层面变薄时 SNR 与体素体积成比例下降（5 → 3 mm 为 60%）。','增加平均次数可使 SNR 提高 √NEX 倍（时间也变为 NEX 倍）。'],
+   expl:'SNR 与体素体积和 √（平均次数）成正比。变薄层面损失的 SNR 可通过平均补回，但扫描时间会延长。分辨率、SNR 与时间相互制约。' },
+ { id:'s_half', keys:['nex'], lv:'学生', title:'把扫描时间减半', ph:'head', seq:'fse_t2', B0:1.5,
+   init:{p:{nex:2}},
+   goal:'请将扫描时间（当前 2 分 08 秒）缩短到 1 分 05 秒以内，不改变层厚和矩阵。',
+   crit:[ {label:'扫描时间 ≤ 1:05', f:function(E){ return {v:mmss(E.T), ok:E.T<=65}; }},
+          {label:'保持层厚 5 mm、相位矩阵 256', f:function(E){ return {v:'', ok:E.p.thk>=5&&E.p.ny>=256}; }} ],
+   hints:['扫描时间与平均次数（NEX）成正比。','平均次数从 2 减到 1，时间减半，SNR 变为 1/√2（约 71%）。'],
+   expl:'扫描时间 ＝ TR × 相位编码数 × 平均次数 ÷ ETL。减少平均次数，时间按比例减少，SNR 按平方根减少。' },
+ { id:'b_fatsat', keys:['fs'], lv:'基础', title:'使用脂肪抑制', ph:'knee', seq:'fse_pd', B0:1.5,
+   goal:'这张膝关节 PD 加权像中脂肪很亮，骨髓水肿和关节液不易看清。请使脂肪信号低于肌肉的 30%。',
+   crit:[ {label:'脂肪 ÷ 肌肉 ＜ 0.3', f:function(E){ var r=E.sig('fat')/Math.max(E.sig('muscle'),1e-6); return {v:r.toFixed(2), ok:r<0.3}; }} ],
+   hints:['在“脂肪抑制”中选择方法。','1.5T 及以上常用化学位移选择饱和（CHESS／Fat Sat）或 SPAIR。'],
+   expl:'化学位移选择性脂肪抑制先只饱和脂肪的共振频率。在磁场不均匀处（身体边缘、金属附近）抑制会不均匀，此时应使用 STIR 或 Dixon。' },
+ { id:'b_hem', keys:['te','fa'], lv:'基础', title:'用 T2* 加权突出出血', ph:'head', seq:'gre_t2s', B0:1.5, les:{hem:true},
+   init:{p:{te:5}},
+   goal:'TE 过短，出血几乎看不见。请使出血暗到白质的 40% 以下（扫描时间 6 分钟以内）。',
+   crit:[ {label:'出血 ÷ 白质 ＜ 0.4', f:function(E){ var r=E.sig('hem')/Math.max(E.sig('wm'),1e-6); return {v:r.toFixed(2), ok:r<0.4}; }},
+          {label:'扫描时间 ≤ 6:00', f:function(E){ return {v:mmss(E.T), ok:E.T<=360}; }} ],
+   hints:['延长 TE 后，磁化率引起的相位离散（T2*）会使出血变暗。','1.5T 时 TE 约 20–25 ms。延长 TE 会使 TR 和扫描时间也增加。'],
+   expl:'含铁血黄素和脱氧血红蛋白磁化率大，扰乱局部磁场并缩短 T2*。TE 越长，信号丢失（晕状伪影）越明显。' },
+ { id:'a_sar', keys:['refoc','etl','tr'], lv:'进阶', title:'在 3T 降低 SAR', ph:'head', seq:'fse_t2', B0:3,
+   init:{p:{refoc:180,etl:24,tr:3000}},
+   goal:'3T 下 SAR 过高。请将 SAR 降到上限的 40% 以下，同时保持扫描时间 1 分 30 秒以内、SNR 70% 以上。',
+   crit:[ {label:'SAR ≤ 40%', f:function(E){ return {v:Math.round(E.sar)+'%', ok:E.sar<=40}; }},
+          {label:'扫描时间 ≤ 1:30', f:function(E){ return {v:mmss(E.T), ok:E.T<=90}; }},
+          {label:'SNR ≥ 70%', f:function(E){ return {v:Math.round(E.snr)+'%', ok:E.snr>=70}; }} ],
+   hints:['SAR 与翻转角的平方和 B0 的平方成正比。降低重聚焦角最有效。','减少 ETL 或延长 TR，单位时间内的射频脉冲就会减少。'],
+   expl:'3T 下同样条件的 SAR 约为 1.5T 的 4 倍。基本方法是把重聚焦角降到 120–150°（可变翻转角、超回波）并减少脉冲数。' },
+ { id:'x_mrcp', keys:['te','r','pf','etl'], lv:'专家', title:'MRCP：只让胆汁变亮，并且更快', ph:'abdomen', seq:'mrcp3d', B0:1.5,
+   init:{p:{te:80,r:1}},
+   goal:'TE 过短，肝脏仍可见，且耗时较长。请将肝脏信号压到胆汁的 10% 以下，扫描时间 4 分钟以内、SNR 70% 以上。',
+   crit:[ {label:'肝脏 ÷ 胆汁 ＜ 0.1', f:function(E){ var r=E.sig('liver')/Math.max(E.sig('bile'),1e-6); return {v:r.toFixed(2), ok:r<0.1}; }},
+          {label:'扫描时间 ≤ 4:00', f:function(E){ return {v:mmss(E.T), ok:E.T<=240}; }},
+          {label:'SNR ≥ 70%', f:function(E){ return {v:Math.round(E.snr)+'%', ok:E.snr>=70}; }} ],
+   hints:['MRCP 使用极长的 TE，只保留 T2 很长的液体。','TE 500–700 ms 时实质几乎消失。可用并行成像或部分傅里叶缩短时间。'],
+   expl:'胆汁与胰液 T2 在 1000 ms 以上，肝脏约 50 ms。TE 设为数百 ms 时实质信号消失，只剩液体。3D 中需在加速缩短时间的同时保持 SNR。' },
+ { id:'x_flair3', keys:['refoc','etl','tr','r'], lv:'专家', title:'在 SAR 与时间限制内完成 3T FLAIR', ph:'head', seq:'flair', B0:3,
+   init:{p:{refoc:180,etl:12}},
+   goal:'这个 3T FLAIR 的 SAR 高且耗时长。请在保持脑脊液抑制的同时，将 SAR 降到 25% 以下、扫描时间控制在 1 分 50 秒以内。',
+   crit:[ {label:'脑脊液 ÷ 白质 ＜ 0.2', f:function(E){ var r=E.sig('csf')/Math.max(E.sig('wm'),1e-6); return {v:r.toFixed(2), ok:r<0.2}; }},
+          {label:'SAR ≤ 25%', f:function(E){ return {v:Math.round(E.sar)+'%', ok:E.sar<=25}; }},
+          {label:'扫描时间 ≤ 1:50', f:function(E){ return {v:mmss(E.T), ok:E.T<=110}; }} ],
+   hints:['降低重聚焦角可大幅降低 SAR。','延长 ETL 可缩短时间，但要注意模糊和 SAR。TI 要随 TR 调整到脑脊液的零点。'],
+   expl:'FLAIR 需要长 TR，耗时较长，3T 下 SAR 也是限制。可组合降低重聚焦角、延长 ETL、使用并行成像等方法。' },
+ { id:'x_vibe', keys:['thk','npart','r','rz','pf','pfz','cs'], lv:'专家', title:'更薄更快的肝脏 3D T1', ph:'abdomen', seq:'vibe', B0:1.5,
+   goal:'这是用于动态增强的 3D T1。请将层面方向减到 2.5 mm 以下，扫描时间 15 秒以内、SNR 55% 以上。',
+   crit:[ {label:'层面方向 ≤ 2.5 mm', f:function(E){ return {v:(E.info.dz||0).toFixed(1)+' mm', ok:(E.info.dz||9)<=2.5}; }},
+          {label:'扫描时间 ≤ 15 秒', f:function(E){ return {v:E.T.toFixed(1)+' 秒', ok:E.T<=15}; }},
+          {label:'SNR ≥ 55%', f:function(E){ return {v:Math.round(E.snr)+'%', ok:E.snr>=55}; }} ],
+   hints:['变薄会降低 SNR，要保持覆盖范围则需更多分区，时间也会延长。','组合使用相位方向并行成像、层面方向部分傅里叶和 CAIPIRINHA（rz）。'],
+   expl:'3D 可同时在层面内和层面方向加速。分开加速可使 g 因子较小，在相同总加速下减少 SNR 下降。' },
+ { id:'x_dwi3', keys:['r','pf','ny','nex'], lv:'专家', title:'3T DWI：兼顾变形与 SNR', ph:'head', seq:'dwi', B0:3,
+   init:{p:{r:1,pf:1}},
+   goal:'这是 3T DWI。请将 EPI 读出时间缩短到 28 ms 以内以减少变形，同时保持 SNR 65% 以上、扫描时间 1 分钟以内。',
+   crit:[ {label:'EPI 读出时间 ≤ 28 ms', f:function(E){ return {v:(E.readEPI||0).toFixed(1)+' ms', ok:E.readEPI>0&&E.readEPI<=28}; }},
+          {label:'SNR ≥ 65%', f:function(E){ return {v:Math.round(E.snr)+'%', ok:E.snr>=65}; }},
+          {label:'扫描时间 ≤ 1:00', f:function(E){ return {v:mmss(E.T), ok:E.T<=60}; }} ],
+   hints:['并行成像（R）可缩短回波链，但使 SNR 降低 √R × g。','部分傅里叶也能缩短回波链。适当减少相位矩阵也有效。'],
+   expl:'减少变形的操作（加速、部分傅里叶、减小矩阵）往往会降低 SNR。用平均补回又会延长时间，需要在三者之间取得平衡。' },
+ { id:'x_knee3', keys:['nx','ny','bw','nex','etl'], lv:'专家', title:'3T 膝关节高分辨率 PD 脂肪抑制', ph:'knee', seq:'fse_pd', B0:3,
+   init:{st:{fs:'chess'}},
+   goal:'为观察软骨和半月板，请将层面内像素减到 0.4 mm 以下，同时满足化学位移 ≤ 1 像素、SNR ≥ 50%、扫描时间 5 分 30 秒以内。',
+   crit:[ {label:'层面内像素 ≤ 0.4 mm', f:function(E){ var d=Math.max(E.info.dx||9,E.info.dy||9); return {v:d.toFixed(2)+' mm', ok:d<=0.4}; }},
+          {label:'化学位移 ≤ 1 像素', f:function(E){ return {v:E.csPix.toFixed(2)+' 像素', ok:E.csPix<=1}; }},
+          {label:'SNR ≥ 50%', f:function(E){ return {v:Math.round(E.snr)+'%', ok:E.snr>=50}; }},
+          {label:'扫描时间 ≤ 5:30', f:function(E){ return {v:mmss(E.T), ok:E.T<=330}; }} ],
+   hints:['增大矩阵可减小像素，但会影响 SNR 和时间。3T 时水脂频率差约 440 Hz。','提高带宽损失的 SNR 用平均补回，延长的时间用 ETL 补回。'],
+   expl:'高分辨率、化学位移、SNR 与时间相互制约。3T 膝关节成像的思路是把 3T 多出的 SNR 用于缩小像素和提高带宽。' },
+ { id:'x_mprage', keys:['ti','fa'], lv:'专家', title:'提高 MPRAGE 的灰白质 CNR', ph:'head', seq:'mprage', B0:1.5,
+   goal:'请将 MPRAGE 的灰质与白质 CNR 提高到 3.6 以上，并保持 1 mm 各向同性。',
+   crit:[ {label:'CNR（灰质 对 白质）≥ 3.6', f:function(E){ var c=E.cnr('gm','wm'); return {v:c.toFixed(2), ok:c>=3.6}; }},
+          {label:'层面方向保持 1 mm', f:function(E){ return {v:'', ok:(E.info.dz||9)<=1.0001}; }} ],
+   hints:['选择灰质与白质纵向磁化差值最大的 TI（反转时间）。','把图表横轴设为 TI，寻找 CNR 最大的位置。'],
+   expl:'MPRAGE 中，反转后纵向磁化在白质（T1 短）与灰质（T1 长）中的恢复不同，在差值最大的 TI 读出可提高 CNR。翻转角也会影响读出过程中的饱和。' },
+ { id:'t2w', keys:['tr','te'], lv:'学生', title:'做出 T2 加权像', ph:'head', seq:'fse_t2', B0:1.5,
    init:{p:{tr:600,te:15}},
    goal:'当前条件接近 T1 加权。请做出脑脊液亮度至少为白质 2 倍的 T2 加权像。',
    crit:[ {label:'脑脊液 ÷ 白质 ≥ 2', f:function(E){ var r=E.sig('csf')/Math.max(1e-9,E.sig('wm')); return {v:r.toFixed(2), ok:r>=2}; }},
           {label:'白质 ＜ 灰质（T2 加权的顺序）', f:function(E){ return {v:'', ok:E.sig('wm')<E.sig('gm')}; }} ],
    hints:['T2 加权就是“长 TR”加“长 TE”。','TR 一般 ≥ 2500 ms 以消除 T1 影响，TE 约 80–120 ms。'],
    expl:'长 TR 使纵向磁化几乎完全恢复（消除 T1 差异），长 TE 使长 T2 组织（脑脊液）保持高信号，从而形成 T2 加权。' },
- { id:'flair', lv:'基础', title:'用 FLAIR 抑制脑脊液', ph:'head', seq:'flair', B0:1.5,
+ { id:'flair', keys:['ti'], lv:'学生', title:'用 FLAIR 抑制脑脊液', ph:'head', seq:'flair', B0:1.5,
    init:{p:{ti:900}},
    goal:'反转时间（TI）过短，脑脊液仍有信号。请使脑脊液信号低于白质的 20%。',
    crit:[ {label:'脑脊液 ÷ 白质 ＜ 0.2', f:function(E){ var r=E.sig('csf')/Math.max(1e-9,E.sig('wm')); return {v:r.toFixed(2), ok:r<0.2}; }} ],
    hints:['在反转后纵向磁化经过 0 的时刻（零点）激发，该组织的信号就会消失。','零点为 TI ≈ T1 × ln2（TR 足够长时）。1.5T 时脑脊液 T1 约 4000 ms。','TR 较短时磁化无法完全恢复，最佳 TI 会偏短。可把图表横轴设为 TI 来寻找。'],
    expl:'当 TI ≈ T1 × ln2（≈ 0.69 × T1）时纵向磁化为 0，该组织信号消失。TR 有限时，TI ≈ T1 × ln[2 / (1 + e^(−TR/T1))]。' },
- { id:'stir', lv:'基础', title:'用 STIR 抑制脂肪', ph:'knee', seq:'stir', B0:1.5,
+ { id:'stir', keys:['ti'], lv:'基础', title:'用 STIR 抑制脂肪', ph:'knee', seq:'stir', B0:1.5,
    init:{p:{ti:350}},
    goal:'脂肪仍然很亮。请使脂肪信号低于肌肉的 30%。',
    crit:[ {label:'脂肪 ÷ 肌肉 ＜ 0.3', f:function(E){ var r=E.sig('fat')/Math.max(1e-9,E.sig('muscle')); return {v:r.toFixed(2), ok:r<0.3}; }} ],
    hints:['STIR 的 TI 根据脂肪的 T1 来设定。','1.5T 时脂肪的 T1 约为 250–300 ms，零点为 TI ≈ 150–170 ms。'],
    expl:'脂肪 T1 较短，在 TI ≈ 0.69 × T1(脂肪) ≈ 150 ms（1.5T）时其纵向磁化为 0。其优点是不受磁场不均匀影响，但也会抑制 T1 相同的组织（如增强后的病变）。' },
- { id:'cnr_time', lv:'进阶', title:'在时限内提高白质与灰质 CNR', ph:'head', seq:'se_t1', B0:1.5,
+ { id:'cnr_time', keys:['tr','te','nex','thk'], lv:'进阶', title:'在时限内提高白质与灰质 CNR', ph:'head', seq:'se_t1', B0:1.5,
    init:{p:{tr:1500,te:30,nex:1}},
    goal:'在 SE T1 加权像上，使白质与灰质的 CNR 达到 12 以上，且扫描时间不超过 4 分钟。',
    crit:[ {label:'CNR（白质 对 灰质）≥ 12', f:function(E){ var c=E.cnr('wm','gm'); return {v:c.toFixed(1), ok:c>=12}; }},
           {label:'扫描时间 ≤ 4 分钟', f:function(E){ return {v:mmss(E.T), ok:E.T<=240}; }} ],
    hints:['T1 加权需要短 TR 和短 TE。','提高 SNR 的方法：增加层厚或 FOV、减小矩阵、增加平均次数、缩窄带宽。','时间 = TR × 相位矩阵 × 平均次数。降低 TR 并把省下的时间用于平均也是一个办法。'],
    expl:'CNR 由信号差 × SNR 决定。把 TR 设在两种组织的 T1 之间可增大差异，把节省的时间用于平均可使 SNR 提高 √NEX 倍。也要注意与分辨率（体素体积）的权衡。' },
- { id:'alias', lv:'基础', title:'消除卷褶', ph:'abdomen', seq:'vibe', B0:1.5,
+ { id:'alias', keys:['pfov','pos','r','pf'], lv:'基础', title:'消除卷褶', ph:'abdomen', seq:'vibe', B0:1.5,
    init:{p:{pfov:50}},
    goal:'相位方向 FOV 小于身体，身体卷褶到对侧。请消除卷褶（屏气保持在 20 秒以内）。',
    crit:[ {label:'卷褶 ＜ 1%', f:function(E){ return {v:(E.wrap*100).toFixed(1)+'%', ok:E.wrap<0.01}; }},
           {label:'扫描时间 ≤ 20 秒', f:function(E){ return {v:E.T.toFixed(1)+' 秒', ok:E.T<=20}; }} ],
    hints:['增大相位方向 FOV（%）或使用相位过采样。','增大 FOV 会延长时间。可用并行成像（加速）或部分傅里叶把时间补回来。'],
    expl:'相位方向无法用频率区分，FOV 外的组织会叠加到对侧。可通过增大 FOV、相位过采样、交换相位方向或饱和脉冲来处理。' },
- { id:'breathhold', lv:'进阶', title:'控制在 15 秒屏气内', ph:'abdomen', seq:'vibe', B0:1.5,
+ { id:'breathhold', keys:['r','pf','npart','thk'], lv:'进阶', title:'控制在 15 秒屏气内', ph:'abdomen', seq:'vibe', B0:1.5,
    init:{p:{r:1,pf:1,npart:72}},
    goal:'屏气时间过长。请将扫描时间缩短到 15 秒以内，并保持 SNR 不低于默认值的 60%。',
    crit:[ {label:'扫描时间 ≤ 15 秒', f:function(E){ return {v:E.T.toFixed(1)+' 秒', ok:E.T<=15}; }},
           {label:'SNR ≥ 60%', f:function(E){ return {v:Math.round(E.snr)+'%', ok:E.snr>=60}; }} ],
    hints:['并行成像（加速）、部分傅里叶与减少分区数都有效。','加速越多 SNR 越低（√R 与 g 因子）。可适当增加层厚来补偿 SNR。'],
    expl:'3D 扫描时间 = TR × 相位编码数 × 分区数 ÷ 加速倍数。并行成像使 SNR 降低 √R × g，需要在时间、SNR 与分辨率之间取得平衡。' },
- { id:'inopp', lv:'基础', title:'设定同相位与反相位 TE', ph:'abdomen', seq:'inopp', B0:1.5,
+ { id:'inopp', keys:['te','te2'], lv:'基础', title:'设定同相位与反相位 TE', ph:'abdomen', seq:'inopp', B0:1.5,
    init:{p:{te:3.0,te2:5.5}},
    goal:'两个 TE 不正确。请在 1.5T 下将第 1 回波设为反相位（opposed-phase），第 2 回波设为同相位（in-phase）。',
    crit:[ {label:'TE1 为反相位（±0.3 ms）', f:function(E){ var t=E.st.B0>=2.5?1.15:2.3; return {v:E.p.te+' ms', ok:Math.abs(E.p.te-t)<=0.3*(E.st.B0>=2.5?0.5:1)}; }},
           {label:'TE2 为同相位（±0.3 ms）', f:function(E){ var t=E.st.B0>=2.5?2.3:4.6; return {v:E.p.te2+' ms', ok:Math.abs(E.p.te2-t)<=0.3*(E.st.B0>=2.5?0.5:1)}; }} ],
    hints:['水与脂肪的频率差约 3.4 ppm，1.5T 时约 220 Hz，因此相位转一周约需 4.6 ms。','半周（反相位）为 2.3 ms，一周（同相位）为 4.6 ms。3T 时减半。'],
    expl:'水与脂肪相差 3.4 ppm，1.5T 下一周 ≈ 4.6 ms。反相位时同一体素内的水与脂肪相互抵消，含脂病变（腺瘤、脂肪肝）的信号下降。' },
- { id:'chemshift', lv:'基础', title:'使化学位移 ≤ 1 像素', ph:'knee', seq:'fse_pd', B0:3,
+ { id:'chemshift', keys:['bw'], lv:'基础', title:'使化学位移 ≤ 1 像素', ph:'knee', seq:'fse_pd', B0:3,
    init:{p:{bw:80}},
    goal:'3T 下接收带宽过窄，脂肪与水的边界发生错位。请将化学位移降到 1 个像素以内。',
    crit:[ {label:'化学位移 ≤ 1 像素', f:function(E){ return {v:E.csPix.toFixed(2)+' 像素', ok:E.csPix<=1}; }} ],
    hints:['化学位移（像素）＝ 水脂频率差（Hz）÷ 每像素带宽（Hz/像素）。','3T 时水脂频率差约 440 Hz。将带宽设为 440 Hz/像素 以上（SNR 会下降）。'],
    expl:'增宽带宽会增大每像素的频率范围，位移（像素数）随之减小。代价是噪声增加，SNR 与 √(BW) 成反比下降。' },
- { id:'metal', lv:'进阶', title:'减少金属伪影', ph:'knee', seq:'fse_pd', B0:1.5, les:{metal:true},
-   init:{p:{bw:130}, st:{fs:'chess'}},
+ { id:'metal', keys:['bw','fs','vat','semac'], lv:'进阶', title:'减少金属伪影', ph:'knee', seq:'metal', B0:1.5, les:{metal:true},
+   init:{p:{bw:130}, st:{fs:'chess',vat:false,semac:0}},
    goal:'金属周围信号缺失，脂肪抑制也不均匀。请设置能减少金属伪影的参数。',
    crit:[ {label:'接收带宽 ≥ 400 Hz/像素', f:function(E){ return {v:E.p.bw+' Hz/像素', ok:E.p.bw>=400}; }},
           {label:'使用 VAT 或 SEMAC', f:function(E){ return {v:'', ok:!!(E.st.vat||E.st.semac)}; }},
           {label:'不使用频率选择性脂肪抑制（CHESS/SPAIR）', f:function(E){ return {v:E.st.fs||'无', ok:E.st.fs!=='chess'&&E.st.fs!=='spair'}; }} ],
    hints:['金属附近磁场偏差很大，依赖频率的方法（脂肪抑制、层面选择、读出）都会受干扰。','增宽带宽、视角倾斜（VAT）和层面方向校正（SEMAC）都有效。','金属附近的脂肪抑制宜用 STIR（反转恢复）或 Dixon。'],
    expl:'金属会造成较大的局部频率偏移，引起读出方向偏移、层面变形与脂肪抑制失败。基本对策是组合使用高带宽、VAT、SEMAC 与 STIR/Dixon。' },
- { id:'epi', lv:'进阶', title:'减少 DWI 变形', ph:'head', seq:'dwi', B0:3,
+ { id:'epi', keys:['r','pf','ny'], lv:'进阶', title:'减少 DWI 变形', ph:'head', seq:'dwi', B0:3,
    init:{p:{r:1,pf:1,ny:192,nx:192}},
    goal:'3T 的 EPI 读出时间过长，变形明显。请将 EPI 读出时间缩短到 30 ms 以内。',
    crit:[ {label:'EPI 读出时间 ≤ 30 ms', f:function(E){ var r=E.readEPI||0; return {v:r?r.toFixed(1)+' ms':'—', ok:r>0&&r<=30}; }} ],
    hints:['变形与回波链长度（读出时间）成正比。','可用并行成像（R）缩短回波链、减小相位矩阵、部分傅里叶或分段读出（RESOLVE、EPIX 等）。'],
    expl:'EPI 在相位方向每像素的带宽很窄（1 ÷ 读出时间），磁场偏差会直接变成相位方向的位置偏移。读出时间越短，变形越小。' },
- { id:'fast_t2', lv:'进阶', title:'保持 SNR 的快速 T2', ph:'head', seq:'fse_t2', B0:1.5,
+ { id:'fast_t2', keys:['etl','nex'], lv:'进阶', title:'保持 SNR 的快速 T2', ph:'head', seq:'fse_t2', B0:1.5,
    init:{p:{etl:8,nex:2}},
    goal:'请将扫描时间控制在 1 分 30 秒以内，并保持 SNR 不低于默认值的 80%。',
    crit:[ {label:'扫描时间 ≤ 1:30', f:function(E){ return {v:mmss(E.T), ok:E.T<=90}; }},
@@ -8739,6 +8950,10 @@ MS.MISSIONS=[
    expl:'FSE 时间 = TR × 相位编码数 × 平均次数 ÷ ETL。ETL 越长越快，但回波间的 T2 衰减会加重模糊，SAR 也会升高。' }
 ];
 function mmss(s){ s=Math.round(s); return Math.floor(s/60)+':'+('0'+(s%60)).slice(-2); }
+MS.MISSION_LEVELS=['学生','基础','进阶','专家'];
+var ORDER=['s_t1w','t2w','s_pd','flair','s_thin','s_half','b_fatsat','stir','inopp','chemshift','alias','b_hem','cnr_time','fast_t2','breathhold','a_sar','epi','metal','x_mprage','x_flair3','x_knee3','x_dwi3','x_vibe','x_mrcp'];
+function ord(M){ var i=ORDER.indexOf(M.id); return i<0?999:i; }
+MS.MISSIONS.sort(function(a,b){ return (MS.MISSION_LEVELS.indexOf(a.lv)-MS.MISSION_LEVELS.indexOf(b.lv))||(ord(a)-ord(b)); });
 MS.MISSION_MAP={}; MS.MISSIONS.forEach(function(M){ MS.MISSION_MAP[M.id]=M; });
 MS.addMission=function(M){ MS.MISSIONS=MS.MISSIONS.filter(function(x){ return x.id!==M.id; }); MS.MISSIONS.push(M); MS.MISSION_MAP[M.id]=M; return M; };
 })();
@@ -8908,7 +9123,11 @@ function buildSeqList(){ var box=$('#navigation'), q=($('#seqq').value||'').toLo
     box.appendChild(el('div',{class:'nav-group'},'简介')); box.appendChild(nb('本工具的使用方法','',view==='about',function(){ setView('about'); }));
     box.appendChild(el('div',{class:'nav-group'},'学习模式（常用序列）'));
     MS.LEARN.forEach(function(L){ var s=MS.SEQ[L.seq]; box.appendChild(nb(s.n,'',view==='sim'&&mode==='learn'&&st&&st.seq===L.seq,function(){ setView('sim'); startLearn(L.seq); })); });
-    if(MS.MISSIONS){ var sv=solvedSet(); box.appendChild(el('div',{class:'nav-group'},'任务（自动判定）')); MS.MISSIONS.forEach(function(M){ box.appendChild(nb((sv[M.id]?'✓ ':'')+M.title,M.lv,view==='sim'&&mode==='mission'&&mission&&mission.id===M.id,function(){ setView('sim'); startMission(M.id); })); }); }
+    if(MS.MISSIONS){ var sv=solvedSet(); box.appendChild(el('div',{class:'nav-group'},'任务（自动判定）'));
+      (MS.MISSION_LEVELS||[]).forEach(function(lv){ var ms=MS.MISSIONS.filter(function(M){ return M.lv===lv; }); if(!ms.length) return; var done=ms.filter(function(M){ return sv[M.id]; }).length;
+        var open=openLv[lv]!=null?openLv[lv]:(mode==='mission'&&mission?mission.lv===lv:lv===MS.MISSION_LEVELS[0]);
+        var h=el('button',{type:'button',class:'nav-lv'+(open?' open':''),'aria-expanded':String(open)}); h.appendChild(el('span',{class:'chev','aria-hidden':'true'})); h.appendChild(document.createTextNode(LVN[lv]||lv)); h.appendChild(el('small',{},done+'/'+ms.length)); h.onclick=function(){ openLv[lv]=!open; buildSeqList(); }; box.appendChild(h);
+        if(open) ms.forEach(function(M){ box.appendChild(nb((sv[M.id]?'✓ ':'')+M.title,'',view==='sim'&&mode==='mission'&&mission&&mission.id===M.id,function(){ setView('sim'); startMission(M.id); })); }); }); }
     box.appendChild(el('div',{class:'nav-group'},'资料')); box.appendChild(nb('名称对照表','按厂商',view==='names',function(){ setView('names'); })); box.appendChild(nb('组织参数','T1、T2、文献',view==='tissue',function(){ setView('tissue'); }));
     box.appendChild(el('div',{class:'nav-group',style:'color:#fff;font-weight:700;margin-top:26px'},'专家模式（共 '+MS.SEQS.length+' 个序列）')); }
   var hit=0;
@@ -8949,8 +9168,9 @@ function numRow(id,name,unit,min,max,step,get,set,tip,logm){ var lb=el('label',{
   return lb; }
 function fmtv(v){ return Math.abs(v)>=100? Math.round(v*10)/10 : Math.round(v*1000)/1000; }
 function sel(name,opts,get,set,tip){ var d=el('label',{class:'sim-control'}); d.appendChild(document.createTextNode(name)); if(tip) d.appendChild(el('span',{class:'q',title:tip},'?')); var s=el('select'); opts.forEach(function(o){ var op=el('option',{value:o[0]},o[1]); if(String(get())===String(o[0])) op.selected=true; s.appendChild(op); }); s.onchange=function(){ set(s.value); schedule(); if(s.dataset.rebuild) buildParams(); }; d.appendChild(s); d.s=s; return d; }
+function tagK(k,e){ e.setAttribute('data-k',k); return e; }
 function chk(name,get,set,tip){ var lb=el('label',{class:'chk'}); if(tip) lb.title=tip; var c=el('input',{type:'checkbox'}); c.checked=!!get(); c.onchange=function(){ set(c.checked); schedule(); }; lb.appendChild(c); lb.appendChild(document.createTextNode(name)); return lb; }
-function buildParams(){ buildParams0(); grpCounts(); grpBadges(); }
+function buildParams(){ buildParams0(); grpCounts(); grpBadges(); markMissionKeys(); }
 function buildParams0(){ var sq=MS.SEQ[st.seq], box=$('#params'); box.innerHTML=''; var keys=visibleParams(sq);
   function grp(title){ var c0=!!closedG[title]; var sec=el('div',{class:'pgrp'+(c0?' closed':''),'data-t':title}); var h=el('button',{type:'button',class:'grp','aria-expanded':String(!c0)});
     h.appendChild(el('span',{class:'chev','aria-hidden':'true'})); h.appendChild(document.createTextNode(title)); var cn=el('span',{class:'gcnt'}); h.appendChild(cn); h.appendChild(el('span',{class:'gbadge',title:'相对默认值已更改的参数数'}));
@@ -8977,14 +9197,14 @@ function buildParams0(){ var sq=MS.SEQ[st.seq], box=$('#params'); box.innerHTML=
   });
   /* オプション */
   var o=sq.o||[], det2=grp('脂肪抑制与选项');
-  if(o.indexOf('fs')>=0 || /dwi/.test(sq.k)){ var fsOpts=[['none','无'],['chess','化学位移选择（CHESS／Fat Sat）'],['spair','绝热脉冲（SPAIR）'],['we','水选择激励（WE／PASTA）']]; if(/dwi|dti/.test(sq.k)) fsOpts.push(['stir','STIR（反转）']); det2.appendChild(sel('脂肪抑制',fsOpts,function(){return st.fs;},function(v){st.fs=v;},'对磁场不均匀敏感的是 CHESS、SPAIR、水选择激励。STIR 和 Dixon 抑脂均匀，但原理不同')); }
+  if(o.indexOf('fs')>=0 || /dwi/.test(sq.k)){ var fsOpts=[['none','无'],['chess','化学位移选择（CHESS／Fat Sat）'],['spair','绝热脉冲（SPAIR）'],['we','水选择激励（WE／PASTA）']]; if(/dwi|dti/.test(sq.k)) fsOpts.push(['stir','STIR（反转）']); det2.appendChild(tagK('fs',sel('脂肪抑制',fsOpts,function(){return st.fs;},function(v){st.fs=v;},'对磁场不均匀敏感的是 CHESS、SPAIR、水选择激励。STIR 和 Dixon 抑脂均匀，但原理不同'))); }
   if(o.indexOf('restore')>=0) det2.appendChild(chk('回翻脉冲（RESTORE／T2 Plus）',function(){return st.restore;},function(v){st.restore=v;},'回波链结束时将横向磁化恢复到纵向。即使TR较短，液体也呈高信号'));
   if(o.indexOf('mt')>=0) det2.appendChild(chk('MT脉冲（MTC／SORS-STC）',function(){return st.mt;},function(v){st.mt=v;},'降低与大分子结合水的信号（白质、肌肉、软骨信号降低）'));
   if(o.indexOf('tone')>=0) det2.appendChild(chk('倾斜翻转角（TONE／ISCE）',function(){return st.tone;},function(v){st.tone=v;}));
   if(o.indexOf('vsat')>=0) det2.appendChild(chk('静脉饱和脉冲',function(){return st.vsat;},function(v){st.vsat=v;}));
   if(o.indexOf('flowcomp')>=0||sq.gre) det2.appendChild(chk('流动补偿（GMN／Flow Comp）',function(){return st.flowcomp;},function(v){st.flowcomp=v;},'减少血流导致的相位离散'));
   det2.appendChild(chk('空间饱和脉冲（减少搏动伪影）',function(){return st.satband;},function(v){st.satband=v;},'在血管流入侧施加饱和脉冲，减少搏动引起的相位方向鬼影'));
-  if(o.indexOf('vat')>=0) det2.appendChild(chk('VAT（view angle tilting）',function(){return st.vat;},function(v){st.vat=v;},'Siemens: WARP、Canon: VAT。校正层面内的位置偏移'));
+  if(o.indexOf('vat')>=0) det2.appendChild(tagK('vat',chk('VAT（view angle tilting）',function(){return st.vat;},function(v){st.vat=v;},'Siemens: WARP、Canon: VAT。校正层面内的位置偏移')));
   if(o.indexOf('semac')>=0) det2.appendChild(numRow('semac','SEMAC 校正步数','',0,24,1,function(){return st.semac;},function(v){st.semac=v;},'校正垂直于层面方向的畸变（时间随步数成比例延长）'));
   if(/dwi/.test(sq.k)) det2.appendChild(numRow('cdwi','计算DWI 的 b 值（0=不使用）','s/mm²',0,3000,50,function(){return st.cdwi;},function(v){st.cdwi=v;},'Siemens: Computed b-values、Canon: cDWI'));
   if(sq.k==='mrs') det2.appendChild(sel('体素位置',[['normal','正常白质'],['lesion','病灶（肿瘤）']],function(){return st.mrsVox;},function(v){st.mrsVox=v;}));
@@ -9068,7 +9288,7 @@ function metrics(){ var i=res.info, m=$('#metrics'); m.innerHTML=''; var sq=MS.S
   add(MS.fmt(i.dx)+'×'+MS.fmt(i.dy)+'×'+MS.fmt(i.dz),'采集体素（mm）');
   add(Math.round(i.sar)+' %','SAR（占上限比例，相对值）',i.sar>100?'bad':(i.sar>70?'mid':''));
   if(i.tres) add(MS.fmt(i.tres)+' ms','时间分辨率');
-  if(i.conc>1) add(i.conc+' 次','分次采集（单个TR内容纳不下全部层面）');
+  if(i.conc>1) add(i.conc+' 次分割','分次采集（单个TR内容纳不下全部层面）');
   if(i.etlEPI) add(i.etlEPI+' × '+MS.fmt(i.p.esp_epi)+' ms','EPI 回波数 × 间隔');
   if(i.R>1||i.CS>1||(st.p.sms||1)>1) add('×'+MS.fmt(i.R*(i.Rz||1)*(i.CS||1)*(st.p.sms||1)),'总加速（PI×CS×SMS）');
   add(MS.fmt(i.tro)+' ms','读出时间（1/BW）');
@@ -9369,7 +9589,9 @@ function applyShared(obj){ if(!obj||!MS.SEQ[obj.sq]||!MS.PHANTOMS[obj.ph]) retur
 var toastT=null; function toast(t){ var d=$('#toast'); if(!d){ d=el('div',{id:'toast',role:'status','aria-live':'polite'}); document.body.appendChild(d); } d.textContent=t; d.classList.add('on'); clearTimeout(toastT); toastT=setTimeout(function(){ d.classList.remove('on'); },2200); }
 
 /* ---------- 課題モード（自動判定・ヒント・記録） ---------- */
-var mission=null, mrec=null, mhint=0;
+var mission=null, mrec=null, mhint=0, openLv={};
+var LVN={'学生':'学生级','基础':'基础级','进阶':'进阶级','专家':'专家级'};
+function lvProgress(lv){ var sv=solvedSet(), ms=MS.MISSIONS.filter(function(M){ return M.lv===lv; }); return {n:ms.length, done:ms.filter(function(M){ return sv[M.id]; }).length, next:(ms.filter(function(M){ return !sv[M.id]; })[0]||ms[0])}; }
 function loadRecs(){ try{ return JSON.parse(localStorage.getItem('mrisimMissionLog')||'[]'); }catch(e){ return []; } }
 function saveRecs(a){ try{ localStorage.setItem('mrisimMissionLog',JSON.stringify(a.slice(-1000))); }catch(e){} }
 function solvedSet(){ var s={}; loadRecs().forEach(function(r){ if(r.solved) s[r.id]=true; }); return s; }
@@ -9381,14 +9603,20 @@ function startMission(id){ var M=MS.MISSION_MAP[id]; if(!M) return; endAttempt()
   chart.follow=true; chart.hide={}; lastChanged=null; prevRes=null; manualW=null; cur=0; refInfo(); defaultAB();
   buildPhantomSel(); buildSys(); buildLesions(); buildSeqList(); buildParams(); seqCard(); learnCard(); schedule(); }
 function missionCard(box){ var M=mission; $('#protop').classList.remove('one'); box.hidden=false; box.innerHTML='';
-  var h=el('h2',{},'任务：'+M.title); box.appendChild(h); box.appendChild(el('p',{class:'mlv'},M.lv+'　·　'+MS.SEQ[M.seq].n+'　·　'+(st.B0)+' T'));
+  var lvb=el('div',{class:'mlvsel',role:'group','aria-label':'任务级别'}); (MS.MISSION_LEVELS||[]).forEach(function(lv){ var pr=lvProgress(lv); if(!pr.n) return; var b=el('button',{type:'button',class:lv===M.lv?'on':'','aria-pressed':String(lv===M.lv)}); b.appendChild(document.createTextNode(LVN[lv]||lv)); b.appendChild(el('small',{},pr.done+'/'+pr.n)); b.onclick=function(){ if(lv!==M.lv) startMission(lvProgress(lv).next.id); }; lvb.appendChild(b); }); box.appendChild(lvb);
+  var ms_=MS.MISSIONS.filter(function(x){ return x.lv===M.lv; }), qi=ms_.indexOf(M)+1;
+  var h=el('h2',{},'任务：'+M.title); box.appendChild(h); box.appendChild(el('p',{class:'mlv'},(LVN[M.lv]||M.lv)+' '+qi+'/'+ms_.length+'　·　'+MS.SEQ[M.seq].n+'　·　'+(st.B0)+' T'));
   box.appendChild(el('p',{},M.goal)); var ul=el('ul',{id:'mcrit',class:'mcrit','aria-live':'polite'}); M.crit.forEach(function(c){ ul.appendChild(el('li',{},c.label)); }); box.appendChild(ul);
   var hb=el('div',{id:'mhints',class:'mhints'}); box.appendChild(hb);
-  var row=el('div',{class:'sim-presets'}); var b1=el('button',{type:'button',id:'mhintbtn'},'查看提示（0/'+M.hints.length+'）'); b1.onclick=function(){ if(mhint>=M.hints.length) return; mhint++; if(mrec&&!mrec.solved) mrec.hints++; renderHints(); };
+  var row=el('div',{class:'sim-presets'}); var b1=el('button',{type:'button',id:'mhintbtn'},'查看提示（0/'+mHints(M).length+'）'); b1.onclick=function(){ if(mhint>=mHints(M).length) return; mhint++; if(mrec&&!mrec.solved) mrec.hints++; renderHints(); if(mhint===1&&M.keys){ var f=document.querySelector('#params .mhl'); if(f&&document.body.classList.contains('mob')) setTimeout(function(){ f.scrollIntoView({behavior:'smooth',block:'center'}); },350); } };
   var b2=el('button',{type:'button'},'重新开始'); b2.onclick=function(){ startMission(M.id); };
   var b3=el('button',{type:'button'},'导出记录（CSV）'); b3.onclick=exportRecs; var b4=el('button',{type:'button',class:'mquit'},'退出任务'); b4.onclick=function(){ quitMission(); }; row.appendChild(b1); row.appendChild(b2); row.appendChild(b3); row.appendChild(b4); box.appendChild(row);
   box.appendChild(el('div',{id:'mresult'})); renderHints(); }
-function renderHints(){ var M=mission, hb=$('#mhints'); if(!hb||!M) return; hb.innerHTML=''; for(var i=0;i<mhint;i++) hb.appendChild(el('p',{class:'mhint'},'提示 '+(i+1)+'：'+M.hints[i])); var b=$('#mhintbtn'); if(b){ b.textContent='查看提示（'+mhint+'/'+M.hints.length+'）'; b.disabled=mhint>=M.hints.length; } }
+function mHints(M){ var ks=M.keys||[]; if(!ks.length) return M.hints; return ['需要调整的参数：'+ks.map(keyName).join('；')+'（已在参数栏中标出）'].concat(M.hints); }
+function keyName(k){ if(k==='fs') return '脂肪抑制'; if(k==='vat') return 'VAT'; if(k==='semac') return 'SEMAC'; var d=MS.PDEF[k]; return d?d.n:k; }
+function markMissionKeys(){ document.querySelectorAll('.sim-control.mhl,.chk.mhl').forEach(function(e){ e.classList.remove('mhl'); }); if(mode!=='mission'||!mission||mhint<1||!mission.keys) return;
+  mission.keys.forEach(function(k){ var e=document.querySelector('#params [data-k="'+k+'"]'); if(!e) return; e.classList.add('mhl'); var sec=e.closest('.pgrp'); if(sec&&sec.classList.contains('closed')) setClosed(sec,false); }); }
+function renderHints(){ var M=mission, hb=$('#mhints'); if(!hb||!M) return; var H=mHints(M); hb.innerHTML=''; for(var i=0;i<mhint;i++) hb.appendChild(el('p',{class:'mhint'+(i===0&&M.keys?' keys':'')},'提示 '+(i+1)+'：'+H[i])); var b=$('#mhintbtn'); if(b){ b.textContent='查看提示（'+mhint+'/'+H.length+'）'; b.disabled=mhint>=H.length; } markMissionKeys(); }
 function missionEval(){ if(mode!=='mission'||!mission||!res||!res.outs||!res.outs[0]||!res.outs[0].data) return; var M=mission, i=res.info, cm=medians(res,res.outs[0]);
   var E={st:st,p:i.p,info:i,T:i.T,sar:i.sar,snr:i.snr0/(snrRef||i.snr0)*100,wrap:i.wrap||0,readEPI:i.readEPI||0,csPix:Math.abs(MS.FAT_PPM*42.577*st.B0/((i.p&&i.p.bw)||st.p.bw)),
     sig:function(k){ return cm[k]?cm[k].v:0; }, cnr:function(a,b){ return Math.abs((cm[a]?cm[a].v:0)-(cm[b]?cm[b].v:0))*i.snr0; }};
@@ -9398,7 +9626,9 @@ function missionEval(){ if(mode!=='mission'||!mission||!res||!res.outs||!res.out
   var rb=$('#mresult'); if(!rb) return;
   if(all){ if(mrec&&!mrec.solved){ mrec.solved=true; mrec.tSolve=Date.now(); endAttempt(); buildSeqList(); toast('任务完成！'); }
     var t=mrec?Math.round((mrec.tSolve-mrec.start)/1000):0; rb.innerHTML=''; var d=el('div',{class:'mdone'}); d.appendChild(el('b',{},'完成！')); d.appendChild(el('span',{},'　用时 '+Math.floor(t/60)+':'+('0'+t%60).slice(-2)+'・提示 '+(mrec?mrec.hints:0)+' 次 · 修改 '+(mrec?Math.max(0,mrec.changes):0)+' 次'));
-    d.appendChild(el('p',{},M.expl)); var idx=MS.MISSIONS.indexOf(M), nx=MS.MISSIONS[idx+1]; if(nx){ var bn=el('button',{type:'button'},'下一个任务：'+nx.title); bn.onclick=function(){ startMission(nx.id); }; d.appendChild(bn); } rb.appendChild(d); }
+    d.appendChild(el('p',{},M.expl)); var sv2=solvedSet(), same=MS.MISSIONS.filter(function(x){ return x.lv===M.lv; }), nx=same.slice(same.indexOf(M)+1).concat(same.slice(0,same.indexOf(M))).filter(function(x){ return !sv2[x.id]; })[0];
+    if(nx){ var bn=el('button',{type:'button'},'下一个任务：'+nx.title); bn.onclick=function(){ startMission(nx.id); }; d.appendChild(bn); }
+    else { var L=MS.MISSION_LEVELS, nl=L[L.indexOf(M.lv)+1]; d.appendChild(el('p',{class:'mlvdone'},(LVN[M.lv]||M.lv)+'的任务已全部完成！')); if(nl){ var bl=el('button',{type:'button'},(LVN[nl]||nl)+'：继续'); bl.onclick=function(){ startMission(lvProgress(nl).next.id); }; d.appendChild(bl); } } rb.appendChild(d); }
   else rb.innerHTML=''; }
 /* 課題を終えて、いまの条件のままエキスパート用へ */
 function quitMission(silent){ if(mode!=='mission') return; endAttempt(); mode='expert'; mission=null; mrec=null; mhint=0; mstatHide();
@@ -9502,7 +9732,7 @@ function kfill(){ var box=$('#kfill'); if(!box) return; var sq=MS.SEQ[st.seq];
   }
   lines.forEach(function(t,j){ tx.appendChild(el('div',{class:j?'':'kfmain'},t)); }); if(legend) tx.appendChild(el('div',{class:'kfleg'},legend));
 }
-window.__mrisimTest=function(f){ return f({newState:newState,buildParams:buildParams,schedule:schedule,getSt:function(){return st;},setMode:function(m){mode=m;}}); };
+window.__mrisimTest=function(f){ return f({newState:newState,buildParams:buildParams,schedule:schedule,getSt:function(){return st;},setMode:function(m){mode=m;},startMission:startMission}); };
 
 })();
 

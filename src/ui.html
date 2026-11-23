@@ -299,6 +299,23 @@ body.mob.simview.minichart #v-sim>.pro-out #minichart canvas{width:100%!importan
 body.mob.simview.minichart #v-sim>.pro-out .metrics,body.mob.simview.minichart #v-sim>.pro-out .warns{display:none}
 body.mob.simview.minichart #v-sim>.pro-out .mstat{grid-row:2}
 body.mob.simview.minichart #v-sim>.pro-out .sim-image h3::after{content:attr(data-mini);font-weight:400;font-size:10.5px;color:var(--rt-muted);margin-left:6px}
+
+/* 課題：ヒントで示した「動かすパラメータ」 */
+#params .mhl{outline:2px dashed var(--rt-accent,#c2410c);outline-offset:3px;border-radius:6px;background:var(--rt-accent-soft)}
+.mhints .mhint.keys{font-weight:700}
+
+/* 課題のレベル */
+.sidebar .nav-lv{display:flex;align-items:center;gap:6px;width:100%;background:transparent;border:0;color:rgba(255,255,255,.88);font-size:13px;font-weight:700;padding:6px 14px;cursor:pointer;text-align:left}
+.sidebar .nav-lv small{margin-left:auto;font-weight:500;color:rgba(255,255,255,.6);font-size:11.5px}
+.sidebar .nav-lv .chev{width:0;height:0;border-left:5px solid currentColor;border-top:4px solid transparent;border-bottom:4px solid transparent;transition:transform .15s}
+.sidebar .nav-lv.open .chev{transform:rotate(90deg)}
+.sidebar .nav-lv:hover{background:rgba(255,255,255,.07)}
+.mlvsel{display:flex;flex-wrap:wrap;gap:4px;margin:0 0 10px}
+.mlvsel button{border:1px solid var(--rt-line-strong);background:var(--rt-surface);border-radius:999px;padding:3px 10px;font-size:12px;cursor:pointer;color:var(--rt-ink-2);display:inline-flex;gap:5px;align-items:baseline}
+.mlvsel button small{font-size:10.5px;color:var(--rt-muted)}
+.mlvsel button.on{background:var(--rt-accent);border-color:var(--rt-accent);color:#fff} .mlvsel button.on small{color:rgba(255,255,255,.85)}
+.mlvdone{font-weight:700;color:var(--rt-ok,#17804a)}
+body.mob .mlvsel button{font-size:11.5px;padding:3px 8px}
 #toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);background:var(--rt-ink,#1b2430);color:#fff;padding:9px 16px;border-radius:999px;font-size:13.5px;opacity:0;pointer-events:none;transition:all .2s;z-index:100}
 #toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
 body.mob #toast{bottom:84px}

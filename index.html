@@ -707,6 +707,23 @@ body.mob.simview.minichart #v-sim>.pro-out #minichart canvas{width:100%!importan
 body.mob.simview.minichart #v-sim>.pro-out .metrics,body.mob.simview.minichart #v-sim>.pro-out .warns{display:none}
 body.mob.simview.minichart #v-sim>.pro-out .mstat{grid-row:2}
 body.mob.simview.minichart #v-sim>.pro-out .sim-image h3::after{content:attr(data-mini);font-weight:400;font-size:10.5px;color:var(--rt-muted);margin-left:6px}
+
+/* 課題：ヒントで示した「動かすパラメータ」 */
+#params .mhl{outline:2px dashed var(--rt-accent,#c2410c);outline-offset:3px;border-radius:6px;background:var(--rt-accent-soft)}
+.mhints .mhint.keys{font-weight:700}
+
+/* 課題のレベル */
+.sidebar .nav-lv{display:flex;align-items:center;gap:6px;width:100%;background:transparent;border:0;color:rgba(255,255,255,.88);font-size:13px;font-weight:700;padding:6px 14px;cursor:pointer;text-align:left}
+.sidebar .nav-lv small{margin-left:auto;font-weight:500;color:rgba(255,255,255,.6);font-size:11.5px}
+.sidebar .nav-lv .chev{width:0;height:0;border-left:5px solid currentColor;border-top:4px solid transparent;border-bottom:4px solid transparent;transition:transform .15s}
+.sidebar .nav-lv.open .chev{transform:rotate(90deg)}
+.sidebar .nav-lv:hover{background:rgba(255,255,255,.07)}
+.mlvsel{display:flex;flex-wrap:wrap;gap:4px;margin:0 0 10px}
+.mlvsel button{border:1px solid var(--rt-line-strong);background:var(--rt-surface);border-radius:999px;padding:3px 10px;font-size:12px;cursor:pointer;color:var(--rt-ink-2);display:inline-flex;gap:5px;align-items:baseline}
+.mlvsel button small{font-size:10.5px;color:var(--rt-muted)}
+.mlvsel button.on{background:var(--rt-accent);border-color:var(--rt-accent);color:#fff} .mlvsel button.on small{color:rgba(255,255,255,.85)}
+.mlvdone{font-weight:700;color:var(--rt-ok,#17804a)}
+body.mob .mlvsel button{font-size:11.5px;padding:3px 8px}
 #toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);background:var(--rt-ink,#1b2430);color:#fff;padding:9px 16px;border-radius:999px;font-size:13.5px;opacity:0;pointer-events:none;transition:all .2s;z-index:100}
 #toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
 body.mob #toast{bottom:84px}
@@ -4636,79 +4653,174 @@ MS.drawPSD=function(canvas,sq,p,st,opts){
      E.csPix       … 化学シフト（読出し方向、画素）
      E.readEPI     … EPI の読出し時間（ms）
      E.p / E.st    … 補正後のパラメータ／状態
+   各課題の lv は '学生' '基礎' '応用' 'エキスパート' のいずれか、keys はヒント 1 で示す「動かすパラメータ」（PDEF のキー、または fs・vat・semac）。
    追加するときは MS.addMission({...}) を src/seq/*.js などから呼ぶ。 */
 (function(){
 var MS=window.MS;
 function rng(v,a,b){ return v>=a&&v<=b; }
 MS.MISSIONS=[
- { id:'t2w', lv:'基礎', title:'T2強調像をつくる', ph:'head', seq:'fse_t2', B0:1.5,
+ { id:'s_t1w', keys:['tr','te'], lv:'学生', title:'T1強調像をつくる', ph:'head', seq:'se_t1', B0:1.5,
+   init:{p:{tr:2500,te:90}},
+   goal:'いまは T2 強調に近い条件です。白質が灰白質より明るく、脳脊髄液が暗い T1 強調像にしてください。',
+   crit:[ {label:'白質 ＞ 灰白質（T1 強調らしい順）', f:function(E){ return {v:'', ok:E.sig('wm')>E.sig('gm')}; }},
+          {label:'脳脊髄液 ÷ 白質 ＜ 0.5', f:function(E){ var r=E.sig('csf')/Math.max(E.sig('wm'),1e-6); return {v:r.toFixed(2), ok:r<0.5}; }} ],
+   hints:['T1 強調は「短い TR」と「短い TE」です。','TR 400〜600 ms、TE 10〜20 ms が目安です。'],
+   expl:'短い TR では T1 の短い組織（脂肪・白質）ほど縦磁化が戻っていて明るく、T1 の長い脳脊髄液は暗くなります。TE を短くして T2 の影響を減らします。' },
+ { id:'s_pd', keys:['tr','te'], lv:'学生', title:'プロトン密度強調像をつくる', ph:'head', seq:'se_pd', B0:1.5,
+   init:{p:{tr:500,te:12}},
+   goal:'いまは T1 強調の条件です。水素の量（プロトン密度）を反映する画像にしてください。',
+   crit:[ {label:'TR ≥ 2000 ms', f:function(E){ return {v:Math.round(E.p.tr)+' ms', ok:E.p.tr>=2000}; }},
+          {label:'TE ≤ 30 ms', f:function(E){ return {v:Math.round(E.p.te)+' ms', ok:E.p.te<=30}; }},
+          {label:'灰白質 ＞ 白質（水が多い方が明るい）', f:function(E){ return {v:'', ok:E.sig('gm')>E.sig('wm')}; }} ],
+   hints:['T1 の差を消すには TR を長く、T2 の差を消すには TE を短くします。','TR 2500〜3000 ms、TE 15〜30 ms が目安です。'],
+   expl:'長い TR で縦磁化がほぼ戻り、短い TE で横緩和がほとんど進まないため、信号は主に水素の量（プロトン密度）で決まります。' },
+ { id:'s_thin', keys:['thk','nex'], lv:'学生', title:'スライスを薄くしても SNR を保つ', ph:'head', seq:'fse_t2', B0:1.5,
+   goal:'スライス厚を 3 mm 以下にしてください。ただし SNR は既定の 90% 以上を保ちます。',
+   crit:[ {label:'スライス厚 ≤ 3 mm', f:function(E){ return {v:E.p.thk+' mm', ok:E.p.thk<=3}; }},
+          {label:'SNR ≥ 90%', f:function(E){ return {v:Math.round(E.snr)+'%', ok:E.snr>=90}; }} ],
+   hints:['スライスを薄くすると、ボクセルの体積に比例して SNR が下がります（5 → 3 mm で 60%）。','加算回数を増やすと SNR は √NEX 倍になります（時間も NEX 倍）。'],
+   expl:'SNR はボクセル体積と √（加算回数）に比例します。薄いスライスで失った SNR は加算で取り戻せますが、撮像時間が延びます。分解能・SNR・時間は互いに引き換えです。' },
+ { id:'s_half', keys:['nex'], lv:'学生', title:'撮像時間を半分にする', ph:'head', seq:'fse_t2', B0:1.5,
+   init:{p:{nex:2}},
+   goal:'撮像時間（いま 2 分 08 秒）を 1 分 05 秒以内にしてください。スライス厚とマトリクスは変えません。',
+   crit:[ {label:'撮像時間 ≤ 1:05', f:function(E){ return {v:mmss(E.T), ok:E.T<=65}; }},
+          {label:'スライス厚 5 mm・マトリクス（位相）256 のまま', f:function(E){ return {v:'', ok:E.p.thk>=5&&E.p.ny>=256}; }} ],
+   hints:['撮像時間は加算回数（NEX）に比例します。','加算を 2 → 1 にすると時間は半分、SNR は 1/√2（約 71%）になります。'],
+   expl:'撮像時間 ＝ TR × 位相エンコード数 × 加算回数 ÷ ETL。加算を減らすと時間は比例して減り、SNR は √ で減ります。' },
+ { id:'b_fatsat', keys:['fs'], lv:'基礎', title:'脂肪抑制を使う', ph:'knee', seq:'fse_pd', B0:1.5,
+   goal:'膝の PD 強調像で脂肪が明るく、骨髄浮腫や関節液が見にくくなっています。脂肪の信号を筋肉の 3 割未満にしてください。',
+   crit:[ {label:'脂肪 ÷ 筋肉 ＜ 0.3', f:function(E){ var r=E.sig('fat')/Math.max(E.sig('muscle'),1e-6); return {v:r.toFixed(2), ok:r<0.3}; }} ],
+   hints:['「脂肪抑制」で方法を選びます。','1.5T 以上では化学シフト選択（CHESS／Fat Sat）や SPAIR がよく使われます。'],
+   expl:'化学シフト選択の脂肪抑制は、脂肪の共鳴周波数だけを先に飽和させます。磁場が不均一な所（体の辺縁・金属の近く）では抑制がむらになるので、そのときは STIR や Dixon を使います。' },
+ { id:'b_hem', keys:['te','fa'], lv:'基礎', title:'T2* 強調で出血を目立たせる', ph:'head', seq:'gre_t2s', B0:1.5, les:{hem:true},
+   init:{p:{te:5}},
+   goal:'TE が短すぎて、出血がほとんど見えません。出血を白質の 4 割未満の暗さにしてください（撮像時間は 6 分以内）。',
+   crit:[ {label:'出血 ÷ 白質 ＜ 0.4', f:function(E){ var r=E.sig('hem')/Math.max(E.sig('wm'),1e-6); return {v:r.toFixed(2), ok:r<0.4}; }},
+          {label:'撮像時間 ≤ 6:00', f:function(E){ return {v:mmss(E.T), ok:E.T<=360}; }} ],
+   hints:['TE を長くすると、磁化率による位相のばらつき（T2*）で出血が暗くなります。','1.5T では TE 20〜25 ms 前後。TE を伸ばすと TR も延びて時間が増えます。'],
+   expl:'ヘモジデリンやデオキシヘモグロビンは磁化率が大きく、周囲の磁場を乱して T2* を短くします。TE を長くするほど信号の落ち込み（ブルーミング）が強くなります。' },
+ { id:'a_sar', keys:['refoc','etl','tr'], lv:'応用', title:'3T で SAR を下げる', ph:'head', seq:'fse_t2', B0:3,
+   init:{p:{refoc:180,etl:24,tr:3000}},
+   goal:'3T で SAR が高すぎます。SAR を上限の 40% 以下にしてください。撮像時間 1 分 30 秒以内・SNR 70% 以上は保ちます。',
+   crit:[ {label:'SAR ≤ 40%', f:function(E){ return {v:Math.round(E.sar)+'%', ok:E.sar<=40}; }},
+          {label:'撮像時間 ≤ 1:30', f:function(E){ return {v:mmss(E.T), ok:E.T<=90}; }},
+          {label:'SNR ≥ 70%', f:function(E){ return {v:Math.round(E.snr)+'%', ok:E.snr>=70}; }} ],
+   hints:['SAR はフリップ角の 2 乗と B0 の 2 乗に比例します。リフォーカス角を下げるのが最も効きます。','ETL を減らす、TR を延ばすと、単位時間あたりの RF パルスが減ります。'],
+   expl:'3T では同じ条件でも SAR が 1.5T の約 4 倍になります。リフォーカス角を 120〜150° に下げる（可変フリップ角・ハイパーエコー）、パルス数を減らすのが基本です。' },
+ { id:'x_mrcp', keys:['te','r','pf','etl'], lv:'エキスパート', title:'MRCP で胆汁だけを明るく、速く', ph:'abdomen', seq:'mrcp3d', B0:1.5,
+   init:{p:{te:80,r:1}},
+   goal:'TE が短く肝臓が残り、時間もかかっています。肝臓を胆汁の 1 割未満に抑え、撮像時間 4 分以内・SNR 70% 以上にしてください。',
+   crit:[ {label:'肝臓 ÷ 胆汁 ＜ 0.1', f:function(E){ var r=E.sig('liver')/Math.max(E.sig('bile'),1e-6); return {v:r.toFixed(2), ok:r<0.1}; }},
+          {label:'撮像時間 ≤ 4:00', f:function(E){ return {v:mmss(E.T), ok:E.T<=240}; }},
+          {label:'SNR ≥ 70%', f:function(E){ return {v:Math.round(E.snr)+'%', ok:E.snr>=70}; }} ],
+   hints:['MRCP は非常に長い TE で、T2 の長い液体だけを残します。','TE 500〜700 ms で実質はほぼ消えます。時間は並列画像や部分フーリエで縮めます。'],
+   expl:'胆汁・膵液の T2 は 1000 ms 以上、肝臓は約 50 ms。TE を数百 ms にすると実質の信号は消え、液体だけが残ります。3D では加速で時間を短縮しつつ SNR を保つ工夫が要ります。' },
+ { id:'x_flair3', keys:['refoc','etl','tr','r'], lv:'エキスパート', title:'3T FLAIR を SAR と時間の内に', ph:'head', seq:'flair', B0:3,
+   init:{p:{refoc:180,etl:12}},
+   goal:'3T の FLAIR で SAR が高く、時間もかかっています。脳脊髄液を抑えたまま、SAR 25% 以下・撮像時間 1 分 50 秒以内にしてください。',
+   crit:[ {label:'脳脊髄液 ÷ 白質 ＜ 0.2', f:function(E){ var r=E.sig('csf')/Math.max(E.sig('wm'),1e-6); return {v:r.toFixed(2), ok:r<0.2}; }},
+          {label:'SAR ≤ 25%', f:function(E){ return {v:Math.round(E.sar)+'%', ok:E.sar<=25}; }},
+          {label:'撮像時間 ≤ 1:50', f:function(E){ return {v:mmss(E.T), ok:E.T<=110}; }} ],
+   hints:['リフォーカス角を下げると SAR が大きく下がります。','ETL を伸ばすと時間が縮みますが、ぼけと SAR に注意。TI は TR に合わせて脳脊髄液のヌルポイントに。'],
+   expl:'FLAIR は長い TR が必要で時間がかかり、3T では SAR も制約になります。再収束角を下げて ETL を伸ばす、並列画像を使うなどを組み合わせます。' },
+ { id:'x_vibe', keys:['thk','npart','r','rz','pf','pfz','cs'], lv:'エキスパート', title:'肝の 3D T1 を薄く・速く', ph:'abdomen', seq:'vibe', B0:1.5,
+   goal:'造影ダイナミック用の 3D T1 です。スライス方向を 2.5 mm 以下にし、撮像時間 15 秒以内・SNR 55% 以上にしてください。',
+   crit:[ {label:'スライス方向 ≤ 2.5 mm', f:function(E){ return {v:(E.info.dz||0).toFixed(1)+' mm', ok:(E.info.dz||9)<=2.5}; }},
+          {label:'撮像時間 ≤ 15 秒', f:function(E){ return {v:E.T.toFixed(1)+' 秒', ok:E.T<=15}; }},
+          {label:'SNR ≥ 55%', f:function(E){ return {v:Math.round(E.snr)+'%', ok:E.snr>=55}; }} ],
+   hints:['薄くすると SNR が下がり、範囲を保つにはパーティションが増えて時間も延びます。','位相方向の並列画像、スライス方向の部分フーリエ、CAIPIRINHA（rz）を組み合わせます。'],
+   expl:'3D では「面内の加速」と「スライス方向の加速」を両方使えます。加速を分けると g 因子が小さく、同じ総加速でも SNR の低下を抑えられます。' },
+ { id:'x_dwi3', keys:['r','pf','ny','nex'], lv:'エキスパート', title:'3T DWI で歪みと SNR を両立', ph:'head', seq:'dwi', B0:3,
+   init:{p:{r:1,pf:1}},
+   goal:'3T の DWI です。EPI の読出しを 28 ms 以下にして歪みを抑えつつ、SNR 65% 以上・撮像時間 1 分以内にしてください。',
+   crit:[ {label:'EPI 読出し時間 ≤ 28 ms', f:function(E){ return {v:(E.readEPI||0).toFixed(1)+' ms', ok:E.readEPI>0&&E.readEPI<=28}; }},
+          {label:'SNR ≥ 65%', f:function(E){ return {v:Math.round(E.snr)+'%', ok:E.snr>=65}; }},
+          {label:'撮像時間 ≤ 1:00', f:function(E){ return {v:mmss(E.T), ok:E.T<=60}; }} ],
+   hints:['並列画像（R）はエコー列を短くしますが、SNR を √R × g だけ下げます。','部分フーリエでもエコー列は短くなります。位相マトリクスを少し減らすのも有効です。'],
+   expl:'歪みを減らす操作（加速・部分フーリエ・マトリクス削減）は SNR を下げがちです。加算回数で取り戻すと時間が延びるので、3 つのバランスを取ります。' },
+ { id:'x_knee3', keys:['nx','ny','bw','nex','etl'], lv:'エキスパート', title:'3T 膝の高分解能 PD 脂肪抑制', ph:'knee', seq:'fse_pd', B0:3,
+   init:{st:{fs:'chess'}},
+   goal:'軟骨・半月板を見るため、面内の画素を 0.4 mm 以下にします。化学シフト 1 画素以下・SNR 50% 以上・撮像時間 5 分 30 秒以内を満たしてください。',
+   crit:[ {label:'面内の画素 ≤ 0.4 mm', f:function(E){ var d=Math.max(E.info.dx||9,E.info.dy||9); return {v:d.toFixed(2)+' mm', ok:d<=0.4}; }},
+          {label:'化学シフト ≤ 1 画素', f:function(E){ return {v:E.csPix.toFixed(2)+' 画素', ok:E.csPix<=1}; }},
+          {label:'SNR ≥ 50%', f:function(E){ return {v:Math.round(E.snr)+'%', ok:E.snr>=50}; }},
+          {label:'撮像時間 ≤ 5:30', f:function(E){ return {v:mmss(E.T), ok:E.T<=330}; }} ],
+   hints:['マトリクスを増やすと画素は小さくなりますが、SNR と時間に響きます。3T の水脂肪差は約 440 Hz です。','バンド幅を上げた分の SNR は加算で、延びた時間は ETL で取り戻します。'],
+   expl:'高分解能・化学シフト・SNR・時間はすべて引き換えです。3T の SNR の余裕を、画素の縮小と高バンド幅に割り振るのが 3T 膝撮像の考え方です。' },
+ { id:'x_mprage', keys:['ti','fa'], lv:'エキスパート', title:'MPRAGE で灰白質と白質の CNR を上げる', ph:'head', seq:'mprage', B0:1.5,
+   goal:'MPRAGE の灰白質と白質の CNR を 3.6 以上にしてください。1 mm 等方は保ちます。',
+   crit:[ {label:'CNR（灰白質 対 白質）≥ 3.6', f:function(E){ var c=E.cnr('gm','wm'); return {v:c.toFixed(2), ok:c>=3.6}; }},
+          {label:'スライス方向 1 mm のまま', f:function(E){ return {v:'', ok:(E.info.dz||9)<=1.0001}; }} ],
+   hints:['TI（反転時間）で、灰白質と白質の縦磁化の差が最も大きい時刻を選びます。','グラフの横軸を TI にして、CNR が最大の所を探しましょう。'],
+   expl:'MPRAGE では反転後の縦磁化の回復が白質（T1 短）と灰白質（T1 長）で異なり、その差が最大になる TI で読み出すと CNR が上がります。フリップ角も読み出し中の飽和に影響します。' },
+ { id:'t2w', keys:['tr','te'], lv:'学生', title:'T2強調像をつくる', ph:'head', seq:'fse_t2', B0:1.5,
    init:{p:{tr:600,te:15}},
    goal:'いまは T1 強調に近い条件です。脳脊髄液が白質の2倍以上明るい T2 強調像にしてください。',
    crit:[ {label:'脳脊髄液 ÷ 白質 ≥ 2', f:function(E){ var r=E.sig('csf')/Math.max(1e-9,E.sig('wm')); return {v:r.toFixed(2), ok:r>=2}; }},
           {label:'白質 ＜ 灰白質（T2 強調らしい順）', f:function(E){ return {v:'', ok:E.sig('wm')<E.sig('gm')}; }} ],
    hints:['T2 強調は「長い TR」と「長い TE」です。','TR は T1 の影響を消すため 2500 ms 以上、TE は 80〜120 ms 前後が目安です。'],
    expl:'長い TR で縦磁化がほぼ回復し（T1 の差が消え）、長い TE で T2 の長い組織（脳脊髄液）が残るため T2 強調になります。' },
- { id:'flair', lv:'基礎', title:'FLAIR で脳脊髄液を消す', ph:'head', seq:'flair', B0:1.5,
+ { id:'flair', keys:['ti'], lv:'学生', title:'FLAIR で脳脊髄液を消す', ph:'head', seq:'flair', B0:1.5,
    init:{p:{ti:900}},
    goal:'反転時間（TI）が短すぎて脳脊髄液が残っています。脳脊髄液の信号を白質の 2 割未満にしてください。',
    crit:[ {label:'脳脊髄液 ÷ 白質 ＜ 0.2', f:function(E){ var r=E.sig('csf')/Math.max(1e-9,E.sig('wm')); return {v:r.toFixed(2), ok:r<0.2}; }} ],
    hints:['反転後に縦磁化が 0 を通る時刻（ヌルポイント）に励起すると、その組織の信号が消えます。','ヌルポイントは TI ≈ T1 × ln2（TR が十分長いとき）。脳脊髄液の T1 は 1.5T で約 4000 ms です。','TR が短いと完全に回復しないので、最適な TI は短めにずれます。グラフの横軸を TI にして探してみましょう。'],
    expl:'TI ≈ T1 × ln2（≈ 0.69 × T1）で縦磁化が 0 になり、その組織の信号が消えます。TR が有限のときは、TI ≈ T1 × ln[2 / (1 + e^(−TR/T1))] になります。' },
- { id:'stir', lv:'基礎', title:'STIR で脂肪を抑える', ph:'knee', seq:'stir', B0:1.5,
+ { id:'stir', keys:['ti'], lv:'基礎', title:'STIR で脂肪を抑える', ph:'knee', seq:'stir', B0:1.5,
    init:{p:{ti:350}},
    goal:'脂肪がまだ明るく残っています。脂肪の信号を筋肉の 3 割未満にしてください。',
    crit:[ {label:'脂肪 ÷ 筋肉 ＜ 0.3', f:function(E){ var r=E.sig('fat')/Math.max(1e-9,E.sig('muscle')); return {v:r.toFixed(2), ok:r<0.3}; }} ],
    hints:['STIR は脂肪の T1 に合わせて TI を決めます。','1.5T の脂肪の T1 は約 250〜300 ms、ヌルポイントは TI ≈ 150〜170 ms です。'],
    expl:'脂肪の T1 は短いので、TI ≈ 0.69 × T1(脂肪) ≈ 150 ms（1.5T）で脂肪の縦磁化が 0 になります。磁場の不均一に強いのが利点ですが、同じ T1 の組織（造影後の病変など）も抑えてしまいます。' },
- { id:'cnr_time', lv:'応用', title:'白質と灰白質の CNR を時間内に上げる', ph:'head', seq:'se_t1', B0:1.5,
+ { id:'cnr_time', keys:['tr','te','nex','thk'], lv:'応用', title:'白質と灰白質の CNR を時間内に上げる', ph:'head', seq:'se_t1', B0:1.5,
    init:{p:{tr:1500,te:30,nex:1}},
    goal:'SE T1 強調で、白質と灰白質の CNR を 12 以上にしてください。ただし撮像時間は 4 分以内です。',
    crit:[ {label:'CNR（白質 対 灰白質）≥ 12', f:function(E){ var c=E.cnr('wm','gm'); return {v:c.toFixed(1), ok:c>=12}; }},
           {label:'撮像時間 ≤ 4 分', f:function(E){ return {v:mmss(E.T), ok:E.T<=240}; }} ],
    hints:['T1 強調では TR を短く、TE を短くするとコントラストが出ます。','SNR を上げるには、スライス厚・FOV を大きく、マトリクスを小さく、加算を増やす、バンド幅を狭くする方法があります。','時間は TR × 位相マトリクス × 加算回数です。TR を下げて浮いた時間を加算に回すのも手です。'],
    expl:'CNR は信号差 × SNR で決まります。TR を T1 の間に置くと差が大きくなり、空いた時間を加算に回すと SNR が √NEX 倍になります。分解能（ボクセル体積）とのトレードオフも意識しましょう。' },
- { id:'alias', lv:'基礎', title:'折り返しを消す', ph:'abdomen', seq:'vibe', B0:1.5,
+ { id:'alias', keys:['pfov','pos','r','pf'], lv:'基礎', title:'折り返しを消す', ph:'abdomen', seq:'vibe', B0:1.5,
    init:{p:{pfov:50}},
    goal:'位相方向の FOV が体より小さく、反対側に体が折り返しています。折り返しをなくしてください（息止め 20 秒以内のまま）。',
    crit:[ {label:'折り返し ＜ 1%', f:function(E){ return {v:(E.wrap*100).toFixed(1)+'%', ok:E.wrap<0.01}; }},
           {label:'撮像時間 ≤ 20 秒', f:function(E){ return {v:E.T.toFixed(1)+' 秒', ok:E.T<=20}; }} ],
    hints:['位相方向の FOV（%）を広げるか、位相オーバーサンプリングを使います。','FOV を広げると時間が延びます。並列画像（加速）や部分フーリエで取り戻しましょう。'],
    expl:'位相方向は周波数で区別できないため、FOV の外の組織が反対側に重なります。FOV を広げる、位相オーバーサンプリング、位相方向の入れ替え、飽和パルスで対処します。' },
- { id:'breathhold', lv:'応用', title:'息止め 15 秒に収める', ph:'abdomen', seq:'vibe', B0:1.5,
+ { id:'breathhold', keys:['r','pf','npart','thk'], lv:'応用', title:'息止め 15 秒に収める', ph:'abdomen', seq:'vibe', B0:1.5,
    init:{p:{r:1,pf:1,npart:72}},
    goal:'このままでは息止めが長すぎます。撮像時間を 15 秒以内にし、SNR は既定の 60% 以上を保ってください。',
    crit:[ {label:'撮像時間 ≤ 15 秒', f:function(E){ return {v:E.T.toFixed(1)+' 秒', ok:E.T<=15}; }},
           {label:'SNR ≥ 60%', f:function(E){ return {v:Math.round(E.snr)+'%', ok:E.snr>=60}; }} ],
    hints:['並列画像（加速）・部分フーリエ・パーティション数の削減が効きます。','加速するほど SNR は下がります（√R と g 因子）。スライス厚を少し厚くして SNR を補う方法もあります。'],
    expl:'3D の撮像時間は TR × 位相数 × パーティション数 ÷ 加速。並列画像は SNR を √R × g だけ下げるので、時間・SNR・分解能のバランスを取ります。' },
- { id:'inopp', lv:'基礎', title:'in-phase と opposed-phase の TE を合わせる', ph:'abdomen', seq:'inopp', B0:1.5,
+ { id:'inopp', keys:['te','te2'], lv:'基礎', title:'in-phase と opposed-phase の TE を合わせる', ph:'abdomen', seq:'inopp', B0:1.5,
    init:{p:{te:3.0,te2:5.5}},
    goal:'2 つの TE がずれています。1.5T で第1エコーを opposed-phase、第2エコーを in-phase にしてください。',
    crit:[ {label:'TE1 が opposed-phase（±0.3 ms）', f:function(E){ var t=E.st.B0>=2.5?1.15:2.3; return {v:E.p.te+' ms', ok:Math.abs(E.p.te-t)<=0.3*(E.st.B0>=2.5?0.5:1)}; }},
           {label:'TE2 が in-phase（±0.3 ms）', f:function(E){ var t=E.st.B0>=2.5?2.3:4.6; return {v:E.p.te2+' ms', ok:Math.abs(E.p.te2-t)<=0.3*(E.st.B0>=2.5?0.5:1)}; }} ],
    hints:['水と脂肪の周波数差は約 3.4 ppm。1.5T では約 220 Hz なので、位相が一周するのに約 4.6 ms かかります。','半周（逆位相）は 2.3 ms、一周（同位相）は 4.6 ms です。3T ではその半分です。'],
    expl:'水と脂肪は 3.4 ppm 離れており、1.5T で 1 周 ≈ 4.6 ms。opposed-phase では同じボクセル内の水と脂肪が打ち消し合い、脂肪を含む病変（腺腫・脂肪肝）の信号が落ちます。' },
- { id:'chemshift', lv:'基礎', title:'化学シフトを 1 画素以下にする', ph:'knee', seq:'fse_pd', B0:3,
+ { id:'chemshift', keys:['bw'], lv:'基礎', title:'化学シフトを 1 画素以下にする', ph:'knee', seq:'fse_pd', B0:3,
    init:{p:{bw:80}},
    goal:'3T で受信バンド幅が狭く、脂肪と水の境界がずれています。化学シフトを 1 画素以下にしてください。',
    crit:[ {label:'化学シフト ≤ 1 画素', f:function(E){ return {v:E.csPix.toFixed(2)+' 画素', ok:E.csPix<=1}; }} ],
    hints:['化学シフト（画素）＝ 水脂肪の周波数差（Hz）÷ 1 画素あたりのバンド幅（Hz/画素）。','3T の水脂肪差は約 440 Hz。バンド幅を 440 Hz/画素以上にします（SNR は下がります）。'],
    expl:'バンド幅を広げると 1 画素あたりの周波数幅が増え、ずれ（画素数）が減ります。代わりに雑音が増え、SNR は √(BW) に反比例して下がります。' },
- { id:'metal', lv:'応用', title:'金属アーチファクトを減らす', ph:'knee', seq:'fse_pd', B0:1.5, les:{metal:true},
-   init:{p:{bw:130}, st:{fs:'chess'}},
+ { id:'metal', keys:['bw','fs','vat','semac'], lv:'応用', title:'金属アーチファクトを減らす', ph:'knee', seq:'metal', B0:1.5, les:{metal:true},
+   init:{p:{bw:130}, st:{fs:'chess',vat:false,semac:0}},
    goal:'金属の周りで信号が抜け、脂肪抑制もむらになっています。金属アーチファクトを減らす設定にしてください。',
    crit:[ {label:'受信バンド幅 ≥ 400 Hz/画素', f:function(E){ return {v:E.p.bw+' Hz/画素', ok:E.p.bw>=400}; }},
           {label:'VAT または SEMAC を使う', f:function(E){ return {v:'', ok:!!(E.st.vat||E.st.semac)}; }},
           {label:'周波数選択の脂肪抑制（CHESS／SPAIR）を使わない', f:function(E){ return {v:E.st.fs||'なし', ok:E.st.fs!=='chess'&&E.st.fs!=='spair'}; }} ],
    hints:['金属の近くは磁場が大きくずれるため、周波数で選ぶ方法（脂肪抑制・スライス選択・読出し）が乱れます。','バンド幅を広げる、ビュー角傾斜（VAT）、スライス方向の補正（SEMAC）が有効です。','脂肪抑制は STIR（反転回復）か Dixon が金属に強いです。'],
    expl:'金属では局所の周波数ずれが大きく、読出し方向のずれ・スライス面の歪み・脂肪抑制の失敗が起こります。高バンド幅・VAT・SEMAC・STIR/Dixon の組み合わせが基本です。' },
- { id:'epi', lv:'応用', title:'拡散強調像の歪みを減らす', ph:'head', seq:'dwi', B0:3,
+ { id:'epi', keys:['r','pf','ny'], lv:'応用', title:'拡散強調像の歪みを減らす', ph:'head', seq:'dwi', B0:3,
    init:{p:{r:1,pf:1,ny:192,nx:192}},
    goal:'3T の EPI で読出しが長く、歪みが目立ちます。EPI の読出し時間を 30 ms 以下にしてください。',
    crit:[ {label:'EPI 読出し時間 ≤ 30 ms', f:function(E){ var r=E.readEPI||0; return {v:r?r.toFixed(1)+' ms':'—', ok:r>0&&r<=30}; }} ],
    hints:['歪みはエコー列の長さ（読出し時間）に比例します。','並列画像（R）でエコー列を短くする、位相マトリクスを減らす、部分フーリエ、読出し分割（RESOLVE／EPIX など）が使えます。'],
    expl:'EPI では位相方向の 1 画素あたりの帯域が狭く（1 ÷ 読出し時間）、磁場のずれがそのまま位相方向の位置ずれになります。読出し時間を短くするほど歪みは小さくなります。' },
- { id:'fast_t2', lv:'応用', title:'SNR を保って T2 を速く撮る', ph:'head', seq:'fse_t2', B0:1.5,
+ { id:'fast_t2', keys:['etl','nex'], lv:'応用', title:'SNR を保って T2 を速く撮る', ph:'head', seq:'fse_t2', B0:1.5,
    init:{p:{etl:8,nex:2}},
    goal:'撮像時間を 1 分 30 秒以内にし、SNR は既定の 80% 以上を保ってください。',
    crit:[ {label:'撮像時間 ≤ 1:30', f:function(E){ return {v:mmss(E.T), ok:E.T<=90}; }},
@@ -4717,6 +4829,10 @@ MS.MISSIONS=[
    expl:'FSE の時間は TR × 位相数 × 加算 ÷ ETL。ETL を伸ばすと速くなりますが、エコー間の T2 減衰でぼけが増え、SAR も上がります。' }
 ];
 function mmss(s){ s=Math.round(s); return Math.floor(s/60)+':'+('0'+(s%60)).slice(-2); }
+MS.MISSION_LEVELS=['学生','基礎','応用','エキスパート'];
+var ORDER=['s_t1w','t2w','s_pd','flair','s_thin','s_half','b_fatsat','stir','inopp','chemshift','alias','b_hem','cnr_time','fast_t2','breathhold','a_sar','epi','metal','x_mprage','x_flair3','x_knee3','x_dwi3','x_vibe','x_mrcp'];
+function ord(M){ var i=ORDER.indexOf(M.id); return i<0?999:i; }
+MS.MISSIONS.sort(function(a,b){ return (MS.MISSION_LEVELS.indexOf(a.lv)-MS.MISSION_LEVELS.indexOf(b.lv))||(ord(a)-ord(b)); });
 MS.MISSION_MAP={}; MS.MISSIONS.forEach(function(M){ MS.MISSION_MAP[M.id]=M; });
 MS.addMission=function(M){ MS.MISSIONS=MS.MISSIONS.filter(function(x){ return x.id!==M.id; }); MS.MISSIONS.push(M); MS.MISSION_MAP[M.id]=M; return M; };
 })();
@@ -8657,79 +8773,174 @@ MS.drawPSD=function(canvas,sq,p,st,opts){
      E.csPix       … 化学シフト（読出し方向、画素）
      E.readEPI     … EPI の読出し時間（ms）
      E.p / E.st    … 補正後のパラメータ／状態
+   各課題の lv は '学生' '基礎' '応用' 'エキスパート' のいずれか、keys はヒント 1 で示す「動かすパラメータ」（PDEF のキー、または fs・vat・semac）。
    追加するときは MS.addMission({...}) を src/seq/*.js などから呼ぶ。 */
 (function(){
 var MS=window.MS;
 function rng(v,a,b){ return v>=a&&v<=b; }
 MS.MISSIONS=[
- { id:'t2w', lv:'基礎', title:'T2強調像をつくる', ph:'head', seq:'fse_t2', B0:1.5,
+ { id:'s_t1w', keys:['tr','te'], lv:'学生', title:'T1強調像をつくる', ph:'head', seq:'se_t1', B0:1.5,
+   init:{p:{tr:2500,te:90}},
+   goal:'いまは T2 強調に近い条件です。白質が灰白質より明るく、脳脊髄液が暗い T1 強調像にしてください。',
+   crit:[ {label:'白質 ＞ 灰白質（T1 強調らしい順）', f:function(E){ return {v:'', ok:E.sig('wm')>E.sig('gm')}; }},
+          {label:'脳脊髄液 ÷ 白質 ＜ 0.5', f:function(E){ var r=E.sig('csf')/Math.max(E.sig('wm'),1e-6); return {v:r.toFixed(2), ok:r<0.5}; }} ],
+   hints:['T1 強調は「短い TR」と「短い TE」です。','TR 400〜600 ms、TE 10〜20 ms が目安です。'],
+   expl:'短い TR では T1 の短い組織（脂肪・白質）ほど縦磁化が戻っていて明るく、T1 の長い脳脊髄液は暗くなります。TE を短くして T2 の影響を減らします。' },
+ { id:'s_pd', keys:['tr','te'], lv:'学生', title:'プロトン密度強調像をつくる', ph:'head', seq:'se_pd', B0:1.5,
+   init:{p:{tr:500,te:12}},
+   goal:'いまは T1 強調の条件です。水素の量（プロトン密度）を反映する画像にしてください。',
+   crit:[ {label:'TR ≥ 2000 ms', f:function(E){ return {v:Math.round(E.p.tr)+' ms', ok:E.p.tr>=2000}; }},
+          {label:'TE ≤ 30 ms', f:function(E){ return {v:Math.round(E.p.te)+' ms', ok:E.p.te<=30}; }},
+          {label:'灰白質 ＞ 白質（水が多い方が明るい）', f:function(E){ return {v:'', ok:E.sig('gm')>E.sig('wm')}; }} ],
+   hints:['T1 の差を消すには TR を長く、T2 の差を消すには TE を短くします。','TR 2500〜3000 ms、TE 15〜30 ms が目安です。'],
+   expl:'長い TR で縦磁化がほぼ戻り、短い TE で横緩和がほとんど進まないため、信号は主に水素の量（プロトン密度）で決まります。' },
+ { id:'s_thin', keys:['thk','nex'], lv:'学生', title:'スライスを薄くしても SNR を保つ', ph:'head', seq:'fse_t2', B0:1.5,
+   goal:'スライス厚を 3 mm 以下にしてください。ただし SNR は既定の 90% 以上を保ちます。',
+   crit:[ {label:'スライス厚 ≤ 3 mm', f:function(E){ return {v:E.p.thk+' mm', ok:E.p.thk<=3}; }},
+          {label:'SNR ≥ 90%', f:function(E){ return {v:Math.round(E.snr)+'%', ok:E.snr>=90}; }} ],
+   hints:['スライスを薄くすると、ボクセルの体積に比例して SNR が下がります（5 → 3 mm で 60%）。','加算回数を増やすと SNR は √NEX 倍になります（時間も NEX 倍）。'],
+   expl:'SNR はボクセル体積と √（加算回数）に比例します。薄いスライスで失った SNR は加算で取り戻せますが、撮像時間が延びます。分解能・SNR・時間は互いに引き換えです。' },
+ { id:'s_half', keys:['nex'], lv:'学生', title:'撮像時間を半分にする', ph:'head', seq:'fse_t2', B0:1.5,
+   init:{p:{nex:2}},
+   goal:'撮像時間（いま 2 分 08 秒）を 1 分 05 秒以内にしてください。スライス厚とマトリクスは変えません。',
+   crit:[ {label:'撮像時間 ≤ 1:05', f:function(E){ return {v:mmss(E.T), ok:E.T<=65}; }},
+          {label:'スライス厚 5 mm・マトリクス（位相）256 のまま', f:function(E){ return {v:'', ok:E.p.thk>=5&&E.p.ny>=256}; }} ],
+   hints:['撮像時間は加算回数（NEX）に比例します。','加算を 2 → 1 にすると時間は半分、SNR は 1/√2（約 71%）になります。'],
+   expl:'撮像時間 ＝ TR × 位相エンコード数 × 加算回数 ÷ ETL。加算を減らすと時間は比例して減り、SNR は √ で減ります。' },
+ { id:'b_fatsat', keys:['fs'], lv:'基礎', title:'脂肪抑制を使う', ph:'knee', seq:'fse_pd', B0:1.5,
+   goal:'膝の PD 強調像で脂肪が明るく、骨髄浮腫や関節液が見にくくなっています。脂肪の信号を筋肉の 3 割未満にしてください。',
+   crit:[ {label:'脂肪 ÷ 筋肉 ＜ 0.3', f:function(E){ var r=E.sig('fat')/Math.max(E.sig('muscle'),1e-6); return {v:r.toFixed(2), ok:r<0.3}; }} ],
+   hints:['「脂肪抑制」で方法を選びます。','1.5T 以上では化学シフト選択（CHESS／Fat Sat）や SPAIR がよく使われます。'],
+   expl:'化学シフト選択の脂肪抑制は、脂肪の共鳴周波数だけを先に飽和させます。磁場が不均一な所（体の辺縁・金属の近く）では抑制がむらになるので、そのときは STIR や Dixon を使います。' },
+ { id:'b_hem', keys:['te','fa'], lv:'基礎', title:'T2* 強調で出血を目立たせる', ph:'head', seq:'gre_t2s', B0:1.5, les:{hem:true},
+   init:{p:{te:5}},
+   goal:'TE が短すぎて、出血がほとんど見えません。出血を白質の 4 割未満の暗さにしてください（撮像時間は 6 分以内）。',
+   crit:[ {label:'出血 ÷ 白質 ＜ 0.4', f:function(E){ var r=E.sig('hem')/Math.max(E.sig('wm'),1e-6); return {v:r.toFixed(2), ok:r<0.4}; }},
+          {label:'撮像時間 ≤ 6:00', f:function(E){ return {v:mmss(E.T), ok:E.T<=360}; }} ],
+   hints:['TE を長くすると、磁化率による位相のばらつき（T2*）で出血が暗くなります。','1.5T では TE 20〜25 ms 前後。TE を伸ばすと TR も延びて時間が増えます。'],
+   expl:'ヘモジデリンやデオキシヘモグロビンは磁化率が大きく、周囲の磁場を乱して T2* を短くします。TE を長くするほど信号の落ち込み（ブルーミング）が強くなります。' },
+ { id:'a_sar', keys:['refoc','etl','tr'], lv:'応用', title:'3T で SAR を下げる', ph:'head', seq:'fse_t2', B0:3,
+   init:{p:{refoc:180,etl:24,tr:3000}},
+   goal:'3T で SAR が高すぎます。SAR を上限の 40% 以下にしてください。撮像時間 1 分 30 秒以内・SNR 70% 以上は保ちます。',
+   crit:[ {label:'SAR ≤ 40%', f:function(E){ return {v:Math.round(E.sar)+'%', ok:E.sar<=40}; }},
+          {label:'撮像時間 ≤ 1:30', f:function(E){ return {v:mmss(E.T), ok:E.T<=90}; }},
+          {label:'SNR ≥ 70%', f:function(E){ return {v:Math.round(E.snr)+'%', ok:E.snr>=70}; }} ],
+   hints:['SAR はフリップ角の 2 乗と B0 の 2 乗に比例します。リフォーカス角を下げるのが最も効きます。','ETL を減らす、TR を延ばすと、単位時間あたりの RF パルスが減ります。'],
+   expl:'3T では同じ条件でも SAR が 1.5T の約 4 倍になります。リフォーカス角を 120〜150° に下げる（可変フリップ角・ハイパーエコー）、パルス数を減らすのが基本です。' },
+ { id:'x_mrcp', keys:['te','r','pf','etl'], lv:'エキスパート', title:'MRCP で胆汁だけを明るく、速く', ph:'abdomen', seq:'mrcp3d', B0:1.5,
+   init:{p:{te:80,r:1}},
+   goal:'TE が短く肝臓が残り、時間もかかっています。肝臓を胆汁の 1 割未満に抑え、撮像時間 4 分以内・SNR 70% 以上にしてください。',
+   crit:[ {label:'肝臓 ÷ 胆汁 ＜ 0.1', f:function(E){ var r=E.sig('liver')/Math.max(E.sig('bile'),1e-6); return {v:r.toFixed(2), ok:r<0.1}; }},
+          {label:'撮像時間 ≤ 4:00', f:function(E){ return {v:mmss(E.T), ok:E.T<=240}; }},
+          {label:'SNR ≥ 70%', f:function(E){ return {v:Math.round(E.snr)+'%', ok:E.snr>=70}; }} ],
+   hints:['MRCP は非常に長い TE で、T2 の長い液体だけを残します。','TE 500〜700 ms で実質はほぼ消えます。時間は並列画像や部分フーリエで縮めます。'],
+   expl:'胆汁・膵液の T2 は 1000 ms 以上、肝臓は約 50 ms。TE を数百 ms にすると実質の信号は消え、液体だけが残ります。3D では加速で時間を短縮しつつ SNR を保つ工夫が要ります。' },
+ { id:'x_flair3', keys:['refoc','etl','tr','r'], lv:'エキスパート', title:'3T FLAIR を SAR と時間の内に', ph:'head', seq:'flair', B0:3,
+   init:{p:{refoc:180,etl:12}},
+   goal:'3T の FLAIR で SAR が高く、時間もかかっています。脳脊髄液を抑えたまま、SAR 25% 以下・撮像時間 1 分 50 秒以内にしてください。',
+   crit:[ {label:'脳脊髄液 ÷ 白質 ＜ 0.2', f:function(E){ var r=E.sig('csf')/Math.max(E.sig('wm'),1e-6); return {v:r.toFixed(2), ok:r<0.2}; }},
+          {label:'SAR ≤ 25%', f:function(E){ return {v:Math.round(E.sar)+'%', ok:E.sar<=25}; }},
+          {label:'撮像時間 ≤ 1:50', f:function(E){ return {v:mmss(E.T), ok:E.T<=110}; }} ],
+   hints:['リフォーカス角を下げると SAR が大きく下がります。','ETL を伸ばすと時間が縮みますが、ぼけと SAR に注意。TI は TR に合わせて脳脊髄液のヌルポイントに。'],
+   expl:'FLAIR は長い TR が必要で時間がかかり、3T では SAR も制約になります。再収束角を下げて ETL を伸ばす、並列画像を使うなどを組み合わせます。' },
+ { id:'x_vibe', keys:['thk','npart','r','rz','pf','pfz','cs'], lv:'エキスパート', title:'肝の 3D T1 を薄く・速く', ph:'abdomen', seq:'vibe', B0:1.5,
+   goal:'造影ダイナミック用の 3D T1 です。スライス方向を 2.5 mm 以下にし、撮像時間 15 秒以内・SNR 55% 以上にしてください。',
+   crit:[ {label:'スライス方向 ≤ 2.5 mm', f:function(E){ return {v:(E.info.dz||0).toFixed(1)+' mm', ok:(E.info.dz||9)<=2.5}; }},
+          {label:'撮像時間 ≤ 15 秒', f:function(E){ return {v:E.T.toFixed(1)+' 秒', ok:E.T<=15}; }},
+          {label:'SNR ≥ 55%', f:function(E){ return {v:Math.round(E.snr)+'%', ok:E.snr>=55}; }} ],
+   hints:['薄くすると SNR が下がり、範囲を保つにはパーティションが増えて時間も延びます。','位相方向の並列画像、スライス方向の部分フーリエ、CAIPIRINHA（rz）を組み合わせます。'],
+   expl:'3D では「面内の加速」と「スライス方向の加速」を両方使えます。加速を分けると g 因子が小さく、同じ総加速でも SNR の低下を抑えられます。' },
+ { id:'x_dwi3', keys:['r','pf','ny','nex'], lv:'エキスパート', title:'3T DWI で歪みと SNR を両立', ph:'head', seq:'dwi', B0:3,
+   init:{p:{r:1,pf:1}},
+   goal:'3T の DWI です。EPI の読出しを 28 ms 以下にして歪みを抑えつつ、SNR 65% 以上・撮像時間 1 分以内にしてください。',
+   crit:[ {label:'EPI 読出し時間 ≤ 28 ms', f:function(E){ return {v:(E.readEPI||0).toFixed(1)+' ms', ok:E.readEPI>0&&E.readEPI<=28}; }},
+          {label:'SNR ≥ 65%', f:function(E){ return {v:Math.round(E.snr)+'%', ok:E.snr>=65}; }},
+          {label:'撮像時間 ≤ 1:00', f:function(E){ return {v:mmss(E.T), ok:E.T<=60}; }} ],
+   hints:['並列画像（R）はエコー列を短くしますが、SNR を √R × g だけ下げます。','部分フーリエでもエコー列は短くなります。位相マトリクスを少し減らすのも有効です。'],
+   expl:'歪みを減らす操作（加速・部分フーリエ・マトリクス削減）は SNR を下げがちです。加算回数で取り戻すと時間が延びるので、3 つのバランスを取ります。' },
+ { id:'x_knee3', keys:['nx','ny','bw','nex','etl'], lv:'エキスパート', title:'3T 膝の高分解能 PD 脂肪抑制', ph:'knee', seq:'fse_pd', B0:3,
+   init:{st:{fs:'chess'}},
+   goal:'軟骨・半月板を見るため、面内の画素を 0.4 mm 以下にします。化学シフト 1 画素以下・SNR 50% 以上・撮像時間 5 分 30 秒以内を満たしてください。',
+   crit:[ {label:'面内の画素 ≤ 0.4 mm', f:function(E){ var d=Math.max(E.info.dx||9,E.info.dy||9); return {v:d.toFixed(2)+' mm', ok:d<=0.4}; }},
+          {label:'化学シフト ≤ 1 画素', f:function(E){ return {v:E.csPix.toFixed(2)+' 画素', ok:E.csPix<=1}; }},
+          {label:'SNR ≥ 50%', f:function(E){ return {v:Math.round(E.snr)+'%', ok:E.snr>=50}; }},
+          {label:'撮像時間 ≤ 5:30', f:function(E){ return {v:mmss(E.T), ok:E.T<=330}; }} ],
+   hints:['マトリクスを増やすと画素は小さくなりますが、SNR と時間に響きます。3T の水脂肪差は約 440 Hz です。','バンド幅を上げた分の SNR は加算で、延びた時間は ETL で取り戻します。'],
+   expl:'高分解能・化学シフト・SNR・時間はすべて引き換えです。3T の SNR の余裕を、画素の縮小と高バンド幅に割り振るのが 3T 膝撮像の考え方です。' },
+ { id:'x_mprage', keys:['ti','fa'], lv:'エキスパート', title:'MPRAGE で灰白質と白質の CNR を上げる', ph:'head', seq:'mprage', B0:1.5,
+   goal:'MPRAGE の灰白質と白質の CNR を 3.6 以上にしてください。1 mm 等方は保ちます。',
+   crit:[ {label:'CNR（灰白質 対 白質）≥ 3.6', f:function(E){ var c=E.cnr('gm','wm'); return {v:c.toFixed(2), ok:c>=3.6}; }},
+          {label:'スライス方向 1 mm のまま', f:function(E){ return {v:'', ok:(E.info.dz||9)<=1.0001}; }} ],
+   hints:['TI（反転時間）で、灰白質と白質の縦磁化の差が最も大きい時刻を選びます。','グラフの横軸を TI にして、CNR が最大の所を探しましょう。'],
+   expl:'MPRAGE では反転後の縦磁化の回復が白質（T1 短）と灰白質（T1 長）で異なり、その差が最大になる TI で読み出すと CNR が上がります。フリップ角も読み出し中の飽和に影響します。' },
+ { id:'t2w', keys:['tr','te'], lv:'学生', title:'T2強調像をつくる', ph:'head', seq:'fse_t2', B0:1.5,
    init:{p:{tr:600,te:15}},
    goal:'いまは T1 強調に近い条件です。脳脊髄液が白質の2倍以上明るい T2 強調像にしてください。',
    crit:[ {label:'脳脊髄液 ÷ 白質 ≥ 2', f:function(E){ var r=E.sig('csf')/Math.max(1e-9,E.sig('wm')); return {v:r.toFixed(2), ok:r>=2}; }},
           {label:'白質 ＜ 灰白質（T2 強調らしい順）', f:function(E){ return {v:'', ok:E.sig('wm')<E.sig('gm')}; }} ],
    hints:['T2 強調は「長い TR」と「長い TE」です。','TR は T1 の影響を消すため 2500 ms 以上、TE は 80〜120 ms 前後が目安です。'],
    expl:'長い TR で縦磁化がほぼ回復し（T1 の差が消え）、長い TE で T2 の長い組織（脳脊髄液）が残るため T2 強調になります。' },
- { id:'flair', lv:'基礎', title:'FLAIR で脳脊髄液を消す', ph:'head', seq:'flair', B0:1.5,
+ { id:'flair', keys:['ti'], lv:'学生', title:'FLAIR で脳脊髄液を消す', ph:'head', seq:'flair', B0:1.5,
    init:{p:{ti:900}},
    goal:'反転時間（TI）が短すぎて脳脊髄液が残っています。脳脊髄液の信号を白質の 2 割未満にしてください。',
    crit:[ {label:'脳脊髄液 ÷ 白質 ＜ 0.2', f:function(E){ var r=E.sig('csf')/Math.max(1e-9,E.sig('wm')); return {v:r.toFixed(2), ok:r<0.2}; }} ],
    hints:['反転後に縦磁化が 0 を通る時刻（ヌルポイント）に励起すると、その組織の信号が消えます。','ヌルポイントは TI ≈ T1 × ln2（TR が十分長いとき）。脳脊髄液の T1 は 1.5T で約 4000 ms です。','TR が短いと完全に回復しないので、最適な TI は短めにずれます。グラフの横軸を TI にして探してみましょう。'],
    expl:'TI ≈ T1 × ln2（≈ 0.69 × T1）で縦磁化が 0 になり、その組織の信号が消えます。TR が有限のときは、TI ≈ T1 × ln[2 / (1 + e^(−TR/T1))] になります。' },
- { id:'stir', lv:'基礎', title:'STIR で脂肪を抑える', ph:'knee', seq:'stir', B0:1.5,
+ { id:'stir', keys:['ti'], lv:'基礎', title:'STIR で脂肪を抑える', ph:'knee', seq:'stir', B0:1.5,
    init:{p:{ti:350}},
    goal:'脂肪がまだ明るく残っています。脂肪の信号を筋肉の 3 割未満にしてください。',
    crit:[ {label:'脂肪 ÷ 筋肉 ＜ 0.3', f:function(E){ var r=E.sig('fat')/Math.max(1e-9,E.sig('muscle')); return {v:r.toFixed(2), ok:r<0.3}; }} ],
    hints:['STIR は脂肪の T1 に合わせて TI を決めます。','1.5T の脂肪の T1 は約 250〜300 ms、ヌルポイントは TI ≈ 150〜170 ms です。'],
    expl:'脂肪の T1 は短いので、TI ≈ 0.69 × T1(脂肪) ≈ 150 ms（1.5T）で脂肪の縦磁化が 0 になります。磁場の不均一に強いのが利点ですが、同じ T1 の組織（造影後の病変など）も抑えてしまいます。' },
- { id:'cnr_time', lv:'応用', title:'白質と灰白質の CNR を時間内に上げる', ph:'head', seq:'se_t1', B0:1.5,
+ { id:'cnr_time', keys:['tr','te','nex','thk'], lv:'応用', title:'白質と灰白質の CNR を時間内に上げる', ph:'head', seq:'se_t1', B0:1.5,
    init:{p:{tr:1500,te:30,nex:1}},
    goal:'SE T1 強調で、白質と灰白質の CNR を 12 以上にしてください。ただし撮像時間は 4 分以内です。',
    crit:[ {label:'CNR（白質 対 灰白質）≥ 12', f:function(E){ var c=E.cnr('wm','gm'); return {v:c.toFixed(1), ok:c>=12}; }},
           {label:'撮像時間 ≤ 4 分', f:function(E){ return {v:mmss(E.T), ok:E.T<=240}; }} ],
    hints:['T1 強調では TR を短く、TE を短くするとコントラストが出ます。','SNR を上げるには、スライス厚・FOV を大きく、マトリクスを小さく、加算を増やす、バンド幅を狭くする方法があります。','時間は TR × 位相マトリクス × 加算回数です。TR を下げて浮いた時間を加算に回すのも手です。'],
    expl:'CNR は信号差 × SNR で決まります。TR を T1 の間に置くと差が大きくなり、空いた時間を加算に回すと SNR が √NEX 倍になります。分解能（ボクセル体積）とのトレードオフも意識しましょう。' },
- { id:'alias', lv:'基礎', title:'折り返しを消す', ph:'abdomen', seq:'vibe', B0:1.5,
+ { id:'alias', keys:['pfov','pos','r','pf'], lv:'基礎', title:'折り返しを消す', ph:'abdomen', seq:'vibe', B0:1.5,
    init:{p:{pfov:50}},
    goal:'位相方向の FOV が体より小さく、反対側に体が折り返しています。折り返しをなくしてください（息止め 20 秒以内のまま）。',
    crit:[ {label:'折り返し ＜ 1%', f:function(E){ return {v:(E.wrap*100).toFixed(1)+'%', ok:E.wrap<0.01}; }},
           {label:'撮像時間 ≤ 20 秒', f:function(E){ return {v:E.T.toFixed(1)+' 秒', ok:E.T<=20}; }} ],
    hints:['位相方向の FOV（%）を広げるか、位相オーバーサンプリングを使います。','FOV を広げると時間が延びます。並列画像（加速）や部分フーリエで取り戻しましょう。'],
    expl:'位相方向は周波数で区別できないため、FOV の外の組織が反対側に重なります。FOV を広げる、位相オーバーサンプリング、位相方向の入れ替え、飽和パルスで対処します。' },
- { id:'breathhold', lv:'応用', title:'息止め 15 秒に収める', ph:'abdomen', seq:'vibe', B0:1.5,
+ { id:'breathhold', keys:['r','pf','npart','thk'], lv:'応用', title:'息止め 15 秒に収める', ph:'abdomen', seq:'vibe', B0:1.5,
    init:{p:{r:1,pf:1,npart:72}},
    goal:'このままでは息止めが長すぎます。撮像時間を 15 秒以内にし、SNR は既定の 60% 以上を保ってください。',
    crit:[ {label:'撮像時間 ≤ 15 秒', f:function(E){ return {v:E.T.toFixed(1)+' 秒', ok:E.T<=15}; }},
           {label:'SNR ≥ 60%', f:function(E){ return {v:Math.round(E.snr)+'%', ok:E.snr>=60}; }} ],
    hints:['並列画像（加速）・部分フーリエ・パーティション数の削減が効きます。','加速するほど SNR は下がります（√R と g 因子）。スライス厚を少し厚くして SNR を補う方法もあります。'],
    expl:'3D の撮像時間は TR × 位相数 × パーティション数 ÷ 加速。並列画像は SNR を √R × g だけ下げるので、時間・SNR・分解能のバランスを取ります。' },
- { id:'inopp', lv:'基礎', title:'in-phase と opposed-phase の TE を合わせる', ph:'abdomen', seq:'inopp', B0:1.5,
+ { id:'inopp', keys:['te','te2'], lv:'基礎', title:'in-phase と opposed-phase の TE を合わせる', ph:'abdomen', seq:'inopp', B0:1.5,
    init:{p:{te:3.0,te2:5.5}},
    goal:'2 つの TE がずれています。1.5T で第1エコーを opposed-phase、第2エコーを in-phase にしてください。',
    crit:[ {label:'TE1 が opposed-phase（±0.3 ms）', f:function(E){ var t=E.st.B0>=2.5?1.15:2.3; return {v:E.p.te+' ms', ok:Math.abs(E.p.te-t)<=0.3*(E.st.B0>=2.5?0.5:1)}; }},
           {label:'TE2 が in-phase（±0.3 ms）', f:function(E){ var t=E.st.B0>=2.5?2.3:4.6; return {v:E.p.te2+' ms', ok:Math.abs(E.p.te2-t)<=0.3*(E.st.B0>=2.5?0.5:1)}; }} ],
    hints:['水と脂肪の周波数差は約 3.4 ppm。1.5T では約 220 Hz なので、位相が一周するのに約 4.6 ms かかります。','半周（逆位相）は 2.3 ms、一周（同位相）は 4.6 ms です。3T ではその半分です。'],
    expl:'水と脂肪は 3.4 ppm 離れており、1.5T で 1 周 ≈ 4.6 ms。opposed-phase では同じボクセル内の水と脂肪が打ち消し合い、脂肪を含む病変（腺腫・脂肪肝）の信号が落ちます。' },
- { id:'chemshift', lv:'基礎', title:'化学シフトを 1 画素以下にする', ph:'knee', seq:'fse_pd', B0:3,
+ { id:'chemshift', keys:['bw'], lv:'基礎', title:'化学シフトを 1 画素以下にする', ph:'knee', seq:'fse_pd', B0:3,
    init:{p:{bw:80}},
    goal:'3T で受信バンド幅が狭く、脂肪と水の境界がずれています。化学シフトを 1 画素以下にしてください。',
    crit:[ {label:'化学シフト ≤ 1 画素', f:function(E){ return {v:E.csPix.toFixed(2)+' 画素', ok:E.csPix<=1}; }} ],
    hints:['化学シフト（画素）＝ 水脂肪の周波数差（Hz）÷ 1 画素あたりのバンド幅（Hz/画素）。','3T の水脂肪差は約 440 Hz。バンド幅を 440 Hz/画素以上にします（SNR は下がります）。'],
    expl:'バンド幅を広げると 1 画素あたりの周波数幅が増え、ずれ（画素数）が減ります。代わりに雑音が増え、SNR は √(BW) に反比例して下がります。' },
- { id:'metal', lv:'応用', title:'金属アーチファクトを減らす', ph:'knee', seq:'fse_pd', B0:1.5, les:{metal:true},
-   init:{p:{bw:130}, st:{fs:'chess'}},
+ { id:'metal', keys:['bw','fs','vat','semac'], lv:'応用', title:'金属アーチファクトを減らす', ph:'knee', seq:'metal', B0:1.5, les:{metal:true},
+   init:{p:{bw:130}, st:{fs:'chess',vat:false,semac:0}},
    goal:'金属の周りで信号が抜け、脂肪抑制もむらになっています。金属アーチファクトを減らす設定にしてください。',
    crit:[ {label:'受信バンド幅 ≥ 400 Hz/画素', f:function(E){ return {v:E.p.bw+' Hz/画素', ok:E.p.bw>=400}; }},
           {label:'VAT または SEMAC を使う', f:function(E){ return {v:'', ok:!!(E.st.vat||E.st.semac)}; }},
           {label:'周波数選択の脂肪抑制（CHESS／SPAIR）を使わない', f:function(E){ return {v:E.st.fs||'なし', ok:E.st.fs!=='chess'&&E.st.fs!=='spair'}; }} ],
    hints:['金属の近くは磁場が大きくずれるため、周波数で選ぶ方法（脂肪抑制・スライス選択・読出し）が乱れます。','バンド幅を広げる、ビュー角傾斜（VAT）、スライス方向の補正（SEMAC）が有効です。','脂肪抑制は STIR（反転回復）か Dixon が金属に強いです。'],
    expl:'金属では局所の周波数ずれが大きく、読出し方向のずれ・スライス面の歪み・脂肪抑制の失敗が起こります。高バンド幅・VAT・SEMAC・STIR/Dixon の組み合わせが基本です。' },
- { id:'epi', lv:'応用', title:'拡散強調像の歪みを減らす', ph:'head', seq:'dwi', B0:3,
+ { id:'epi', keys:['r','pf','ny'], lv:'応用', title:'拡散強調像の歪みを減らす', ph:'head', seq:'dwi', B0:3,
    init:{p:{r:1,pf:1,ny:192,nx:192}},
    goal:'3T の EPI で読出しが長く、歪みが目立ちます。EPI の読出し時間を 30 ms 以下にしてください。',
    crit:[ {label:'EPI 読出し時間 ≤ 30 ms', f:function(E){ var r=E.readEPI||0; return {v:r?r.toFixed(1)+' ms':'—', ok:r>0&&r<=30}; }} ],
    hints:['歪みはエコー列の長さ（読出し時間）に比例します。','並列画像（R）でエコー列を短くする、位相マトリクスを減らす、部分フーリエ、読出し分割（RESOLVE／EPIX など）が使えます。'],
    expl:'EPI では位相方向の 1 画素あたりの帯域が狭く（1 ÷ 読出し時間）、磁場のずれがそのまま位相方向の位置ずれになります。読出し時間を短くするほど歪みは小さくなります。' },
- { id:'fast_t2', lv:'応用', title:'SNR を保って T2 を速く撮る', ph:'head', seq:'fse_t2', B0:1.5,
+ { id:'fast_t2', keys:['etl','nex'], lv:'応用', title:'SNR を保って T2 を速く撮る', ph:'head', seq:'fse_t2', B0:1.5,
    init:{p:{etl:8,nex:2}},
    goal:'撮像時間を 1 分 30 秒以内にし、SNR は既定の 80% 以上を保ってください。',
    crit:[ {label:'撮像時間 ≤ 1:30', f:function(E){ return {v:mmss(E.T), ok:E.T<=90}; }},
@@ -8738,6 +8949,10 @@ MS.MISSIONS=[
    expl:'FSE の時間は TR × 位相数 × 加算 ÷ ETL。ETL を伸ばすと速くなりますが、エコー間の T2 減衰でぼけが増え、SAR も上がります。' }
 ];
 function mmss(s){ s=Math.round(s); return Math.floor(s/60)+':'+('0'+(s%60)).slice(-2); }
+MS.MISSION_LEVELS=['学生','基礎','応用','エキスパート'];
+var ORDER=['s_t1w','t2w','s_pd','flair','s_thin','s_half','b_fatsat','stir','inopp','chemshift','alias','b_hem','cnr_time','fast_t2','breathhold','a_sar','epi','metal','x_mprage','x_flair3','x_knee3','x_dwi3','x_vibe','x_mrcp'];
+function ord(M){ var i=ORDER.indexOf(M.id); return i<0?999:i; }
+MS.MISSIONS.sort(function(a,b){ return (MS.MISSION_LEVELS.indexOf(a.lv)-MS.MISSION_LEVELS.indexOf(b.lv))||(ord(a)-ord(b)); });
 MS.MISSION_MAP={}; MS.MISSIONS.forEach(function(M){ MS.MISSION_MAP[M.id]=M; });
 MS.addMission=function(M){ MS.MISSIONS=MS.MISSIONS.filter(function(x){ return x.id!==M.id; }); MS.MISSIONS.push(M); MS.MISSION_MAP[M.id]=M; return M; };
 })();
@@ -8907,7 +9122,11 @@ function buildSeqList(){ var box=$('#navigation'), q=($('#seqq').value||'').toLo
     box.appendChild(el('div',{class:'nav-group'},'はじめに')); box.appendChild(nb('このツールの使い方','',view==='about',function(){ setView('about'); }));
     box.appendChild(el('div',{class:'nav-group'},'勉強用（よく使うシーケンス）'));
     MS.LEARN.forEach(function(L){ var s=MS.SEQ[L.seq]; box.appendChild(nb(s.n,'',view==='sim'&&mode==='learn'&&st&&st.seq===L.seq,function(){ setView('sim'); startLearn(L.seq); })); });
-    if(MS.MISSIONS){ var sv=solvedSet(); box.appendChild(el('div',{class:'nav-group'},'課題（自動判定）')); MS.MISSIONS.forEach(function(M){ box.appendChild(nb((sv[M.id]?'✓ ':'')+M.title,M.lv,view==='sim'&&mode==='mission'&&mission&&mission.id===M.id,function(){ setView('sim'); startMission(M.id); })); }); }
+    if(MS.MISSIONS){ var sv=solvedSet(); box.appendChild(el('div',{class:'nav-group'},'課題（自動判定）'));
+      (MS.MISSION_LEVELS||[]).forEach(function(lv){ var ms=MS.MISSIONS.filter(function(M){ return M.lv===lv; }); if(!ms.length) return; var done=ms.filter(function(M){ return sv[M.id]; }).length;
+        var open=openLv[lv]!=null?openLv[lv]:(mode==='mission'&&mission?mission.lv===lv:lv===MS.MISSION_LEVELS[0]);
+        var h=el('button',{type:'button',class:'nav-lv'+(open?' open':''),'aria-expanded':String(open)}); h.appendChild(el('span',{class:'chev','aria-hidden':'true'})); h.appendChild(document.createTextNode(LVN[lv]||lv)); h.appendChild(el('small',{},done+'/'+ms.length)); h.onclick=function(){ openLv[lv]=!open; buildSeqList(); }; box.appendChild(h);
+        if(open) ms.forEach(function(M){ box.appendChild(nb((sv[M.id]?'✓ ':'')+M.title,'',view==='sim'&&mode==='mission'&&mission&&mission.id===M.id,function(){ setView('sim'); startMission(M.id); })); }); }); }
     box.appendChild(el('div',{class:'nav-group'},'資料')); box.appendChild(nb('名称対応表','メーカー別',view==='names',function(){ setView('names'); })); box.appendChild(nb('組織パラメータ','T1・T2・文献',view==='tissue',function(){ setView('tissue'); }));
     box.appendChild(el('div',{class:'nav-group',style:'color:#fff;font-weight:700;margin-top:26px'},'エキスパート用（全 '+MS.SEQS.length+' シーケンス）')); }
   var hit=0;
@@ -8948,8 +9167,9 @@ function numRow(id,name,unit,min,max,step,get,set,tip,logm){ var lb=el('label',{
   return lb; }
 function fmtv(v){ return Math.abs(v)>=100? Math.round(v*10)/10 : Math.round(v*1000)/1000; }
 function sel(name,opts,get,set,tip){ var d=el('label',{class:'sim-control'}); d.appendChild(document.createTextNode(name)); if(tip) d.appendChild(el('span',{class:'q',title:tip},'?')); var s=el('select'); opts.forEach(function(o){ var op=el('option',{value:o[0]},o[1]); if(String(get())===String(o[0])) op.selected=true; s.appendChild(op); }); s.onchange=function(){ set(s.value); schedule(); if(s.dataset.rebuild) buildParams(); }; d.appendChild(s); d.s=s; return d; }
+function tagK(k,e){ e.setAttribute('data-k',k); return e; }
 function chk(name,get,set,tip){ var lb=el('label',{class:'chk'}); if(tip) lb.title=tip; var c=el('input',{type:'checkbox'}); c.checked=!!get(); c.onchange=function(){ set(c.checked); schedule(); }; lb.appendChild(c); lb.appendChild(document.createTextNode(name)); return lb; }
-function buildParams(){ buildParams0(); grpCounts(); grpBadges(); }
+function buildParams(){ buildParams0(); grpCounts(); grpBadges(); markMissionKeys(); }
 function buildParams0(){ var sq=MS.SEQ[st.seq], box=$('#params'); box.innerHTML=''; var keys=visibleParams(sq);
   function grp(title){ var c0=!!closedG[title]; var sec=el('div',{class:'pgrp'+(c0?' closed':''),'data-t':title}); var h=el('button',{type:'button',class:'grp','aria-expanded':String(!c0)});
     h.appendChild(el('span',{class:'chev','aria-hidden':'true'})); h.appendChild(document.createTextNode(title)); var cn=el('span',{class:'gcnt'}); h.appendChild(cn); h.appendChild(el('span',{class:'gbadge',title:'既定値から変えたパラメータの数'}));
@@ -8976,14 +9196,14 @@ function buildParams0(){ var sq=MS.SEQ[st.seq], box=$('#params'); box.innerHTML=
   });
   /* オプション */
   var o=sq.o||[], det2=grp('脂肪抑制・オプション');
-  if(o.indexOf('fs')>=0 || /dwi/.test(sq.k)){ var fsOpts=[['none','なし'],['chess','化学シフト選択（CHESS／Fat Sat）'],['spair','断熱パルス（SPAIR）'],['we','水選択励起（WE／PASTA）']]; if(/dwi|dti/.test(sq.k)) fsOpts.push(['stir','STIR（反転）']); det2.appendChild(sel('脂肪抑制',fsOpts,function(){return st.fs;},function(v){st.fs=v;},'磁場不均一に弱いのは CHESS・SPAIR・水選択励起。STIR と Dixon は均一だが原理が異なる')); }
+  if(o.indexOf('fs')>=0 || /dwi/.test(sq.k)){ var fsOpts=[['none','なし'],['chess','化学シフト選択（CHESS／Fat Sat）'],['spair','断熱パルス（SPAIR）'],['we','水選択励起（WE／PASTA）']]; if(/dwi|dti/.test(sq.k)) fsOpts.push(['stir','STIR（反転）']); det2.appendChild(tagK('fs',sel('脂肪抑制',fsOpts,function(){return st.fs;},function(v){st.fs=v;},'磁場不均一に弱いのは CHESS・SPAIR・水選択励起。STIR と Dixon は均一だが原理が異なる'))); }
   if(o.indexOf('restore')>=0) det2.appendChild(chk('フリップバック（RESTORE／T2 Plus）',function(){return st.restore;},function(v){st.restore=v;},'エコートレイン終了時の横磁化を縦に戻す。短いTRでも液体が明るい'));
   if(o.indexOf('mt')>=0) det2.appendChild(chk('MTパルス（MTC／SORS-STC）',function(){return st.mt;},function(v){st.mt=v;},'高分子と結合した水の信号を下げる（白質・筋・軟骨が低下）'));
   if(o.indexOf('tone')>=0) det2.appendChild(chk('傾斜フリップ角（TONE／ISCE）',function(){return st.tone;},function(v){st.tone=v;}));
   if(o.indexOf('vsat')>=0) det2.appendChild(chk('静脈の飽和パルス',function(){return st.vsat;},function(v){st.vsat=v;}));
   if(o.indexOf('flowcomp')>=0||sq.gre) det2.appendChild(chk('流れ補正（GMN／Flow Comp）',function(){return st.flowcomp;},function(v){st.flowcomp=v;},'流れによる位相分散を減らす'));
   det2.appendChild(chk('空間飽和パルス（拍動アーチファクト対策）',function(){return st.satband;},function(v){st.satband=v;},'血管の流入側に飽和パルスを置き、拍動による位相方向のゴーストを減らす'));
-  if(o.indexOf('vat')>=0) det2.appendChild(chk('VAT（view angle tilting）',function(){return st.vat;},function(v){st.vat=v;},'Siemens: WARP、Canon: VAT。面内の位置ずれを補正'));
+  if(o.indexOf('vat')>=0) det2.appendChild(tagK('vat',chk('VAT（view angle tilting）',function(){return st.vat;},function(v){st.vat=v;},'Siemens: WARP、Canon: VAT。面内の位置ずれを補正')));
   if(o.indexOf('semac')>=0) det2.appendChild(numRow('semac','SEMAC 補正ステップ','',0,24,1,function(){return st.semac;},function(v){st.semac=v;},'面直交方向の歪みを補正（時間はステップ数に比例して延長）'));
   if(/dwi/.test(sq.k)) det2.appendChild(numRow('cdwi','計算DWI の b 値（0=なし）','s/mm²',0,3000,50,function(){return st.cdwi;},function(v){st.cdwi=v;},'Siemens: Computed b-values、Canon: cDWI'));
   if(sq.k==='mrs') det2.appendChild(sel('ボクセル位置',[['normal','正常白質'],['lesion','病変（腫瘍）']],function(){return st.mrsVox;},function(v){st.mrsVox=v;}));
@@ -9067,7 +9287,7 @@ function metrics(){ var i=res.info, m=$('#metrics'); m.innerHTML=''; var sq=MS.S
   add(MS.fmt(i.dx)+'×'+MS.fmt(i.dy)+'×'+MS.fmt(i.dz),'取得ボクセル（mm）');
   add(Math.round(i.sar)+' %','SAR（上限比・相対）',i.sar>100?'bad':(i.sar>70?'mid':''));
   if(i.tres) add(MS.fmt(i.tres)+' ms','時間分解能');
-  if(i.conc>1) add(i.conc+' 回','分割収集（スライスがTRに入らない）');
+  if(i.conc>1) add(i.conc+' 回に分割','分割収集（スライスがTRに入らない）');
   if(i.etlEPI) add(i.etlEPI+' × '+MS.fmt(i.p.esp_epi)+' ms','EPI エコー数 × 間隔');
   if(i.R>1||i.CS>1||(st.p.sms||1)>1) add('×'+MS.fmt(i.R*(i.Rz||1)*(i.CS||1)*(st.p.sms||1)),'総加速（PI×CS×SMS）');
   add(MS.fmt(i.tro)+' ms','読出し時間（1/BW）');
@@ -9368,7 +9588,9 @@ function applyShared(obj){ if(!obj||!MS.SEQ[obj.sq]||!MS.PHANTOMS[obj.ph]) retur
 var toastT=null; function toast(t){ var d=$('#toast'); if(!d){ d=el('div',{id:'toast',role:'status','aria-live':'polite'}); document.body.appendChild(d); } d.textContent=t; d.classList.add('on'); clearTimeout(toastT); toastT=setTimeout(function(){ d.classList.remove('on'); },2200); }
 
 /* ---------- 課題モード（自動判定・ヒント・記録） ---------- */
-var mission=null, mrec=null, mhint=0;
+var mission=null, mrec=null, mhint=0, openLv={};
+var LVN={'学生':'学生レベル','基礎':'基礎レベル','応用':'応用レベル','エキスパート':'エキスパートレベル'};
+function lvProgress(lv){ var sv=solvedSet(), ms=MS.MISSIONS.filter(function(M){ return M.lv===lv; }); return {n:ms.length, done:ms.filter(function(M){ return sv[M.id]; }).length, next:(ms.filter(function(M){ return !sv[M.id]; })[0]||ms[0])}; }
 function loadRecs(){ try{ return JSON.parse(localStorage.getItem('mrisimMissionLog')||'[]'); }catch(e){ return []; } }
 function saveRecs(a){ try{ localStorage.setItem('mrisimMissionLog',JSON.stringify(a.slice(-1000))); }catch(e){} }
 function solvedSet(){ var s={}; loadRecs().forEach(function(r){ if(r.solved) s[r.id]=true; }); return s; }
@@ -9380,14 +9602,20 @@ function startMission(id){ var M=MS.MISSION_MAP[id]; if(!M) return; endAttempt()
   chart.follow=true; chart.hide={}; lastChanged=null; prevRes=null; manualW=null; cur=0; refInfo(); defaultAB();
   buildPhantomSel(); buildSys(); buildLesions(); buildSeqList(); buildParams(); seqCard(); learnCard(); schedule(); }
 function missionCard(box){ var M=mission; $('#protop').classList.remove('one'); box.hidden=false; box.innerHTML='';
-  var h=el('h2',{},'課題：'+M.title); box.appendChild(h); box.appendChild(el('p',{class:'mlv'},M.lv+'　·　'+MS.SEQ[M.seq].n+'　·　'+(st.B0)+' T'));
+  var lvb=el('div',{class:'mlvsel',role:'group','aria-label':'課題のレベル'}); (MS.MISSION_LEVELS||[]).forEach(function(lv){ var pr=lvProgress(lv); if(!pr.n) return; var b=el('button',{type:'button',class:lv===M.lv?'on':'','aria-pressed':String(lv===M.lv)}); b.appendChild(document.createTextNode(LVN[lv]||lv)); b.appendChild(el('small',{},pr.done+'/'+pr.n)); b.onclick=function(){ if(lv!==M.lv) startMission(lvProgress(lv).next.id); }; lvb.appendChild(b); }); box.appendChild(lvb);
+  var ms_=MS.MISSIONS.filter(function(x){ return x.lv===M.lv; }), qi=ms_.indexOf(M)+1;
+  var h=el('h2',{},'課題：'+M.title); box.appendChild(h); box.appendChild(el('p',{class:'mlv'},(LVN[M.lv]||M.lv)+' '+qi+'/'+ms_.length+'　·　'+MS.SEQ[M.seq].n+'　·　'+(st.B0)+' T'));
   box.appendChild(el('p',{},M.goal)); var ul=el('ul',{id:'mcrit',class:'mcrit','aria-live':'polite'}); M.crit.forEach(function(c){ ul.appendChild(el('li',{},c.label)); }); box.appendChild(ul);
   var hb=el('div',{id:'mhints',class:'mhints'}); box.appendChild(hb);
-  var row=el('div',{class:'sim-presets'}); var b1=el('button',{type:'button',id:'mhintbtn'},'ヒントを見る（0/'+M.hints.length+'）'); b1.onclick=function(){ if(mhint>=M.hints.length) return; mhint++; if(mrec&&!mrec.solved) mrec.hints++; renderHints(); };
+  var row=el('div',{class:'sim-presets'}); var b1=el('button',{type:'button',id:'mhintbtn'},'ヒントを見る（0/'+mHints(M).length+'）'); b1.onclick=function(){ if(mhint>=mHints(M).length) return; mhint++; if(mrec&&!mrec.solved) mrec.hints++; renderHints(); if(mhint===1&&M.keys){ var f=document.querySelector('#params .mhl'); if(f&&document.body.classList.contains('mob')) setTimeout(function(){ f.scrollIntoView({behavior:'smooth',block:'center'}); },350); } };
   var b2=el('button',{type:'button'},'最初からやり直す'); b2.onclick=function(){ startMission(M.id); };
   var b3=el('button',{type:'button'},'記録を書き出す（CSV）'); b3.onclick=exportRecs; var b4=el('button',{type:'button',class:'mquit'},'課題をやめる'); b4.onclick=function(){ quitMission(); }; row.appendChild(b1); row.appendChild(b2); row.appendChild(b3); row.appendChild(b4); box.appendChild(row);
   box.appendChild(el('div',{id:'mresult'})); renderHints(); }
-function renderHints(){ var M=mission, hb=$('#mhints'); if(!hb||!M) return; hb.innerHTML=''; for(var i=0;i<mhint;i++) hb.appendChild(el('p',{class:'mhint'},'ヒント '+(i+1)+'：'+M.hints[i])); var b=$('#mhintbtn'); if(b){ b.textContent='ヒントを見る（'+mhint+'/'+M.hints.length+'）'; b.disabled=mhint>=M.hints.length; } }
+function mHints(M){ var ks=M.keys||[]; if(!ks.length) return M.hints; return ['動かすパラメータ：'+ks.map(keyName).join('・')+'（パラメータ欄に印をつけました）'].concat(M.hints); }
+function keyName(k){ if(k==='fs') return '脂肪抑制'; if(k==='vat') return 'VAT'; if(k==='semac') return 'SEMAC'; var d=MS.PDEF[k]; return d?d.n:k; }
+function markMissionKeys(){ document.querySelectorAll('.sim-control.mhl,.chk.mhl').forEach(function(e){ e.classList.remove('mhl'); }); if(mode!=='mission'||!mission||mhint<1||!mission.keys) return;
+  mission.keys.forEach(function(k){ var e=document.querySelector('#params [data-k="'+k+'"]'); if(!e) return; e.classList.add('mhl'); var sec=e.closest('.pgrp'); if(sec&&sec.classList.contains('closed')) setClosed(sec,false); }); }
+function renderHints(){ var M=mission, hb=$('#mhints'); if(!hb||!M) return; var H=mHints(M); hb.innerHTML=''; for(var i=0;i<mhint;i++) hb.appendChild(el('p',{class:'mhint'+(i===0&&M.keys?' keys':'')},'ヒント '+(i+1)+'：'+H[i])); var b=$('#mhintbtn'); if(b){ b.textContent='ヒントを見る（'+mhint+'/'+H.length+'）'; b.disabled=mhint>=H.length; } markMissionKeys(); }
 function missionEval(){ if(mode!=='mission'||!mission||!res||!res.outs||!res.outs[0]||!res.outs[0].data) return; var M=mission, i=res.info, cm=medians(res,res.outs[0]);
   var E={st:st,p:i.p,info:i,T:i.T,sar:i.sar,snr:i.snr0/(snrRef||i.snr0)*100,wrap:i.wrap||0,readEPI:i.readEPI||0,csPix:Math.abs(MS.FAT_PPM*42.577*st.B0/((i.p&&i.p.bw)||st.p.bw)),
     sig:function(k){ return cm[k]?cm[k].v:0; }, cnr:function(a,b){ return Math.abs((cm[a]?cm[a].v:0)-(cm[b]?cm[b].v:0))*i.snr0; }};
@@ -9397,7 +9625,9 @@ function missionEval(){ if(mode!=='mission'||!mission||!res||!res.outs||!res.out
   var rb=$('#mresult'); if(!rb) return;
   if(all){ if(mrec&&!mrec.solved){ mrec.solved=true; mrec.tSolve=Date.now(); endAttempt(); buildSeqList(); toast('課題クリア！'); }
     var t=mrec?Math.round((mrec.tSolve-mrec.start)/1000):0; rb.innerHTML=''; var d=el('div',{class:'mdone'}); d.appendChild(el('b',{},'クリア！')); d.appendChild(el('span',{},'　所要時間 '+Math.floor(t/60)+':'+('0'+t%60).slice(-2)+'・ヒント '+(mrec?mrec.hints:0)+' 回・変更 '+(mrec?Math.max(0,mrec.changes):0)+' 回'));
-    d.appendChild(el('p',{},M.expl)); var idx=MS.MISSIONS.indexOf(M), nx=MS.MISSIONS[idx+1]; if(nx){ var bn=el('button',{type:'button'},'次の課題へ：'+nx.title); bn.onclick=function(){ startMission(nx.id); }; d.appendChild(bn); } rb.appendChild(d); }
+    d.appendChild(el('p',{},M.expl)); var sv2=solvedSet(), same=MS.MISSIONS.filter(function(x){ return x.lv===M.lv; }), nx=same.slice(same.indexOf(M)+1).concat(same.slice(0,same.indexOf(M))).filter(function(x){ return !sv2[x.id]; })[0];
+    if(nx){ var bn=el('button',{type:'button'},'次の課題へ：'+nx.title); bn.onclick=function(){ startMission(nx.id); }; d.appendChild(bn); }
+    else { var L=MS.MISSION_LEVELS, nl=L[L.indexOf(M.lv)+1]; d.appendChild(el('p',{class:'mlvdone'},(LVN[M.lv]||M.lv)+'の課題をすべてクリアしました！')); if(nl){ var bl=el('button',{type:'button'},(LVN[nl]||nl)+'へ進む'); bl.onclick=function(){ startMission(lvProgress(nl).next.id); }; d.appendChild(bl); } } rb.appendChild(d); }
   else rb.innerHTML=''; }
 /* 課題を終えて、いまの条件のままエキスパート用へ */
 function quitMission(silent){ if(mode!=='mission') return; endAttempt(); mode='expert'; mission=null; mrec=null; mhint=0; mstatHide();
@@ -9501,7 +9731,7 @@ function kfill(){ var box=$('#kfill'); if(!box) return; var sq=MS.SEQ[st.seq];
   }
   lines.forEach(function(t,j){ tx.appendChild(el('div',{class:j?'':'kfmain'},t)); }); if(legend) tx.appendChild(el('div',{class:'kfleg'},legend));
 }
-window.__mrisimTest=function(f){ return f({newState:newState,buildParams:buildParams,schedule:schedule,getSt:function(){return st;},setMode:function(m){mode=m;}}); };
+window.__mrisimTest=function(f){ return f({newState:newState,buildParams:buildParams,schedule:schedule,getSt:function(){return st;},setMode:function(m){mode=m;},startMission:startMission}); };
 
 })();
 

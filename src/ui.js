@@ -212,6 +212,7 @@ function metrics(){ var i=res.info, m=$('#metrics'); m.innerHTML=''; var sq=MS.S
   if(i.R>1||i.CS>1||(st.p.sms||1)>1) add('×'+MS.fmt(i.R*(i.Rz||1)*(i.CS||1)*(st.p.sms||1)),'総加速（PI×CS×SMS）');
   add(MS.fmt(i.tro)+' ms','読出し時間（1/BW）');
   if(st.B0) add(MS.fmt(Math.abs(MS.FAT_PPM*42.577*st.B0/st.p.bw*1))+' 画素','化学シフト（読出し方向）');
+  var h3m=document.querySelector('.pro-out .sim-image h3'); if(h3m) h3m.setAttribute('data-mini',mmss(i.T)+' · SNR '+(sq.k==='mrs'?'—':Math.round(i.snr0/(snrRef||i.snr0)*100)+'%')+(i.W.length?' · 注意 '+i.W.length:''));
   var w=$('#warns'); w.innerHTML=''; var seenW={}; i.W.forEach(function(x){ if(seenW[x.t]) return; seenW[x.t]=1; w.appendChild(el('li',{class:x.lv},x.t)); }); }
 function markAdjusted(){ grpBadges(); markAdjusted0(); }
 function markAdjusted0(){ var p=res.info.p; document.querySelectorAll('#params label.sim-control[data-k]').forEach(function(lb){ var k=lb.dataset.k; if(!k) return; lb.classList.toggle('adj', p[k]!==undefined && Math.abs(p[k]-st.p[k])>1e-6); }); }
@@ -314,27 +315,29 @@ function interp(xs,vs,x,lg){ var n=xs.length; if(!(n>1)) return NaN; var f=funct
 function metricVal(pt,keys,m,ti){ var iA=keys.indexOf(chart.A), iB=keys.indexOf(chart.B); var a=pt.v[iA], b=pt.v[iB]; var sc=(pt.kind==='mag'||pt.kind==='signed')?100:1;
   switch(m){ case 'sig': return pt.v[ti]*sc; case 'snr': return pt.v[ti]*pt.snr; case 'sigA': return a*sc; case 'diff': return (a-b)*sc; case 'ratio': return b?a/b:NaN; case 'cnr': return Math.abs(a-b)*pt.snr; case 'cnrt': return Math.abs(a-b)*pt.snr/Math.sqrt(Math.max(pt.T,1e-3)); case 'time': return pt.T; case 'sar': return pt.sar; } return NaN; }
 function fmtN(v){ if(!isFinite(v)) return '—'; var a=Math.abs(v); return a>=1000?Math.round(v).toLocaleString():a>=100?v.toFixed(0):a>=10?v.toFixed(1):a>=1?v.toFixed(2):v.toFixed(3); }
-function drawChart(){ var cv=$('#chartcv'); if(!cv) return; var note=$('#chartnote'); var W=cv.clientWidth||460, big=window.innerWidth>=1200, H=chart.mode==='map'?(big?Math.max(360,Math.min(520,W*0.8)):330):(big?Math.max(300,Math.min(460,W*0.68)):290); var dpr=window.devicePixelRatio||1; cv.width=W*dpr; cv.height=H*dpr; cv.style.height=H+'px'; var CC=chartColors(); var g=cv.getContext('2d'); g.setTransform(dpr,0,0,dpr,0,0); g.clearRect(0,0,W,H);
-  var D=chart.data, sp=chart.spec; g.font='11px '+getComputedStyle(document.body).fontFamily;
+function fmtK(v){ var a=Math.abs(v); return a>=1000? (+(v/1000).toFixed(a>=10000?0:1))+'k' : fmtN(v); }
+function drawChart(){ var cv=$('#chartcv'); if(!cv) return; var note=$('#chartnote'); var mini=!!cv.closest('#minichart'); var W=cv.clientWidth||460, big=window.innerWidth>=1200, H=chart.mode==='map'?(big?Math.max(360,Math.min(520,W*0.8)):330):(big?Math.max(300,Math.min(460,W*0.68)):290); if(mini){ var ic=document.querySelector('#stage .cv'); H=Math.max(150,Math.round(ic?ic.getBoundingClientRect().height:190)); } var dpr=window.devicePixelRatio||1; cv.width=W*dpr; cv.height=H*dpr; cv.style.height=H+'px'; var CC=chartColors(); var g=cv.getContext('2d'); g.setTransform(dpr,0,0,dpr,0,0); g.clearRect(0,0,W,H);
+  var D=chart.data, sp=chart.spec, FS=mini?9.5:11; g.font=FS+'px '+getComputedStyle(document.body).fontFamily;
   if(!D||!sp||!res){ g.fillStyle=CC.text; g.fillText(res&&res.outs[cur]&&res.outs[cur].kind==='spectrum'?'スペクトルにはグラフを出しません。':'計算中…',12,24); return; }
-  var keys=D.keys, m=chart.metric, L=50, R=chart.mode==='map'?58:24, T=14, B=36; var pw=W-L-R, ph=H-T-B;
+  var keys=D.keys, m=chart.metric, L=mini?30:50, R=chart.mode==='map'?(mini?34:58):(mini?6:24), T=mini?6:14, B=mini?24:36; var pw=W-L-R, ph=H-T-B;
   var dx=sp.xd, lx=dx.log&&sp.xs[0]>0; var x0=sp.xs[0], x1=sp.xs[sp.xs.length-1]; function X(v){ return L+(lx? Math.log(v/x0)/Math.log(x1/x0) : (v-x0)/(x1-x0))*pw; }
-  function ticks(a,b,log){ var t=[]; if(log){ var e0=Math.floor(Math.log10(a)), e1=Math.ceil(Math.log10(b)); for(var e=e0;e<=e1;e++) [1,2,5].forEach(function(k){ var v=k*Math.pow(10,e); if(v>=a*0.999&&v<=b*1.001) t.push(v); }); return t; } var st_=Math.pow(10,Math.floor(Math.log10((b-a)/4||1))); var n=(b-a)/st_; if(n>8) st_*=2; if(n>16) st_*=2.5; for(var v=Math.ceil(a/st_)*st_;v<=b+1e-9;v+=st_) t.push(+v.toFixed(10)); return t; }
+  function ticks(a,b,log){ var t=[]; if(log){ var e0=Math.floor(Math.log10(a)), e1=Math.ceil(Math.log10(b)); for(var e=e0;e<=e1;e++) (mini?(e1-e0>2?[1]:[1,3]):[1,2,5]).forEach(function(k){ var v=k*Math.pow(10,e); if(v>=a*0.999&&v<=b*1.001) t.push(v); }); return t; } var st_=Math.pow(10,Math.floor(Math.log10((b-a)/4||1))); var n=(b-a)/st_; if(n>8) st_*=2; if(n>16) st_*=2.5; if(mini&&(b-a)/st_>4) st_*=2; for(var v=Math.ceil(a/st_)*st_;v<=b+1e-9;v+=st_) t.push(+v.toFixed(10)); return t; }
   g.strokeStyle=CC.frame2; g.fillStyle=CC.text; g.lineWidth=1;
-  ticks(x0,x1,lx).forEach(function(v){ var x=X(v); g.beginPath(); g.moveTo(x,T); g.lineTo(x,T+ph); g.stroke(); g.textAlign='center'; g.fillText(fmtN(v),x,T+ph+14); });
+  ticks(x0,x1,lx).forEach(function(v){ var x=X(v); g.beginPath(); g.moveTo(x,T); g.lineTo(x,T+ph); g.stroke(); g.textAlign='center'; g.fillText(mini?fmtK(v):fmtN(v),x,T+ph+(mini?10:14)); });
   g.textAlign='center'; g.fillStyle=CC.text2; g.fillText(dx.n+(dx.u?'（'+dx.u+'）':''),L+pw/2,H-4);
   if(chart.mode==='curve'){
     var series=[]; if(m==='sig'||m==='snr'){ keys.forEach(function(k,i){ if(chart.hide[k]||chart.hide[k]===undefined&&k!==chart.A&&k!==chart.B) return; if(!present().some(function(p){return p.key===k;})) return; series.push({k:k,n:D.names[i],c:colorOf(k),d:dashOf(k),v:D.pts.map(function(pt){ return metricVal(pt,keys,m,i); }),cur:metricVal(D.cur,keys,m,i)}); }); }
     else series.push({k:'m',n:MET[m],c:PAL[0],v:D.pts.map(function(pt){ return metricVal(pt,keys,m); }),cur:metricVal(D.cur,keys,m)});
     var ymin=0,ymax=0; series.forEach(function(s){ s.v.forEach(function(v){ if(isFinite(v)){ if(v<ymin) ymin=v; if(v>ymax) ymax=v; } }); }); if(m==='ratio'){ ymin=Math.min(ymin,0); } if(ymax===ymin) ymax=ymin+1; ymax*=1.06; if(ymin<0) ymin*=1.06;
     function Y(v){ return T+ph-(v-ymin)/(ymax-ymin)*ph; }
-    ticks(ymin,ymax,false).forEach(function(v){ var y=Y(v); g.strokeStyle=CC.grid; g.beginPath(); g.moveTo(L,y); g.lineTo(L+pw,y); g.stroke(); g.fillStyle=CC.text; g.textAlign='right'; g.fillText(fmtN(v),L-5,y+4); });
+    ticks(ymin,ymax,false).forEach(function(v){ var y=Y(v); g.strokeStyle=CC.grid; g.beginPath(); g.moveTo(L,y); g.lineTo(L+pw,y); g.stroke(); g.fillStyle=CC.text; g.textAlign='right'; g.fillText(fmtN(v),L-(mini?3:5),y+(mini?3:4)); });
     if(ymin<0){ g.strokeStyle=CC.zero; g.beginPath(); g.moveTo(L,Y(0)); g.lineTo(L+pw,Y(0)); g.stroke(); }
     g.strokeStyle=CC.frame; g.strokeRect(L,T,pw,ph);
     series.forEach(function(s){ g.strokeStyle=s.c; g.lineWidth=2; g.setLineDash(s.d||[]); g.beginPath(); var st0=false; s.v.forEach(function(v,i){ if(!isFinite(v)){ st0=false; return; } var x=X(sp.xs[i]), y=Y(v); if(!st0){ g.moveTo(x,y); st0=true; } else g.lineTo(x,y); }); g.stroke(); }); g.setLineDash([]);
     /* 現在値の縦線 */
-    if(sp.vx>=Math.min(x0,x1)&&sp.vx<=Math.max(x0,x1)){ var xc=X(sp.vx); g.save(); g.setLineDash([5,4]); g.strokeStyle=CC.cursor; g.lineWidth=1.4; g.beginPath(); g.moveTo(xc,T); g.lineTo(xc,T+ph); g.stroke(); g.restore(); g.fillStyle=CC.cursor; g.textAlign=xc>L+pw-80?'right':'left'; g.font='bold 11px '+getComputedStyle(document.body).fontFamily; g.fillText(' 現在 '+fmtN(sp.vx)+(dx.u?' '+dx.u:'')+' ',xc,T+11);
-      series.forEach(function(s){ var cv_=interp(sp.xs,s.v,sp.vx,lx); s.cur=cv_; if(!isFinite(cv_)) return; g.fillStyle=CC.dot; g.beginPath(); g.arc(xc,Y(cv_),5,0,7); g.fill(); g.fillStyle=s.c; g.beginPath(); g.arc(xc,Y(cv_),3.6,0,7); g.fill(); }); }
+    if(sp.vx>=Math.min(x0,x1)&&sp.vx<=Math.max(x0,x1)){ var xc=X(sp.vx); g.save(); g.setLineDash([5,4]); g.strokeStyle=CC.cursor; g.lineWidth=1.4; g.beginPath(); g.moveTo(xc,T); g.lineTo(xc,T+ph); g.stroke(); g.restore(); g.fillStyle=CC.cursor; g.textAlign=xc>L+pw-80?'right':'left'; g.font='bold '+FS+'px '+getComputedStyle(document.body).fontFamily; g.fillText(mini?' '+fmtN(sp.vx)+' ':' 現在 '+fmtN(sp.vx)+(dx.u?' '+dx.u:'')+' ',xc,T+(mini?9:11));
+      series.forEach(function(s){ var cv_=interp(sp.xs,s.v,sp.vx,lx); s.cur=cv_; if(!isFinite(cv_)) return; g.fillStyle=CC.dot; g.beginPath(); g.arc(xc,Y(cv_),mini?3.6:5,0,7); g.fill(); g.fillStyle=s.c; g.beginPath(); g.arc(xc,Y(cv_),mini?2.6:3.6,0,7); g.fill(); }); }
+    if(mini&&series.length>1){ /* 小さいグラフでは凡例の代わりに線の右端へ名前 */ var lb_=series.map(function(s){ var j=s.v.length-1; while(j>0&&!isFinite(s.v[j])) j--; return {n:s.n,c:s.c,y:Y(s.v[j])}; }).sort(function(a,b){ return a.y-b.y; }); for(var q=1;q<lb_.length;q++) if(lb_[q].y-lb_[q-1].y<10) lb_[q].y=lb_[q-1].y+10; g.font='bold 9px '+getComputedStyle(document.body).fontFamily; g.textAlign='right'; lb_.forEach(function(o){ var t=o.n.replace(/（.*?）/g,''); if(t.length>6) t=t.slice(0,6); g.lineWidth=3; g.strokeStyle=CC.dot; g.strokeText(t,L+pw-2,Math.min(T+ph-2,Math.max(T+8,o.y-3))); g.fillStyle=o.c; g.fillText(t,L+pw-2,Math.min(T+ph-2,Math.max(T+8,o.y-3))); }); g.lineWidth=1; }
     function showAt(best){ var s='<b>'+dx.n+' '+fmtN(sp.xs[best])+(dx.u?' '+dx.u:'')+'</b>：'+series.map(function(q){ return '<span style="color:'+q.c+'">■</span>'+q.n+' '+fmtN(q.v[best]); }).join('　'); note.innerHTML=s; }
     cv.onmousemove=function(e){ var rc=cv.getBoundingClientRect(), mx=e.clientX-rc.left; var best=0,bd=1e9; sp.xs.forEach(function(v,i){ var d=Math.abs(X(v)-mx); if(d<bd){bd=d;best=i;} }); chart.kbi=best; showAt(best); };
     cv.onkeydown=function(e){ var n=sp.xs.length, i=chart.kbi==null?Math.round(n/2):chart.kbi, st_=e.shiftKey?10:1; if(e.key==='ArrowRight') i=Math.min(n-1,i+st_); else if(e.key==='ArrowLeft') i=Math.max(0,i-st_); else if(e.key==='Home') i=0; else if(e.key==='End') i=n-1; else return; e.preventDefault(); chart.kbi=i; showAt(i); };
@@ -381,7 +384,7 @@ function init(){ tables(); try{ if(window.top!==window) $('#save').hidden=true; 
   $('#auto').onclick=function(){ manualW=null; if(res) show(res); };
   $('#pin').onclick=function(){ if(!res) return; if(pinned){ pinned=null; $('#pin').textContent='比較用に固定'; show(res); return; } var c=$('#stage canvas'); var cc=el('canvas'); cc.width=c.width; cc.height=c.height; cc.getContext('2d').drawImage(c,0,0); pinned={c:cc,t:MS.SEQ[st.seq].n+'（'+res.outs[cur].name+'）',seq:st.seq,B0:st.B0,fs:st.fs,p:JSON.parse(JSON.stringify(st.p)),i:{T:res.info.T,snr:res.info.snr0,sar:res.info.sar,dx:res.info.dx,dy:res.info.dy,dz:res.info.dz}}; $('#pin').textContent='固定を解除'; show(res); };
   (function(){ var d=$('#psdbox'); if(d) d.addEventListener('toggle',function(){ if(d.open) psdDraw(); }); })();
-  (function(){ var vt=document.querySelector('.pro-out .vtools'); if(!vt) return; var b=el('button',{type:'button',id:'vmore','aria-expanded':'false'},'表示…'); b.onclick=function(){ var on=vt.classList.toggle('more'); b.setAttribute('aria-expanded',String(on)); }; vt.appendChild(b); })();
+  (function(){ var vt=document.querySelector('.pro-out .vtools'); if(!vt) return; var bc=el('button',{type:'button',id:'vchart','aria-pressed':'false'},'グラフを横に'); bc.onclick=toggleMini; vt.insertBefore(bc,vt.querySelector('#pin')); placeChart(); var b=el('button',{type:'button',id:'vmore','aria-expanded':'false'},'表示…'); b.onclick=function(){ var on=vt.classList.toggle('more'); b.setAttribute('aria-expanded',String(on)); }; vt.appendChild(b); })();
   (function(){ var w=$('#warns'); if(w) w.addEventListener('click',function(){ if(document.body.classList.contains('mob')) w.classList.toggle('open'); }); })();
   $('#share').onclick=function(){ syncHash(); var u=location.href; function done(){ toast('条件つきのリンクをコピーしました'); } try{ if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(u).then(done,function(){ window.prompt('このリンクをコピーしてください',u); }); else window.prompt('このリンクをコピーしてください',u); }catch(e){ window.prompt('このリンクをコピーしてください',u); } };
   $('#save').onclick=function(){ var c=$('#stage canvas'); if(!c) return; var a=el('a',{href:c.toDataURL('image/png'),download:'mrisim_'+st.seq+'.png'}); document.body.appendChild(a); a.click(); a.remove(); };
@@ -401,6 +404,7 @@ function mobSetup(){ var on=!!(MQ&&MQ.matches); document.body.classList.toggle('
   if(on && !mobHome){ mobHome={out:[out.parentNode,out.nextSibling], lc:[lc.parentNode,lc.nextSibling]}; v.insertBefore(out,v.firstChild); pp.insertBefore(lc,pp.firstChild);
     if(!$('#mtabs')) buildMtabs(); setMtab(mtab,true); }
   else if(!on && mobHome){ mobHome.out[0].insertBefore(out,mobHome.out[1]); mobHome.lc[0].insertBefore(lc,mobHome.lc[1]); mobHome=null; document.body.removeAttribute('data-mtab'); }
+  placeChart();
   if(was!==on && res && view==='sim') show(res); }
 function buildMtabs(){ var nav=el('nav',{id:'mtabs','aria-label':'表示の切り替え'});
   [['setup','部位・病変'],['params','パラメータ'],['chart','グラフ'],['info','詳細']].forEach(function(t){ var b=el('button',{type:'button','data-t':t[0]},t[1]); b.onclick=function(){ setMtab(t[0]); }; nav.appendChild(b); });
@@ -444,6 +448,15 @@ function cmpTable(){ var box=$('#cmptab'); if(!box) return; if(!pinned||!res||!r
   Object.keys(ks).forEach(function(k){ var d=MS.PDEF[k]; if(!d||k==='dim3') return; var a=pinned.p[k], b=st.p[k]; if(a===b||a===undefined||b===undefined) return; nd++; row(d.n,optFmt(k,a),optFmt(k,b)); });
   var i=res.info, q=pinned.i; row('撮像時間',mmss(q.T),mmss(i.T)); row('SNR（固定を100）','100',Math.round(i.snr0/q.snr*100)+''); row('ボクセル',MS.fmt(q.dx)+'×'+MS.fmt(q.dy)+'×'+MS.fmt(q.dz),MS.fmt(i.dx)+'×'+MS.fmt(i.dy)+'×'+MS.fmt(i.dz)); row('SAR',(q.sar||0).toFixed(0)+' %',(i.sar||0).toFixed(0)+' %');
   box.appendChild(t); if(!nd&&pinned.seq===st.seq) box.appendChild(el('p',{class:'optnote'},'パラメータはまだ同じです。何か動かすと、ここに違いが出ます。')); }
+
+/* スマホ：画像の右に数値の代わりにグラフを出す */
+var miniOn=false; try{ miniOn=localStorage.getItem('mrisimMini')==='1'; }catch(e){}
+function placeChart(){ var cv=$('#chartcv'), slot=$('#minichart'), note=$('#chartnote'); if(!cv||!slot||!note) return; var want=miniOn&&document.body.classList.contains('mob');
+  document.body.classList.toggle('minichart',want); slot.hidden=!want;
+  if(want&&cv.parentNode!==slot){ slot.appendChild(cv); } else if(!want&&cv.parentNode===slot){ note.parentNode.insertBefore(cv,note); }
+  var b=$('#vchart'); if(b){ b.textContent=want?'数値を横に':'グラフを横に'; b.setAttribute('aria-pressed',String(want)); }
+  if(chart.data) drawChart(); }
+function toggleMini(){ miniOn=!miniOn; try{ localStorage.setItem('mrisimMini',miniOn?'1':'0'); }catch(e){} placeChart(); if(miniOn) toast('グラフの横軸は、最後に動かしたパラメータに合わせて変わります'); }
 
 /* ---------- 「〜を優先して最適化」 ---------- */
 var oworker=null, optJob=0, optUndo=null, optBusy=false;

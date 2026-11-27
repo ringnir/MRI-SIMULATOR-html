@@ -191,7 +191,22 @@ For bug reports, vendor-name corrections and proposals, see [CONTRIBUTING.md](CO
 
 ## Citation
 
-Please cite this software using the metadata in [CITATION.cff](CITATION.cff) ("Cite this repository" on GitHub gives APA and BibTeX). A DOI will be added after the first Zenodo release.
+If you use it in a paper or presentation, please cite it as:
+
+> Ito, R. (2026). *MRI Parameter Simulator Pro (whole-body edition)* (Version 1.0.0) [Computer software]. https://github.com/ringnir/MRI-SIMULATOR-html
+
+```bibtex
+@software{Ito_MRI_Parameter_Simulator_Pro_2026,
+  author  = {Ito, Rintaro},
+  title   = {{MRI Parameter Simulator Pro (whole-body edition)}},
+  year    = {2026},
+  version = {1.0.0},
+  url     = {https://github.com/ringnir/MRI-SIMULATOR-html},
+  license = {MIT}
+}
+```
+
+The same metadata are in [CITATION.cff](https://github.com/ringnir/MRI-SIMULATOR-html/blob/main/CITATION.cff); GitHub's "Cite this repository" button (right-hand side of the repository page) also gives APA and BibTeX. A DOI will be added after the first Zenodo release.
 
 ## License
 

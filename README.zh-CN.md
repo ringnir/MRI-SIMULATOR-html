@@ -154,7 +154,22 @@ node tests/all.js                              # 全部体模 × 全部序列 ×
 
 ## 引用
 
-请使用 [CITATION.cff](CITATION.cff) 中的信息引用本软件（在 GitHub 上点击“Cite this repository”可获取 APA 与 BibTeX 格式）。首次在 Zenodo 发布后将补充 DOI。
+在论文或报告中使用时，请按以下方式引用：
+
+> Ito, R. (2026). *MRI Parameter Simulator Pro (whole-body edition)* (Version 1.0.0) [Computer software]. https://github.com/ringnir/MRI-SIMULATOR-html
+
+```bibtex
+@software{Ito_MRI_Parameter_Simulator_Pro_2026,
+  author  = {Ito, Rintaro},
+  title   = {{MRI Parameter Simulator Pro (whole-body edition)}},
+  year    = {2026},
+  version = {1.0.0},
+  url     = {https://github.com/ringnir/MRI-SIMULATOR-html},
+  license = {MIT}
+}
+```
+
+相同信息也见 [CITATION.cff](https://github.com/ringnir/MRI-SIMULATOR-html/blob/main/CITATION.cff)，在 GitHub 仓库页面右侧点击“Cite this repository”也可获取 APA 与 BibTeX 格式。首次在 Zenodo 发布后将补充 DOI。
 
 ## 许可
 

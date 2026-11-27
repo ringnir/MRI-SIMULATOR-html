@@ -192,7 +192,22 @@ GitHub Actions（[`.github/workflows/ci.yml`](.github/workflows/ci.yml)）で、
 
 ## 引用 / Citation
 
-引用には [CITATION.cff](CITATION.cff) の情報を使ってください（GitHub の「Cite this repository」から APA・BibTeX 形式で取得できます）。DOI は最初の Zenodo のリリース後に追記します。
+論文・発表で使ったときは、次のように引用してください。
+
+> Ito, R. (2026). *MRI Parameter Simulator Pro (whole-body edition)* (Version 1.0.0) [Computer software]. https://github.com/ringnir/MRI-SIMULATOR-html
+
+```bibtex
+@software{Ito_MRI_Parameter_Simulator_Pro_2026,
+  author  = {Ito, Rintaro},
+  title   = {{MRI Parameter Simulator Pro (whole-body edition)}},
+  year    = {2026},
+  version = {1.0.0},
+  url     = {https://github.com/ringnir/MRI-SIMULATOR-html},
+  license = {MIT}
+}
+```
+
+同じ情報は [CITATION.cff](https://github.com/ringnir/MRI-SIMULATOR-html/blob/main/CITATION.cff) にもあり、GitHub の画面右側の「Cite this repository」からも APA・BibTeX 形式で取り出せます。DOI は最初の Zenodo のリリース後に追記します。
 
 ## ライセンス
 

@@ -1,3 +1,4 @@
+# Add the author ORCID (authors[0].orcid) and the Zenodo concept DOI (identifiers) when available.
 cff-version: 1.2.0
 message: "If you use this software, please cite it using the metadata in this file."
 type: software
@@ -6,17 +7,11 @@ authors:
   - family-names: Ito
     given-names: Rintaro
     affiliation: "Department of Innovative Biomedical Visualization, Nagoya University Graduate School of Medicine"
-    # orcid: "https://orcid.org/0000-0000-0000-0000"  # TODO: author's ORCID iD
 version: "1.0.0"
-date-released: 2026-11-22
+date-released: "2026-11-22"
 license: MIT
 repository-code: "https://github.com/ringnir/MRI-SIMULATOR-html"
 url: "https://ringnir.github.io/MRI-SIMULATOR-html/"
-# TODO: add the concept DOI after the first Zenodo release, e.g.
-# identifiers:
-#   - type: doi
-#     value: "10.5281/zenodo.XXXXXXX"
-#     description: "Concept DOI (all versions)"
 keywords:
   - MRI
   - magnetic resonance imaging

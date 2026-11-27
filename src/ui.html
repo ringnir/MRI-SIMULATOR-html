@@ -363,7 +363,9 @@ body.mob .mlvsel button{font-size:11.5px;padding:3px 8px}
 .mcol1,.mcol2,.mcol3{min-width:0}
 #mbar{scroll-margin-top:12px;margin:0 0 10px}
 body.mbar:not(.mob) #mstat{display:none!important}
-#mbar #learncard{display:flex;gap:18px;align-items:flex-start;margin:0;padding:10px 16px;border:1px solid var(--rt-accent);box-shadow:0 1px 0 rgba(0,0,0,.02)}
+#mbar #learncard{display:flex;gap:18px;align-items:stretch;margin:0;padding:10px 16px;border:1px solid var(--rt-accent);box-shadow:0 1px 0 rgba(0,0,0,.02);height:196px;box-sizing:border-box;overflow:hidden}
+#mbar .mcol1,#mbar .mcol2{overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:var(--rt-line-strong) transparent;padding-right:4px}
+#mbar .mcol3{overflow:visible}
 #mbar .mcol1{flex:0 0 330px} #mbar .mcol2{flex:1 1 auto} #mbar .mcol3{flex:0 0 auto}
 #mbar .mlvsel{margin:0 0 6px;gap:3px} #mbar .mlvsel button{padding:2px 8px;font-size:11.5px}
 #mbar h2{font-size:16px;margin:0 0 2px;line-height:1.35} #mbar .mlv{margin:0 0 4px;font-size:11.5px} #mbar .mgoal{font-size:12.5px;line-height:1.55;margin:0}

@@ -771,7 +771,9 @@ body.mob .mlvsel button{font-size:11.5px;padding:3px 8px}
 .mcol1,.mcol2,.mcol3{min-width:0}
 #mbar{scroll-margin-top:12px;margin:0 0 10px}
 body.mbar:not(.mob) #mstat{display:none!important}
-#mbar #learncard{display:flex;gap:18px;align-items:flex-start;margin:0;padding:10px 16px;border:1px solid var(--rt-accent);box-shadow:0 1px 0 rgba(0,0,0,.02)}
+#mbar #learncard{display:flex;gap:18px;align-items:stretch;margin:0;padding:10px 16px;border:1px solid var(--rt-accent);box-shadow:0 1px 0 rgba(0,0,0,.02);height:196px;box-sizing:border-box;overflow:hidden}
+#mbar .mcol1,#mbar .mcol2{overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:var(--rt-line-strong) transparent;padding-right:4px}
+#mbar .mcol3{overflow:visible}
 #mbar .mcol1{flex:0 0 330px} #mbar .mcol2{flex:1 1 auto} #mbar .mcol3{flex:0 0 auto}
 #mbar .mlvsel{margin:0 0 6px;gap:3px} #mbar .mlvsel button{padding:2px 8px;font-size:11.5px}
 #mbar h2{font-size:16px;margin:0 0 2px;line-height:1.35} #mbar .mlv{margin:0 0 4px;font-size:11.5px} #mbar .mgoal{font-size:12.5px;line-height:1.55;margin:0}
@@ -9763,11 +9765,13 @@ function placeMissionBar(){ var lc=$('#learncard'), bar=$('#mbar'), top=$('#prot
     if(!mbarRO&&window.ResizeObserver){ mbarRO=new ResizeObserver(function(){ document.documentElement.style.setProperty('--mbarH',bar.offsetHeight+'px'); }); mbarRO.observe(bar); } document.documentElement.style.setProperty('--mbarH',bar.offsetHeight+'px'); }
   else { if(!mob && lc.parentNode===bar) top.insertBefore(lc,top.firstChild); bar.hidden=true; document.body.classList.remove('mbar'); document.documentElement.style.setProperty('--mbarH','0px'); } }
 
+/* 帯の中だけで、追加された内容が見えるようにスクロール（ページは動かさない） */
+function barReveal(e){ var col=e&&e.closest&&e.closest('#mbar .mcol2'); if(!col) return; var r=e.getBoundingClientRect(), c=col.getBoundingClientRect(); if(r.bottom>c.bottom||r.top<c.top) col.scrollTop+= (r.top-c.top)-4; }
 function mHints(M){ var ks=M.keys||[]; if(!ks.length) return M.hints; return ['Parameters to change: '+ks.map(keyName).join('; ')+' (marked in the parameter panel)'].concat(M.hints); }
 function keyName(k){ if(k==='fs') return 'Fat suppression'; if(k==='resp') return 'Respiration'; if(k==='satband') return 'Spatial saturation pulse'; if(k==='vat') return 'VAT'; if(k==='semac') return 'SEMAC'; var d=MS.PDEF[k]; return d?d.n:k; }
 function markMissionKeys(){ document.querySelectorAll('.sim-control.mhl,.chk.mhl').forEach(function(e){ e.classList.remove('mhl'); }); if(mode!=='mission'||!mission||mhint<1||!mission.keys) return;
   mission.keys.forEach(function(k){ var e=document.querySelector('#params [data-k="'+k+'"]'); if(!e) return; e.classList.add('mhl'); var sec=e.closest('.pgrp'); if(sec&&sec.classList.contains('closed')) setClosed(sec,false); }); }
-function renderHints(){ var M=mission, hb=$('#mhints'); if(!hb||!M) return; var H=mHints(M); hb.innerHTML=''; for(var i=0;i<mhint;i++) hb.appendChild(el('p',{class:'mhint'+(i===0&&M.keys?' keys':'')},'Hint '+(i+1)+': '+H[i])); var b=$('#mhintbtn'); if(b){ b.textContent='Show hint ('+mhint+'/'+H.length+')'; b.disabled=mhint>=H.length; } markMissionKeys(); }
+function renderHints(){ var M=mission, hb=$('#mhints'); if(!hb||!M) return; var H=mHints(M); hb.innerHTML=''; for(var i=0;i<mhint;i++) hb.appendChild(el('p',{class:'mhint'+(i===0&&M.keys?' keys':'')},'Hint '+(i+1)+': '+H[i])); var lastH=hb.lastChild; var b=$('#mhintbtn'); if(b){ b.textContent='Show hint ('+mhint+'/'+H.length+')'; b.disabled=mhint>=H.length; } markMissionKeys(); if(mhint&&typeof lastH!=='undefined'&&lastH) barReveal(lastH); }
 function missionEval(){ if(mode!=='mission'||!mission||!res||!res.outs||!res.outs[0]||!res.outs[0].data) return; var M=mission, i=res.info, cm=medians(res,res.outs[0]), air=airMean(res,res.outs[0]);
   var E={st:st,p:i.p,info:i,T:i.T,sar:i.sar,snr:i.snr0/(snrRef||i.snr0)*100,wrap:i.wrap||0,readEPI:i.readEPI||0,csPix:Math.abs(MS.FAT_PPM*42.577*st.B0/((i.p&&i.p.bw)||st.p.bw)),
     sig:function(k){ return cm[k]?cm[k].v:0; }, cnr:function(a,b){ return Math.abs((cm[a]?cm[a].v:0)-(cm[b]?cm[b].v:0))*i.snr0; },
@@ -9777,11 +9781,11 @@ function missionEval(){ if(mode!=='mission'||!mission||!res||!res.outs||!res.out
   critsOf(M).forEach(function(c){ var r; try{ r=c.f(E)||{}; }catch(e){ r={ok:false,v:'—'}; } if(!r.ok) all=false; var li=el('li',{class:r.ok?'ok':'ng'}); li.appendChild(el('span',{class:'mk','aria-hidden':'true'},r.ok?'✓':'✗')); li.appendChild(document.createTextNode(c.label+(r.v!==''&&r.v!=null?' (now '+r.v+')':''))); li.setAttribute('aria-label',(r.ok?'Met: ':'Not met: ')+c.label); ul.appendChild(li); });
   mstat(critsOf(M).length-ul.querySelectorAll('li.ng').length,critsOf(M).length,all);
   var rb=$('#mresult'); if(!rb) return;
-  if(all){ if(mrec&&!mrec.solved){ mrec.solved=true; mrec.tSolve=Date.now(); endAttempt(); buildSeqList(); toast('Task solved!'); }
+  if(all){ var first=!!(mrec&&!mrec.solved); if(mrec&&!mrec.solved){ mrec.solved=true; mrec.tSolve=Date.now(); endAttempt(); buildSeqList(); toast('Task solved!'); }
     var t=mrec?Math.round((mrec.tSolve-mrec.start)/1000):0; rb.innerHTML=''; var d=el('div',{class:'mdone'}); d.appendChild(el('b',{},'Solved!')); d.appendChild(el('span',{},'  Time '+Math.floor(t/60)+':'+('0'+t%60).slice(-2)+' · hints '+(mrec?mrec.hints:0)+' · changes '+(mrec?Math.max(0,mrec.changes):0)+''));
     d.appendChild(el('p',{},M.expl)); var sv2=solvedSet(), same=MS.MISSIONS.filter(function(x){ return x.lv===M.lv; }), nx=same.slice(same.indexOf(M)+1).concat(same.slice(0,same.indexOf(M))).filter(function(x){ return !sv2[x.id]; })[0];
     if(nx){ var bn=el('button',{type:'button'},'Next task: '+nx.title); bn.onclick=function(){ startMission(nx.id); }; d.appendChild(bn); }
-    else { var L=MS.MISSION_LEVELS, nl=L[L.indexOf(M.lv)+1]; d.appendChild(el('p',{class:'mlvdone'},(LVN[M.lv]||M.lv)+': all tasks solved!')); if(nl){ var bl=el('button',{type:'button'},(LVN[nl]||nl)+': go on'); bl.onclick=function(){ startMission(lvProgress(nl).next.id); }; d.appendChild(bl); } } rb.appendChild(d); }
+    else { var L=MS.MISSION_LEVELS, nl=L[L.indexOf(M.lv)+1]; d.appendChild(el('p',{class:'mlvdone'},(LVN[M.lv]||M.lv)+': all tasks solved!')); if(nl){ var bl=el('button',{type:'button'},(LVN[nl]||nl)+': go on'); bl.onclick=function(){ startMission(lvProgress(nl).next.id); }; d.appendChild(bl); } } rb.appendChild(d); if(first) setTimeout(function(){ barReveal(d); },30); }
   else rb.innerHTML=''; }
 /* 課題を終えて、いまの条件のままエキスパート用へ */
 function quitMission(silent){ if(mode!=='mission') return; endAttempt(); mode='expert'; mission=null; mrec=null; mhint=0; mstatHide();

@@ -552,11 +552,13 @@ function placeMissionBar(){ var lc=$('#learncard'), bar=$('#mbar'), top=$('#prot
     if(!mbarRO&&window.ResizeObserver){ mbarRO=new ResizeObserver(function(){ document.documentElement.style.setProperty('--mbarH',bar.offsetHeight+'px'); }); mbarRO.observe(bar); } document.documentElement.style.setProperty('--mbarH',bar.offsetHeight+'px'); }
   else { if(!mob && lc.parentNode===bar) top.insertBefore(lc,top.firstChild); bar.hidden=true; document.body.classList.remove('mbar'); document.documentElement.style.setProperty('--mbarH','0px'); } }
 
+/* 帯の中だけで、追加された内容が見えるようにスクロール（ページは動かさない） */
+function barReveal(e){ var col=e&&e.closest&&e.closest('#mbar .mcol2'); if(!col) return; var r=e.getBoundingClientRect(), c=col.getBoundingClientRect(); if(r.bottom>c.bottom||r.top<c.top) col.scrollTop+= (r.top-c.top)-4; }
 function mHints(M){ var ks=M.keys||[]; if(!ks.length) return M.hints; return ['動かすパラメータ：'+ks.map(keyName).join('・')+'（パラメータ欄に印をつけました）'].concat(M.hints); }
 function keyName(k){ if(k==='fs') return '脂肪抑制'; if(k==='resp') return '呼吸'; if(k==='satband') return '空間飽和パルス'; if(k==='vat') return 'VAT'; if(k==='semac') return 'SEMAC'; var d=MS.PDEF[k]; return d?d.n:k; }
 function markMissionKeys(){ document.querySelectorAll('.sim-control.mhl,.chk.mhl').forEach(function(e){ e.classList.remove('mhl'); }); if(mode!=='mission'||!mission||mhint<1||!mission.keys) return;
   mission.keys.forEach(function(k){ var e=document.querySelector('#params [data-k="'+k+'"]'); if(!e) return; e.classList.add('mhl'); var sec=e.closest('.pgrp'); if(sec&&sec.classList.contains('closed')) setClosed(sec,false); }); }
-function renderHints(){ var M=mission, hb=$('#mhints'); if(!hb||!M) return; var H=mHints(M); hb.innerHTML=''; for(var i=0;i<mhint;i++) hb.appendChild(el('p',{class:'mhint'+(i===0&&M.keys?' keys':'')},'ヒント '+(i+1)+'：'+H[i])); var b=$('#mhintbtn'); if(b){ b.textContent='ヒントを見る（'+mhint+'/'+H.length+'）'; b.disabled=mhint>=H.length; } markMissionKeys(); }
+function renderHints(){ var M=mission, hb=$('#mhints'); if(!hb||!M) return; var H=mHints(M); hb.innerHTML=''; for(var i=0;i<mhint;i++) hb.appendChild(el('p',{class:'mhint'+(i===0&&M.keys?' keys':'')},'ヒント '+(i+1)+'：'+H[i])); var lastH=hb.lastChild; var b=$('#mhintbtn'); if(b){ b.textContent='ヒントを見る（'+mhint+'/'+H.length+'）'; b.disabled=mhint>=H.length; } markMissionKeys(); if(mhint&&typeof lastH!=='undefined'&&lastH) barReveal(lastH); }
 function missionEval(){ if(mode!=='mission'||!mission||!res||!res.outs||!res.outs[0]||!res.outs[0].data) return; var M=mission, i=res.info, cm=medians(res,res.outs[0]), air=airMean(res,res.outs[0]);
   var E={st:st,p:i.p,info:i,T:i.T,sar:i.sar,snr:i.snr0/(snrRef||i.snr0)*100,wrap:i.wrap||0,readEPI:i.readEPI||0,csPix:Math.abs(MS.FAT_PPM*42.577*st.B0/((i.p&&i.p.bw)||st.p.bw)),
     sig:function(k){ return cm[k]?cm[k].v:0; }, cnr:function(a,b){ return Math.abs((cm[a]?cm[a].v:0)-(cm[b]?cm[b].v:0))*i.snr0; },
@@ -566,11 +568,11 @@ function missionEval(){ if(mode!=='mission'||!mission||!res||!res.outs||!res.out
   critsOf(M).forEach(function(c){ var r; try{ r=c.f(E)||{}; }catch(e){ r={ok:false,v:'—'}; } if(!r.ok) all=false; var li=el('li',{class:r.ok?'ok':'ng'}); li.appendChild(el('span',{class:'mk','aria-hidden':'true'},r.ok?'✓':'✗')); li.appendChild(document.createTextNode(c.label+(r.v!==''&&r.v!=null?'（いま '+r.v+'）':''))); li.setAttribute('aria-label',(r.ok?'達成：':'未達成：')+c.label); ul.appendChild(li); });
   mstat(critsOf(M).length-ul.querySelectorAll('li.ng').length,critsOf(M).length,all);
   var rb=$('#mresult'); if(!rb) return;
-  if(all){ if(mrec&&!mrec.solved){ mrec.solved=true; mrec.tSolve=Date.now(); endAttempt(); buildSeqList(); toast('課題クリア！'); }
+  if(all){ var first=!!(mrec&&!mrec.solved); if(mrec&&!mrec.solved){ mrec.solved=true; mrec.tSolve=Date.now(); endAttempt(); buildSeqList(); toast('課題クリア！'); }
     var t=mrec?Math.round((mrec.tSolve-mrec.start)/1000):0; rb.innerHTML=''; var d=el('div',{class:'mdone'}); d.appendChild(el('b',{},'クリア！')); d.appendChild(el('span',{},'　所要時間 '+Math.floor(t/60)+':'+('0'+t%60).slice(-2)+'・ヒント '+(mrec?mrec.hints:0)+' 回・変更 '+(mrec?Math.max(0,mrec.changes):0)+' 回'));
     d.appendChild(el('p',{},M.expl)); var sv2=solvedSet(), same=MS.MISSIONS.filter(function(x){ return x.lv===M.lv; }), nx=same.slice(same.indexOf(M)+1).concat(same.slice(0,same.indexOf(M))).filter(function(x){ return !sv2[x.id]; })[0];
     if(nx){ var bn=el('button',{type:'button'},'次の課題へ：'+nx.title); bn.onclick=function(){ startMission(nx.id); }; d.appendChild(bn); }
-    else { var L=MS.MISSION_LEVELS, nl=L[L.indexOf(M.lv)+1]; d.appendChild(el('p',{class:'mlvdone'},(LVN[M.lv]||M.lv)+'の課題をすべてクリアしました！')); if(nl){ var bl=el('button',{type:'button'},(LVN[nl]||nl)+'へ進む'); bl.onclick=function(){ startMission(lvProgress(nl).next.id); }; d.appendChild(bl); } } rb.appendChild(d); }
+    else { var L=MS.MISSION_LEVELS, nl=L[L.indexOf(M.lv)+1]; d.appendChild(el('p',{class:'mlvdone'},(LVN[M.lv]||M.lv)+'の課題をすべてクリアしました！')); if(nl){ var bl=el('button',{type:'button'},(LVN[nl]||nl)+'へ進む'); bl.onclick=function(){ startMission(lvProgress(nl).next.id); }; d.appendChild(bl); } } rb.appendChild(d); if(first) setTimeout(function(){ barReveal(d); },30); }
   else rb.innerHTML=''; }
 /* 課題を終えて、いまの条件のままエキスパート用へ */
 function quitMission(silent){ if(mode!=='mission') return; endAttempt(); mode='expert'; mission=null; mrec=null; mhint=0; mstatHide();

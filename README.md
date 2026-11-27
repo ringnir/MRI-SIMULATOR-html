@@ -14,6 +14,8 @@
   　｜　
   <a href="index.html"><strong>HTMLファイル（ダウンロード）</strong></a>
   　｜　
+  <a href="CHANGELOG.md">更新履歴</a>
+  　｜　
   <a href="README.en.md">English</a> · <a href="README.zh-CN.md">中文</a>
 </p>
 
@@ -194,14 +196,14 @@ GitHub Actions（[`.github/workflows/ci.yml`](.github/workflows/ci.yml)）で、
 
 論文・発表で使ったときは、次のように引用してください。
 
-> Ito, R. (2026). *MRI Parameter Simulator Pro (whole-body edition)* (Version 1.0.0) [Computer software]. https://github.com/ringnir/MRI-SIMULATOR-html
+> Ito, R. (2026). *MRI Parameter Simulator Pro (whole-body edition)* (Version 1.1.0) [Computer software]. https://github.com/ringnir/MRI-SIMULATOR-html
 
 ```bibtex
 @software{Ito_MRI_Parameter_Simulator_Pro_2026,
   author  = {Ito, Rintaro},
   title   = {{MRI Parameter Simulator Pro (whole-body edition)}},
   year    = {2026},
-  version = {1.0.0},
+  version = {1.1.0},
   url     = {https://github.com/ringnir/MRI-SIMULATOR-html},
   license = {MIT}
 }

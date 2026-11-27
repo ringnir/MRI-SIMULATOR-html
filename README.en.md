@@ -14,6 +14,8 @@
   　|　
   <a href="en.html"><strong>HTML file (download)</strong></a>
   　|　
+  <a href="CHANGELOG.md#english">Changelog</a>
+  　|　
   <a href="README.md">日本語</a> · <a href="README.zh-CN.md">中文</a>
 </p>
 
@@ -193,14 +195,14 @@ For bug reports, vendor-name corrections and proposals, see [CONTRIBUTING.md](CO
 
 If you use it in a paper or presentation, please cite it as:
 
-> Ito, R. (2026). *MRI Parameter Simulator Pro (whole-body edition)* (Version 1.0.0) [Computer software]. https://github.com/ringnir/MRI-SIMULATOR-html
+> Ito, R. (2026). *MRI Parameter Simulator Pro (whole-body edition)* (Version 1.1.0) [Computer software]. https://github.com/ringnir/MRI-SIMULATOR-html
 
 ```bibtex
 @software{Ito_MRI_Parameter_Simulator_Pro_2026,
   author  = {Ito, Rintaro},
   title   = {{MRI Parameter Simulator Pro (whole-body edition)}},
   year    = {2026},
-  version = {1.0.0},
+  version = {1.1.0},
   url     = {https://github.com/ringnir/MRI-SIMULATOR-html},
   license = {MIT}
 }

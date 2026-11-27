@@ -735,6 +735,37 @@ body.mob .mlvsel button{font-size:11.5px;padding:3px 8px}
 .mqopts button.ng{text-decoration:line-through;opacity:.55}
 .mqfb{font-size:12.5px;margin:6px 0 2px} .mqfb.ok{color:var(--rt-ok,#17804a)} .mqfb.ng{color:var(--rt-danger,#b42318)}
 .sidebar .nav-btn .art{font-size:11px;margin-right:3px}
+
+/* ===== PC：ワークスペース（パラメータ・画像・グラフが 1 画面に収まり、列ごとにスクロール） ===== */
+#legend label.off{display:none} #legend.all label.off{display:inline-flex;opacity:.7}
+#legend .lgmore{border:1px dashed var(--rt-line-strong);background:transparent;border-radius:999px;padding:1px 10px;font-size:12px;color:var(--rt-muted);cursor:pointer}
+@media(min-width:1200px) and (min-height:680px){
+  body:not(.mob) .pro-grid{height:calc(100vh - 24px);align-items:stretch;gap:14px;scroll-margin-top:12px}
+  body:not(.mob) .pro-params{position:relative;height:100%;min-height:0;overflow:hidden;display:flex;flex-direction:column}
+  body:not(.mob) .pro-params>.sim-card{flex:1 1 auto;min-height:0;overflow:auto;margin:0}
+  body:not(.mob) .pro-out,body:not(.mob) .pro-chart{position:relative;top:auto;height:100%;max-height:none;min-height:0;overflow:auto}
+  body:not(.mob) .pro-params>.sim-card,body:not(.mob) .pro-out,body:not(.mob) .pro-chart{scrollbar-width:thin;scrollbar-color:var(--rt-line-strong) transparent}
+  body:not(.mob) .pro-out>.sim-output{min-height:100%;box-sizing:border-box}
+  body:not(.mob) .pro-params>.sim-card{padding:16px 16px 14px}
+  body:not(.mob) .pro-params>.sim-card>h2{position:sticky;top:-16px;z-index:3;background:var(--rt-surface);margin:-16px -16px 8px;padding:14px 16px 8px;border-bottom:1px solid var(--rt-line)}
+  body:not(.mob) .pro-out .sim-output{padding:12px 14px}
+  body:not(.mob) .pro-chart .sim-output{padding:12px 14px}
+  body:not(.mob) #v-sim>.notice{padding:5px 12px;margin-bottom:10px} body:not(.mob) #v-sim>.notice p{font-size:11.5px;line-height:1.5}
+  body:not(.mob) .pro-top>.sim-card,body:not(.mob) #v-sim>.chapter-header{box-sizing:border-box}
+}
+
+/* 注意書きは見出しカードの下端に小さく */
+.chapter-header .notice.inhero{background:transparent;border:0;border-top:1px solid rgba(255,255,255,.16);border-radius:0;padding:7px 0 0;margin:10px 0 0;box-shadow:none}
+.chapter-header .notice.inhero p{color:rgba(255,255,255,.72);font-size:11.5px;line-height:1.55;margin:0}
+.chapter-header .notice.inhero strong{color:rgba(255,255,255,.9)}
+@media(min-width:1200px){
+  body:not(.mob) #sim-setup .phlab{min-width:0;width:auto;text-align:left;font-size:11px;color:var(--rt-muted);margin-right:1px;font-weight:600}
+  body:not(.mob) #sim-setup .phchips{gap:4px 14px;margin:2px 0 6px}
+  body:not(.mob) #sim-setup .les{gap:1px 14px;margin:4px 0 0}
+  body:not(.mob) #sim-setup h2{margin-bottom:4px}
+  body:not(.mob) #v-sim .chapter-header{padding:13px 20px 11px}
+  body:not(.mob) #v-sim .chapter-header p{margin-bottom:2px}
+}
 #toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);background:var(--rt-ink,#1b2430);color:#fff;padding:9px 16px;border-radius:999px;font-size:13.5px;opacity:0;pointer-events:none;transition:all .2s;z-index:100}
 #toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
 body.mob #toast{bottom:84px}
@@ -9463,9 +9494,10 @@ function buildChartUI(){ var box=$('#chartctl'); if(!box||!res) return; box.inne
   box.appendChild(cks);
   /* 曲線に出す組織 */
   chartColors();
-  if(chart.mode==='curve'){ var lg=el('div',{class:'vtools',id:'legend',style:'margin-top:4px'}); var shown=0; pr.forEach(function(x,i){ if(chart.hide[x.key]===undefined) chart.hide[x.key]=!(x.key===chart.A||x.key===chart.B||(shown<5&&!/^(skin|bone|dura|air|marrow_r|choroid|vessel_l)$/.test(x.key))); if(!chart.hide[x.key]) shown++; var lb=el('label'); var ci=el('input',{type:'checkbox'}); ci.checked=!chart.hide[x.key]; ci.onchange=function(){ chart.hide[x.key]=!ci.checked; drawChart(); }; lb.appendChild(ci); var sw=el('span',{class:'lgsw','aria-hidden':'true',html:'<svg width="26" height="8" viewBox="0 0 26 8"><line x1="1" y1="4" x2="25" y2="4" stroke="'+colorOf(x.key)+'" stroke-width="2.4" stroke-dasharray="'+dashOf(x.key).join(' ')+'"/></svg>'}); lb.appendChild(sw); lb.appendChild(document.createTextNode(x.n)); lg.appendChild(lb); }); box.appendChild(lg); }
+  if(chart.mode==='curve'){ var lg=el('div',{class:'vtools',id:'legend',style:'margin-top:4px'}); var shown=0; pr.forEach(function(x,i){ if(chart.hide[x.key]===undefined) chart.hide[x.key]=!(x.key===chart.A||x.key===chart.B||(shown<5&&!/^(skin|bone|dura|air|marrow_r|choroid|vessel_l)$/.test(x.key))); if(!chart.hide[x.key]) shown++; var lb=el('label',{class:chart.hide[x.key]?'off':''}); var ci=el('input',{type:'checkbox'}); ci.checked=!chart.hide[x.key]; ci.onchange=function(){ chart.hide[x.key]=!ci.checked; lb.className=ci.checked?'':'off'; drawChart(); }; lb.appendChild(ci); var sw=el('span',{class:'lgsw','aria-hidden':'true',html:'<svg width="26" height="8" viewBox="0 0 26 8"><line x1="1" y1="4" x2="25" y2="4" stroke="'+colorOf(x.key)+'" stroke-width="2.4" stroke-dasharray="'+dashOf(x.key).join(' ')+'"/></svg>'}); lb.appendChild(sw); lb.appendChild(document.createTextNode(x.n)); lg.appendChild(lb); }); var nOff=lg.querySelectorAll('label.off').length; if(nOff){ if(legendAll) lg.classList.add('all'); var tg=el('button',{type:'button',class:'lgmore','aria-expanded':String(!!legendAll)},legendAll?'收起其他组织':'其他组织（'+nOff+'）'); tg.onclick=function(){ legendAll=!legendAll; lg.classList.toggle('all',legendAll); tg.setAttribute('aria-expanded',String(legendAll)); tg.textContent=legendAll?'收起其他组织':'其他组织（'+lg.querySelectorAll('label.off').length+'）'; }; lg.appendChild(tg); } box.appendChild(lg); }
 }
 var DASHES=[[],[7,4],[2,3],[9,3,2,3],[4,4],[12,4],[2,2,6,2]]; function dashOf(k){ colorOf(k); return DASHES[colIdx[k]%DASHES.length]; }
+var legendAll=false;
 var colIdx={}; function colorOf(k){ if(colIdx[k]===undefined) colIdx[k]=Object.keys(colIdx).length; return PAL[colIdx[k]%PAL.length]; }
 function csel(name,opts,get,set){ var d=el('label',{class:'sim-control'}); d.appendChild(document.createTextNode(name)); var s=el('select'); opts.forEach(function(o){ var op=el('option',{value:o[0]},o[1]); if(String(get())===String(o[0])) op.selected=true; s.appendChild(op); }); s.onchange=function(){ set(s.value); }; d.appendChild(s); return d; }
 function chartSig(){ var c=JSON.parse(JSON.stringify(st)); [chart.xk,chart.mode==='map'?chart.yk:null].forEach(function(k){ if(!k) return; if(k==='b') c.p.bvals=''; else if(k==='dose') c.dose=0; else if(k==='B0') c.B0=0; else if(k==='hr') c.hr=0; else c.p[k]=0; }); return JSON.stringify(c)+'|'+cur+'|'+chart.mode+'|'+chart.full+'|'+JSON.stringify(chart.logk); }
@@ -9554,6 +9586,7 @@ function init(){ tables(); try{ if(window.top!==window) $('#save').hidden=true; 
   (function(){ var d=$('#psdbox'); if(d) d.addEventListener('toggle',function(){ if(d.open) psdDraw(); }); })();
   (function(){ var vt=document.querySelector('.pro-out .vtools'); if(!vt) return; var bc=el('button',{type:'button',id:'vchart','aria-pressed':'false'},'图表放旁边'); bc.onclick=toggleMini; vt.insertBefore(bc,vt.querySelector('#pin')); placeChart(); var b=el('button',{type:'button',id:'vmore','aria-expanded':'false'},'显示…'); b.onclick=function(){ var on=vt.classList.toggle('more'); b.setAttribute('aria-expanded',String(on)); }; vt.appendChild(b); })();
   (function(){ var w=$('#warns'); if(w) w.addEventListener('click',function(){ if(document.body.classList.contains('mob')) w.classList.toggle('open'); }); })();
+  (function(){ var n=document.querySelector('#v-sim>.notice'), h=document.querySelector('#v-sim>.chapter-header'); if(n&&h){ n.classList.add('inhero'); h.appendChild(n); } })();
   $('#share').onclick=function(){ syncHash(); var u=location.href; function done(){ toast('已复制含当前条件的链接'); } try{ if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(u).then(done,function(){ window.prompt('请复制此链接',u); }); else window.prompt('请复制此链接',u); }catch(e){ window.prompt('请复制此链接',u); } };
   $('#save').onclick=function(){ var c=$('#stage canvas'); if(!c) return; var a=el('a',{href:c.toDataURL('image/png'),download:'mrisim_'+st.seq+'.png'}); document.body.appendChild(a); a.click(); a.remove(); };
   $('#menu').onclick=function(){ var v=$('#sidebar').classList.toggle('open'); $('#shade').classList.toggle('visible',v); $('#menu').setAttribute('aria-expanded',String(v)); };

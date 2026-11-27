@@ -413,5 +413,8 @@
  "雑音": "Noise",
  "雑音と化学シフト": "Noise and chemical shift",
  "雑音を減らす方法は「ボクセルを大きくする」「加算を増やす」「バンド幅を狭くする」の 3 つ。どれも分解能・時間・化学シフトとの引き換えなので、目的に合う所で釣り合わせます。": "There are three ways to reduce noise: larger voxels, more averages and a narrower bandwidth. Each trades off resolution, time or chemical shift, so balance them for the purpose.",
- "雑音（SNR 不足）": "Noise (insufficient SNR)"
+ "雑音（SNR 不足）": "Noise (insufficient SNR)",
+ "他の組織（": "Other tissues (",
+ "他の組織をたたむ": "Hide other tissues",
+ "件）": ")"
 }
